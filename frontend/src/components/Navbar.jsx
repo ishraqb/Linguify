@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 
 function Navbar() {
     return (
@@ -7,12 +7,37 @@ function Navbar() {
                 Linguify
             </div>
 
-            <div className='nav-links'>
-                <Link to="/dashboard">Dashboard</Link>
-                <Link to="/search">Search</Link>
-                <Link to="/my-words">My Words</Link>
-                <Link to="/">Log Out</Link>
-            </div>
+            <NavLink
+                to="/dashboard"
+                className={({ isActive }) =>
+                    isActive ? 'nav-link active-nav-link' : 'nav-link'
+                }
+            >
+                Dashboard
+            </NavLink>
+
+            <NavLink
+                to="/search"
+                className={({ isActive }) =>
+                    isActive ? 'nav-link active-nav-link' : 'nav-link'
+                }
+            >
+                Search
+            </NavLink>
+
+            <NavLink
+                to="/my-words"
+                className={({ isActive }) =>
+                    isActive ? 'nav-link active-nav-link' : 'nav-link'
+                }
+            >
+                My Words
+            </NavLink>
+
+            <Link to ="/" className="nav-link">
+                Logout
+            </Link>
+
         </nav>
     )
 }

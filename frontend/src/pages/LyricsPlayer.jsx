@@ -23,6 +23,7 @@ function LyricsPlayer() {
 
   const [activeLineIndex, setActiveLineIndex] = useState(0)
   const [selectedWord, setSelectedWord] = useState(null)
+  const [savedWords, setSavedWords] = useState([])
 
   function goToPreviousLine() {
     if (activeLineIndex > 0) {
@@ -45,6 +46,10 @@ function LyricsPlayer() {
   }
 
   function saveWord() {
+    if (selectedWord && !savedWords.includes(selectedWord)) {
+      setSavedWords([...savedWords, selectedWord])
+    }
+
     setSelectedWord(null)
   }
 
@@ -76,6 +81,20 @@ function LyricsPlayer() {
       </div>
 
       <div className="song-duration-bar">Song Duration Bar</div>
+
+      <div className="saved-count-box">
+        Words saved this lesson: {savedWords.length}
+      </div>
+
+      {savedWords.length > 0 && (
+        <div className="saved-words-preview">
+          {savedWords.map((word) => (
+            <span key={word} className="saved-word-pull">
+              {word}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="lyrics-layout">
         <div className="lyrics-list">
