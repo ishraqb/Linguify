@@ -24,7 +24,7 @@ function Dashboard() {
       <div className="song-card">
         <h3>Sample Song</h3>
         <p>Sample Artist</p>
-        <Link to="/language-select" className="secondary-button">
+        <Link to="/language-selection" className="secondary-button">
           Start Lesson
         </Link>
       </div>
