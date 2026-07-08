@@ -1,10 +1,16 @@
-import { Link } from 'react-router-dom'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 function LanguageSelection() {
   const languages = ['English', 'Spanish', 'French', 'Korean', 'Japanese', 'Other']
-  const [selectedLanguage, setSelectedLanguage] = useState('')
 
+  const selectedSong = {
+    title: 'DÁKITI',
+    artist: 'Bad Bunny, Jhay Cortez',
+    coverUrl: '',
+  }
+
+  const [selectedLanguage, setSelectedLanguage] = useState('')
 
   return (
     <div className="page">
@@ -21,11 +27,21 @@ function LanguageSelection() {
       <h2 className="section-title center-text">You chose</h2>
 
       <div className="selected-song-box">
-        <div className="song-cover">Album/Song Cover Photo</div>
-
+        <div className="song-cover">
+          {selectedSong.coverUrl ? (
+            <img
+              src={selectedSong.coverUrl}
+              alt={`${selectedSong.title} cover`}
+              className="song-cover-img"
+            />
+          ) : (
+            'Album/Song Cover Photo'
+          )}
+        </div>
+          
         <div>
-          <h3>Song Title</h3>
-          <p>Artist</p>
+          <h3>{selectedSong.title}</h3>
+          <p>{selectedSong.artist}</p>
         </div>
       </div>
 

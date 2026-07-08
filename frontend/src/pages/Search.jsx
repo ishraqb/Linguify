@@ -1,50 +1,44 @@
+import { useState } from 'react'
 import Navbar from '../components/Navbar'
 import SongCard from '../components/SongCard'
-import { useState } from 'react'
+import { mockSongs } from '../data/mockSongs'
 
 function Search() {
   const [searchTerm, setSearchTerm] = useState('')
 
-  const songs = [
-    { title: 'DÁKITI', artist: 'Bad Bunny, Jhay Cortez', language: 'Spanish' },
-    { title: 'Despacito', artist: 'Luis Fonsi', language: 'Spanish' },
-    { title: 'La Vie En Rose', artist: 'Édith Piaf', language: 'French' },
-    { title: 'Dynamite', artist: 'BTS', language: 'Korean' },
-  ]
-
-  const filteredSongs = songs.filter((song) =>
+  const filteredSongs = mockSongs.filter((song) =>
     song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    song.artist.toLowerCase().includes(searchTerm.toLowerCase())
+    song.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    song.language.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
     <div className="page">
       <Navbar />
 
-      <h2 className="section-title">Search Header</h2>
+      <h2 className="section-title">Search Songs</h2>
 
       <div className="search-box">
         <input
           className="search-input"
           type="text"
-          placeholder="Search for a song"
+          placeholder="Search for a song, artist, or language"
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
         />
+
         <button className="secondary-button">Search</button>
       </div>
 
-      <div className="section-row">
-        <h2 className="section-title">Recently Played Header</h2>
-        <button className="secondary-button">Show all</button>
-      </div>
+      <h2 className="section-title">Search Results</h2>
 
       {filteredSongs.map((song) =>
         <SongCard
-          key={song.title}
+          key={song.id}
           title={song.title}
           artist={song.artist}
           language={song.language}
+          coverUrl={song.coverUrl}
         />
       )}
 

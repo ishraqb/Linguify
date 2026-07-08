@@ -2,7 +2,9 @@ function WordSaveModal({ word, onClose, onSave }) {
     return (
         <div className="modal-background">
             <div className="word-modal">
-                <button className="close-button">X</button>
+                <button className="close-button" onClick={onClose}>
+                    X
+                </button>
 
                 <h2>New Word</h2>
 

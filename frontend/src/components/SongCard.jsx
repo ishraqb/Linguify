@@ -1,10 +1,14 @@
 import { Link } from 'react-router-dom'
 
-function SongCard({ title, artist, language, linkTo = '/language-selection' }) {
+function SongCard({ title, artist, language, coverUrl, linkTo = '/language-selection' }) {
     return (
         <div className="song-card">
             <div className="song-cover">
-                Cover
+                {coverUrl ? (
+                    <img src={coverUrl} alt={`${title} cover`} className="song-cover-img" />
+                ) : (
+                    'Cover'
+                )}
             </div>
 
             <div className="song-info">

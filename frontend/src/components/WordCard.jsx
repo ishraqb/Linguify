@@ -3,7 +3,7 @@ function WordCard({ word, definition, songTitle, dateAdded }) {
         <div className="word-card">
             <div>
                 <h3>{word}</h3>
-                <h3>{definition}</h3>
+                <p>{definition}</p>
             </div>
 
             <div>

@@ -1,37 +1,13 @@
+import { useState } from 'react'
 import WordCard from '../components/WordCard'
 import Navbar from '../components/Navbar'
-import { useState } from 'react'
+import { mockWords } from '../data/mockWords'
 
 function MyWords() {
-  const savedWords = [
-    {
-      word: 'contigo',
-      definition: 'with you',
-      songTitle: 'DÁKITI',
-      dateAdded: 'Today',
-    },
-    {
-      word: 'estrellas',
-      definition: 'stars',
-      songTitle: 'DÁKITI',
-      dateAdded: 'Today',
-    },
-    {
-      word: 'ciudad',
-      definition: 'city',
-      songTitle: 'DÁKITI',
-      dateAdded: 'Yesterday',
-    },
-    {
-      word: 'perderme',
-      definition: 'to get lost',
-      songTitle: 'Sample Song',
-      dateAdded: 'Yesterday',
-    },
-  ]
-
   const [searchTerm, setSearchTerm] = useState('')
-  const filteredWords = savedWords.filter((item) =>
+  const [message, setMessage] = useState('')
+
+  const filteredWords = mockWords.filter((item) =>
     item.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.definition.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.songTitle.toLowerCase().includes(searchTerm.toLowerCase())
@@ -45,7 +21,7 @@ function MyWords() {
       <div className="section-row">
         <h2 className="section-title">My Words</h2>
         <div className="word-count">
-          {savedWords.length} words saved
+          {mockWords.length} words saved
         </div>
       </div>
 
@@ -63,9 +39,14 @@ function MyWords() {
         />
       </div>
 
-      <button className="main-button wide-button">
+      <button 
+        className="main-button wide-button"
+        onClick={() => setMessage('Flashcard review coming soon!')}
+      >
         Start Flashcard Review
       </button>
+
+      {message && <p className="page-text">{message}</p>}
       
       {filteredWords.map((item) =>
         <WordCard

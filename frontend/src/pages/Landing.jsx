@@ -9,7 +9,9 @@ function Landing() {
           <h1>Linguify</h1>
         </div>
 
-        <button className="secondary-button">About</button>
+        <a href="#how-it-works" className="secondary-button">
+          About
+        </a>
       </div>
 
       <div className="landing-content">
@@ -28,6 +30,14 @@ function Landing() {
 
         <div className="image-box">Thumbnail / Image</div>
       </div>
+
+      <section id="how-it-works" className="info-card">
+        <h2>How it works</h2>
+        <p>
+          Log in with Spotify, choose a song, select a translation language,
+          follow the lyrics line by line, and save new vocabulary words for review.
+        </p>
+      </section>
 
       <Link to="/dashboard" className="main-button wide-button">
         Login with Spotify

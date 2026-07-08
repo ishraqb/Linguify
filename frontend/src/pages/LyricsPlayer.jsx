@@ -1,25 +1,15 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import WordSaveModal from "../components/WordSaveModal"
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import WordSaveModal from '../components/WordSaveModal'
+import { mockLyrics } from '../data/mockLyrics'
 
 function LyricsPlayer() {
-  const lyrics = [
-    {
-      original: "Que me quiero ir contigo",
-      translation: "That I want to go with you",
-      words: ["Que", "me", "quiero", "ir", "contigo"],
-    },
-    {
-      original: "Y perderme en la ciudad",
-      translation: "And get lost in the city",
-      words: ["Y", "perderme", "en", "la", "ciudad"],
-    },
-    {
-      original: "Bajo luces y estrellas",
-      translation: "Under lights and stars",
-      words: ["Bajo", "luces", "y", "estrellas"],
-    },
-  ];
+  const selectedSong = {
+    title: 'DÁKITI',
+    artist: 'Bad Bunny, Jhay Cortez',
+  }
+
+  const lyrics = mockLyrics
 
   const [activeLineIndex, setActiveLineIndex] = useState(0)
   const [selectedWord, setSelectedWord] = useState(null)
@@ -61,7 +51,9 @@ function LyricsPlayer() {
         </Link>
 
         <div className="song-title-box">
-          <h1>Song Title - Artists</h1>
+          <h1>
+            {selectedSong.title} - {selectedSong.artist}
+          </h1>
           <p>Choose playback mode</p>
         </div>
 
@@ -89,7 +81,7 @@ function LyricsPlayer() {
       {savedWords.length > 0 && (
         <div className="saved-words-preview">
           {savedWords.map((word) => (
-            <span key={word} className="saved-word-pull">
+            <span key={word} className="saved-word-pill">
               {word}
             </span>
           ))}
@@ -100,7 +92,7 @@ function LyricsPlayer() {
         <div className="lyrics-list">
           {lyrics.map((line, index) => (
             <div
-              key={index}
+              key={line.id}
               className={
                 index === activeLineIndex
                   ? 'lyric-line active-lyric'
@@ -114,11 +106,11 @@ function LyricsPlayer() {
         </div>
 
         <div className="word-panel">
-          <h3>Tap a word to learn </h3>
+          <h3>Tap a word to learn</h3>
 
           {lyrics[activeLineIndex].words.map((word, index) => (
-            <button 
-              key={index}
+            <button
+              key={`${word}-${index}`}
               className="word-button"
               onClick={() => handleWordClick(word)}
             >
@@ -154,7 +146,7 @@ function LyricsPlayer() {
         />
       )}
     </div>
-  );
+  )
 }
 
-export default LyricsPlayer;
+export default LyricsPlayer
