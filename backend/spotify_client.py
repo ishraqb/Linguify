@@ -4,11 +4,13 @@ import base64
 from urllib.parse import urlencode
 
 import requests
+
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_API_BASE = "https://api.spotify.com/v1"
 
 SCOPES = "user-read-recently-played user-read-email"
+
 
 def _client_id():
   return os.environ["SPOTIFY_CLIENT_ID"]
@@ -24,7 +26,7 @@ def _basic_auth_header():
   return {"Authorization": "Basic " + base64.b64encode(creds).decode()}
 
 def build_authorize_url(state):
-  params ={
+  params = {
     "client_id": _client_id(),
     "response_type": "code",
     "redirect_uri": _redirect_uri(),
@@ -51,8 +53,8 @@ def refresh_access_token(refresh_token):
   resp = requests.post(
     SPOTIFY_TOKEN_URL,
     data={"grant_type": "refresh_token", "refresh_token": refresh_token},
-    headers=_basic_auth_header
-    timeout = 10,
+    headers=_basic_auth_header(),
+    timeout=10,
   )
   resp.raise_for_status()
   return resp.json()
