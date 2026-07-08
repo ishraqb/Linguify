@@ -2,6 +2,7 @@ import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+from routes import api_bp
 
 from auth import auth_bp
 
@@ -24,6 +25,7 @@ def create_app():
     )
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(api_bp)
 
     @app.get("/api/health")
     def health():
