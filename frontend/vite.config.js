@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    allowedHosts: ['polourgent-sectiondriver-5173.codio.io']
-  }
+    host: '0.0.0.0',
+    allowedHosts: ['.codio.io'],
+  },
 })
