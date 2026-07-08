@@ -1,39 +1,39 @@
-import { Link } from 'react-router-dom'
+import WordCard from '../components/WordCard'
+import Navbar from '../components/Navbar'
 
 function MyWords() {
   return (
     <div className="page">
-      <div className="top-nav">
-        <h1>Linguify</h1>
-        <div className="nav-links">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/search">Search</Link>
-          <Link to="/my-words">My Words</Link>
-        </div>
+      
+      <Navbar />
+
+      <div className="section-row">
+        <h2 className="section-title">My Words</h2>
+        <div className="word-count">Word Count</div>
       </div>
 
-      <h2 className="page-title">My Words</h2>
       <p className="page-text">
-        Review the vocabulary words you saved from songs
+        Review your saved vocabulary from song lyrics
       </p>
 
-      <button className="main-button">Start Flashcard Review</button>
-
-      <div className="word-card">
-        <h3>contigo</h3>
-        <p>Translation: with you</p>
-        <p>From: Sample Song</p>
+      <div className="search-box">
+        <input
+          className="search-input"
+          type="text"
+          placeholder="search-words"
+        />
       </div>
 
-      <div className="word-card">
-        <h3>corazón</h3>
-        <p>Translation: heart</p>
-        <p>From: Sample Song</p>
-      </div>
-
-      <Link to="/dashboard" className="secondary-button">
-        Back to Dashboard
-      </Link>
+      <button className="main-button wide-button">
+        Start Flashcard Review
+      </button>
+      
+      <WordCard
+        word="estrellas"
+        definition="stars"
+        songTitle="DÁKITI"
+        dateAdded="Today"
+      />
     </div>
   )
 }

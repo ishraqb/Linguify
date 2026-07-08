@@ -1,39 +1,43 @@
 import { Link } from 'react-router-dom'
+import Navbar from '../components/Navbar'
+import SongCard from '../components/SongCard'
+import WordCard from '../components/WordCard'
 
 function Dashboard() {
   return (
     <div className="page">
-      <div className="top-nav">
-        <h1>Linguify</h1>
-        <div className="nav-links">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/search">Search</Link>
-          <Link to="/my-words">My Words</Link>
+      <Navbar />
+
+      <div className="dashboard-grid">
+        <div>
+          <h2 className="section-title">Recently Played List</h2>
+
+          <SongCard title="DÁKITI" artist="Bad Bunny" />
+          <SongCard title="Despacito" artist="Luis Fonsi" />
+          <SongCard title="Tití Me Preguntó" artist="Bad Bunny" />
         </div>
-      </div>
 
-      <h2 className="page-title">Welcome Back</h2>
-      <p className="page-text">Start a new song lesson or review your saved words</p>
+        <div>
+          <Link to="/search" className="main-button wide-button">
+            Begin New Song Lesson
+          </Link>
 
-      <Link to="/search" className="main-button">
-        Begin New Song Lesson
-      </Link>
+          <h2 className="section-title">Recent Words</h2>
 
-      <h3 className="section-title">Recently Played</h3>
+          <WordCard
+            word="contigo"
+            definition="with you"
+            songTitle="DÁKITI"
+            dateAdded="Today"
+          />
 
-      <div className="song-card">
-        <h3>Sample Song</h3>
-        <p>Sample Artist</p>
-        <Link to="/language-selection" className="secondary-button">
-          Start Lesson
-        </Link>
-      </div>
-
-      <h3 className="section-title">Recent Words</h3>
-
-      <div className="word-card">
-        <h3>contigo</h3>
-        <p>with you</p>
+          <WordCard
+            word="estrellas"
+            definition="stars"
+            songTitle="DÁKITI"
+            dateAdded="Today"
+          />
+        </div>
       </div>
     </div>
   )
