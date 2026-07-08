@@ -583,3 +583,19 @@ button {
         grid-template-columns: 1fr;
     }
 }
+.selected-language {
+    background: #1db954;
+    color: white;
+    border-color: #1db954;
+}
+
+.selected-text {
+    text-align: center;
+    font-weight: bold;
+    margin: 12px 0;
+}
+
+.disabled-button {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

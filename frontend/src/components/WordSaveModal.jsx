@@ -1,4 +1,4 @@
-function WordSaveModal() {
+function WordSaveModal({ word, onClose, onSave }) {
     return (
         <div className="modal-background">
             <div className="word-modal">
@@ -8,7 +8,7 @@ function WordSaveModal() {
 
                 <div className="modal-section">
                     <h3>Word</h3>
-                    <p>contigo</p>
+                    <p>{word}</p>
                 </div>
 
                 <div className="modal-section">
@@ -32,8 +32,12 @@ function WordSaveModal() {
                 </div>
 
                 <div className="button-row">
-                    <button className="secondary-button">Cancel</button>
-                    <button className="main-button">Save to My Words</button>
+                    <button className="secondary-button" onClick={onClose}>
+                        Cancel
+                    </button>
+                    <button className="main-button" onClick={onSave}>
+                        Save to My Words
+                    </button>
                 </div>
             </div>
         </div>
