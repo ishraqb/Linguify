@@ -1,6 +1,11 @@
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 
 function LanguageSelection() {
+  const languages = ['English', 'Spanish', 'French', 'Korean', 'Japanese', 'Other']
+  const [selectedLanguage, setSelectedLanguage] = useState('')
+
+
   return (
     <div className="page">
       <div className="top-row">
@@ -29,17 +34,36 @@ function LanguageSelection() {
       </h2>
 
       <div className="language-grid">
-        <button className="language-button">English</button>
-        <button className="language-button">Spanish</button>
-        <button className="language-button">French</button>
-        <button className="language-button">Korean</button>
-        <button className="language-button">Japanese</button>
-        <button className="language-button">Other</button>
+        {languages.map((language) => (
+          <button
+            key={language}
+            className={
+              selectedLanguage === language
+                ? 'language-button selected-language'
+                : 'language-button'
+            }
+            onClick={() => setSelectedLanguage(language)}
+          >
+            {language}
+          </button>
+        ))}
       </div>
 
-      <Link to="/lyrics" className="main-button wide-button">
-        Start Lesson
-      </Link>
+      {selectedLanguage && (
+        <p className="selected-text">
+          Selected language: {selectedLanguage}
+        </p>
+      )}
+
+      {selectedLanguage ? (
+        <Link to="/lyrics" className="main-button wide-button">
+          Start Lesson
+        </Link>
+      ) : (
+        <button className="main-button wide-button disabled-button" disabled>
+          Choose a language first
+        </button>
+      )}
     </div>
   )
 }
