@@ -32,10 +32,10 @@ function Landing() {
       </div>
 
       <section id="how-it-works" className="info-card">
-        <h2>How it works</h2>
+        <h2>About</h2>
         <p>
-          Log in with Spotify, choose a song, select a translation language,
-          follow the lyrics line by line, and save new vocabulary words for review.
+          You log in with Spotify, pick a song, and choose a language. Linguify shows the lyrics line-by-line with translations underneath. 
+          Tap any word you don’t know to see its translation and hear how it’s pronounced, then save it to a personal flashcard deck to review later
         </p>
       </section>
 
