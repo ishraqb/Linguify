@@ -76,21 +76,21 @@ def is_token_expired(expires_at, now=None):
   now = now if now is not None else time.time()
   return now >= (expires_at - 60)
 
-def search_tracks(access_token, query, limit=20):
+def search_tracks(access_token, query, limit=10):
   resp = requests.get(
     f"{SPOTIFY_API_BASE}/search",
-    headers={"Authorization": f"Bearer{access_token}"},
+    headers={"Authorization": f"Bearer {access_token}"},
     params={"q": query, "type": "track", "limit": limit},
     timeout=10,
-  ) 
+  )
   resp.raise_for_status()
   return resp.json()
 
 def get_recently_played(access_token, limit=20):
   resp = requests.get(
     f"{SPOTIFY_API_BASE}/me/player/recently-played",
-    headers={"Authorization": f"Bearer{access_token}"},
-    parmas={"limit": limit},
+    headers={"Authorization": f"Bearer {access_token}"},
+    params={"limit": limit},
     timeout=10
   )
   resp.raise_for_status()
