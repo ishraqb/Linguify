@@ -33,7 +33,7 @@ function Search() {
         <p>Sample Artist</p>
         <p>Album: Sample Album</p>
 
-        <Link to="/language-select" className="main-button">
+        <Link to="/language-selection" className="main-button">
           Choose Song
         </Link>
       </div>

@@ -4,7 +4,7 @@ function LyricsPlayer() {
   return (
     <div className="lyrics-page">
       <div className="lyrics-header">
-        <Link to="/language-select" className="back-link">
+        <Link to="/language-selection" className="back-link">
           ← Back
         </Link>
 
