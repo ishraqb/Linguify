@@ -50,7 +50,7 @@ def exchange_code_for_token(code):
 def refresh_access_token(refresh_token):
   resp = requests.post(
     SPOTIFY_TOKEN_URL,
-    data="grant_type": "refresh_token", "refresh_token": refresh_token),
+    data={"grant_type": "refresh_token", "refresh_token": refresh_token},
     headers=_basic_auth_header
     timeout = 10,
   )
