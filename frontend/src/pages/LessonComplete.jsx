@@ -1,42 +1,65 @@
 import { Link } from 'react-router-dom'
+import Navbar from "../components/Navbar"
 
 function LessonComplete() {
   return (
     <div className="page">
-      <h1 className="page-title">Lesson Complete!</h1>
-      <p className="page-text">You finished your song lesson</p>
+      <Navbar/>
+
+      <div className="complete-header">
+        <h1>Song Finished</h1>
+      </div>
 
       <div className="stats-grid">
         <div className="stat-card">
-          <h3>12</h3>
-          <p>Lines Reviewed</p>
+          <h3>Lines Reviewed</h3>
+          <p># of lines</p>
         </div>
 
         <div className="stat-card">
-          <h3>5</h3>
-          <p>Words Saved</p>
+          <h3>Words Saved</h3>
+          <p># of words</p>
         </div>
 
         <div className="stat-card">
-          <h3>English</h3>
-          <p>Target Language</p>
+          <h3>Language</h3>
+          <h3>translated language</h3>
         </div>
       </div>
 
-      <h2 className="section-title">New Words Learned</h2>
+      <div className="new-words-box">
+        <h2>New words learned</h2>
 
-      <div className="word-card">
-        <h3>contigo</h3>
-        <p>with you</p>
+        <div className="word-row">
+          <p>Word</p>
+          <p>Translated word</p>
+          <p>Brief Definition</p>
+        </div>
+
+        <div className="word-row">
+          <p>Word</p>
+          <p>Translated word</p>
+          <p>Brief Definition</p>
+        </div>
+
+        <div className="word-row">
+          <p>Word</p>
+          <p>Translated word</p>
+          <p>Brief Definition</p>
+        </div>
       </div>
 
       <div className="button-row">
-        <Link to="/my-words" className="main-button">
-          Review Saved Words
+        <Link to="/dashboard" className="secondary-button">
+          Back to Dashboard
+        </Link>
+
+        <Link to="/my-words" className="secondary-button">
+          Go to My Words
         </Link>
 
         <Link to="/search" className="secondary-button">
-          Choose New Song
+          Start a New Song
         </Link>
       </div>
     </div>

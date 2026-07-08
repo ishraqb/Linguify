@@ -3,18 +3,33 @@ import { Link } from 'react-router-dom'
 function Landing() {
   return (
     <div className="page">
-      <h1 className="page-title">Linguify</h1>
+      <div className="landing-header">
+        <div className="brand-box">
+          <div className="logo-box">Icon</div>
+          <h1>Linguify</h1>
+        </div>
 
-      <p className="page-text">
-        Learn languages through songs you already love
-      </p>
-
-      <div className="info-card">
-        <h2>How it works</h2>
-        <p>Pick a song, translate the lyrics, save new words, and review them later</p>
+        <button className="secondary-button">About</button>
       </div>
 
-      <Link to="/dashboard" className="main-button">
+      <div className="landing-content">
+        <div className="landing-text">
+          <div className="large-box">
+            <h2>Learn languages through songs you love</h2>
+          </div>
+
+          <div className="small-box">
+            <p>
+              Pick a song from Spotify, translate the lyrics, save new words,
+              and review them with flashcards
+            </p>
+          </div>
+        </div>
+
+        <div className="image-box">Thumbnail / Image</div>
+      </div>
+
+      <Link to="/dashboard" className="main-button wide-button">
         Login with Spotify
       </Link>
     </div>

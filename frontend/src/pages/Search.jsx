@@ -1,21 +1,12 @@
-import { Link } from 'react-router-dom'
+import Navbar from '../components/Navbar'
+import SongCard from '../components/SongCard'
 
 function Search() {
   return (
     <div className="page">
-      <div className="top-nav">
-        <h1>Linguify</h1>
-        <div className="nav-links">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/search">Search</Link>
-          <Link to="/my-words">My Words</Link>
-        </div>
-      </div>
+      <Navbar />
 
-      <h2 className="page-title">Search Songs</h2>
-      <p className="page-text">
-        Search for a song or choose from recently played tracks
-      </p>
+      <h2 className="section-title">Search Header</h2>
 
       <div className="search-box">
         <input
@@ -26,17 +17,22 @@ function Search() {
         <button className="secondary-button">Search</button>
       </div>
 
-      <h3 className="section-title">Song Results</h3>
-
-      <div className="song-card">
-        <h3>Sample Song</h3>
-        <p>Sample Artist</p>
-        <p>Album: Sample Album</p>
-
-        <Link to="/language-selection" className="main-button">
-          Choose Song
-        </Link>
+      <div className="section-row">
+        <h2 className="section-title">Recently Played Header</h2>
+        <button className="secondary-button">Show all</button>
       </div>
+
+      <SongCard
+        title="DÁKITI"
+        artist="Bad Bunny, Jhay Cortez"
+        language="Spanish"
+      />
+
+      <SongCard
+        title="Despacito"
+        artist="Luis Fonsi"
+        language="Spanish"
+      />
     </div>
   )
 }

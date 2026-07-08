@@ -2,59 +2,77 @@ import { Link } from 'react-router-dom'
 
 function LyricsPlayer() {
   return (
-    <div className="lyrics-page">
-      <div className="lyrics-header">
-        <Link to="/language-selection" className="back-link">
+    <div className="page">
+      <div className="top-row">
+        <Link to="/language-selection" className="secondary-button">
           ← Back
         </Link>
 
-        <div>
-          <h1>Sample Song</h1>
-          <p>Sample Artist</p>
+        <div className="song-title-box">
+          <h1>Song Title - Artists</h1>
+          <p>Choose playback mode</p>
+        </div>
+
+      <div className="step-box">Step 3/4</div>
+    </div>
+
+    <div className="playback-options">
+      <button className="secondary-button">
+        Preview Free
+        <span>30 sec preview clip</span>
+      </button>
+
+      <button className="secondary-button">
+        Full Song Premium
+        <span>Play full song with synced lyrics</span>
+      </button>
+    </div>
+
+    <div className="Song Duration Bar"></div>
+
+    <div className="lyrics-layout">
+      <div className="lyrics-list">
+        <div className="lyric-line">
+          <p>Translated lyrics</p>
+          <span>Original lyrics</span>
+        </div>
+
+        <div className="lyric-line active-lyric">
+          <p>Translated lyrics</p>
+          <span>Original lyrics</span>
+        </div>
+
+        <div className="lyric-line">
+          <p>Translated lyrics</p>
+          <span>Original lyrics</span>
+        </div>
+
+        <div className="lyric-line">
+          <p>Translated lyrics</p>
+          <span>Original lyrics</span>
         </div>
       </div>
 
-      <div className="playback-box">
-        <button className="secondary-button">Preview Free</button>
-        <button className="main-button">Full Song Premium</button>
-      </div>
+      <div className="word-panel">
+        <h3>Tap a word to learn </h3>
 
-      <div className="progress-bar-box">
-        <div className="progress-bar-fill"></div>
-      </div>
-
-      <div className="lyrics-box">
-        <div className="lyric-line dim-line">
-          <p>Dimmed lyric line above</p>
-          <span>Translated lyric line above</span>
-        </div>
-
-        <div className="lyric-line active-line">
-          <p>Highlighted active lyric line</p>
-          <span>Translated active lyric line</span>
-        </div>
-
-        <div className="lyric-line dim-line">
-          <p>Dimmed lyric line below</p>
-          <span>Translated lyric line below</span>
-        </div>
-      </div>
-
-      <div className="word-area">
-        <p>Tap a word to learn it:</p>
-        <button className="word-button">sample</button>
-        <button className="word-button">lyric</button>
-        <button className="word-button">word</button>
-      </div>
-
-      <div className="lesson-controls">
-        <button className="secondary-button">Previous Line</button>
-        <Link to="/lesson-complete" className="main-button">
-          Finish Lesson
-        </Link>
-        <button className="secondary-button">Next Line</button>
+        <button className="word-button">Word</button>
+        <button className="word-button">Word</button>
+        <button className="word-button">Word</button>
+        <button className="word-button">Word</button>
+        <button className="word-button">Word</button>
+        <button className="word-button">Word</button>
       </div>
     </div>
+
+    <div className="lesson-controls">
+      <button className="secondary-button">Previous Line</button>
+      <p>Tap a word to learn and save it</p>
+      <Link to="/lesson-complete" className="secondary-button">
+        Next Line
+      </Link>
+    </div>
+  </div>
   )
 }
 

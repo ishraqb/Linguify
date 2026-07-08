@@ -1,248 +1,585 @@
+/* ---------- Global Reset ---------- */
+
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #f6f8f5;
-  color: #1f1f1f;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f7f7f7;
+    color: #1f1f1f;
 }
 
 a {
-  text-decoration: none;
+    text-decoration: none;
+    color: inherit;
 }
 
+button {
+    font-family: inherit;
+}
+
+/* ---------- Page Layout ---------- */
+
 .page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 40px 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
 }
 
 .page-title {
-  font-size: 36px;
-  margin-bottom: 12px;
+    font-size: 32px;
+    margin-bottom: 12px;
 }
 
 .page-text {
-  font-size: 18px;
-  margin-bottom: 24px;
-  color: #555;
+    color: #555;
+    margin-bottom: 24px;
 }
 
 .section-title {
-  margin-top: 32px;
-  margin-bottom: 16px;
+    margin-top: 28px;
+    margin-bottom: 16px;
 }
 
-.top-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 40px;
+.center-text {
+    text-align: center;
 }
 
-.nav-links {
-  display: flex;
-  gap: 20px;
+.section-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
 }
 
-.nav-links a {
-  color: #1f1f1f;
-  font-weight: bold;
-}
+/* ---------- Buttons ---------- */
 
 .main-button,
 .secondary-button,
 .language-button,
 .word-button {
-  border: none;
-  border-radius: 999px;
-  padding: 10px 18px;
-  font-weight: bold;
-  cursor: pointer;
-  display: inline-block;
+    border: 2px solid #1f1f1f;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
 }
 
 .main-button {
-  background: #1db954;
-  color: white;
+    background: #1db954;
+    color: white;
+    border-color: #1db954;
 }
 
 .secondary-button {
-  background: #e6e6e6;
-  color: #1f1f1f;
+    background: white;
+    color: #1f1f1f;
 }
 
-.back-link {
-  display: inline-block;
-  margin-bottom: 24px;
-  color: #1f1f1f;
-  font-weight: bold;
+.main-button:hover {
+    background: #169c46;
 }
 
-.info-card,
+.secondary-button:hover,
+.language-button:hover,
+.word-button:hover {
+    background: #eeeeee;
+}
+
+.wide-button {
+    width: 100%;
+    margin: 16px 0;
+}
+
+/* ---------- Navbar ---------- */
+
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 3px solid #1f1f1f;
+    padding: 12px 16px;
+    margin-bottom: 28px;
+    background: white;
+}
+
+.top-nav h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.nav-links {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.nav-links a {
+    border: 2px solid #1f1f1f;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+}
+
+.nav-links a:hover {
+    background: #eaeaea;
+}
+
+/* ---------- Landing Page ---------- */
+
+.landing-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 3px solid #1f1f1f;
+    padding: 16px;
+    margin-bottom: 28px;
+    background: white;
+}
+
+.brand-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-box {
+    border: 2px solid #1f1f1f;
+    padding: 12px;
+    border-radius: 6px;
+    background: white;
+}
+
+.landing-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin-bottom: 24px;
+}
+
+.large-box,
+.small-box,
+.image-box {
+    border: 3px solid #1f1f1f;
+    border-radius: 8px;
+    background: white;
+    padding: 24px;
+}
+
+.large-box {
+    margin-bottom: 20px;
+    min-height: 120px;
+}
+
+.small-box {
+    min-height: 90px;
+}
+
+.image-box {
+    min-height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #555;
+}
+
+/* ---------- Cards ---------- */
+
 .song-card,
 .word-card,
-.stat-card {
-  background: white;
-  border-radius: 20px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+.stat-card,
+.info-card {
+    border: 3px solid #1f1f1f;
+    border-radius: 8px;
+    padding: 16px;
+    background: white;
+    margin-bottom: 16px;
 }
 
+.song-card {
+    display: grid;
+    grid-template-columns: 110px 1fr auto;
+    gap: 16px;
+    align-items: center;
+}
+
+.song-cover {
+    border: 2px solid #1f1f1f;
+    border-radius: 6px;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #555;
+}
+
+.song-info h3,
+.word-card h3 {
+    margin: 0 0 8px;
+}
+
+.song-info p,
+.word-card p {
+    margin: 4px 0;
+}
+
+/* ---------- Dashboard ---------- */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+}
+
+/* ---------- Search ---------- */
+
 .search-box {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
 .search-input {
-  flex: 1;
-  border: 1px solid #ddd;
-  border-radius: 999px;
-  padding: 10px 16px;
+    flex: 1;
+    border: 3px solid #1f1f1f;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+}
+
+/* ---------- Language Selection ---------- */
+
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.step-bar,
+.step-box {
+    border: 3px solid #1f1f1f;
+    background: white;
+    border-radius: 6px;
+    padding: 10px 16px;
+    text-align: center;
+}
+
+.step-bar {
+    flex: 1;
+}
+
+.selected-song-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    border: 3px solid #1f1f1f;
+    border-radius: 8px;
+    background: white;
+    padding: 20px;
+    max-width: 500px;
+    margin: 0 auto 28px;
 }
 
 .language-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin: 24px 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin: 24px 0;
 }
 
 .language-button {
-  background: white;
-  border: 1px solid #dcdcdc;
+    background: white;
 }
 
-.lyrics-page {
-  min-height: 100vh;
-  padding: 32px;
-  background: #121212;
-  color: white;
+/* ---------- Lyrics Playing Page ---------- */
+
+.song-title-box {
+    text-align: center;
 }
 
-.lyrics-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
+.song-title-box h1 {
+    margin: 0;
+    font-size: 28px;
 }
 
-.lyrics-header .back-link {
-  color: white;
+.song-title-box p {
+    margin: 6px 0 0;
+    color: #555;
 }
 
-.playback-box {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
+.playback-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    max-width: 600px;
+    margin: 0 auto 18px;
 }
 
-.progress-bar-box {
-  width: 100%;
-  height: 8px;
-  background: #333;
-  border-radius: 999px;
-  margin-bottom: 32px;
-  overflow: hidden;
+.playback-options button {
+    border-radius: 0;
 }
 
-.progress-bar-fill {
-  width: 40%;
-  height: 100%;
-  background: #1db954;
+.playback-options button:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
 }
 
-.lyrics-box {
-  max-width: 800px;
-  margin: 0 auto;
+.playback-options button:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.playback-options span {
+    display: block;
+    font-size: 12px;
+    font-weight: normal;
+    margin-top: 4px;
+}
+
+.song-duration-bar {
+    border: 3px solid #1f1f1f;
+    border-radius: 999px;
+    background: white;
+    padding: 6px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.lyrics-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.lyrics-list,
+.word-panel {
+    border: 3px solid #1f1f1f;
+    border-radius: 8px;
+    background: white;
+    padding: 16px;
 }
 
 .lyric-line {
-  margin-bottom: 32px;
+    border: 2px solid #1f1f1f;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+    opacity: 0.55;
 }
 
 .lyric-line p {
-  font-size: 28px;
-  margin-bottom: 6px;
+    margin: 0 0 6px;
+    font-weight: bold;
 }
 
 .lyric-line span {
-  font-size: 18px;
+    color: #555;
 }
 
-.dim-line {
-  opacity: 0.35;
+.active-lyric {
+    opacity: 1;
+    background: #e9f7ee;
+    border-color: #1db954;
 }
 
-.active-line {
-  opacity: 1;
+.word-panel {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
 }
 
-.active-line p {
-  font-size: 34px;
-  font-weight: bold;
-}
-
-.word-area {
-  max-width: 800px;
-  margin: 32px auto;
+.word-panel h3 {
+    grid-column: 1 / -1;
+    margin: 0 0 8px;
+    text-align: center;
 }
 
 .word-button {
-  margin-right: 10px;
-  background: #282828;
-  color: white;
-  border: 1px solid #444;
+    background: white;
 }
 
 .lesson-controls {
-  max-width: 800px;
-  margin: 32px auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+    margin-top: 18px;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin: 24px 0;
+.lesson-controls p {
+    border: 3px solid #1f1f1f;
+    border-radius: 8px;
+    background: white;
+    padding: 10px;
+    text-align: center;
+    margin: 0;
+}
+
+/* ---------- Word Save Modal ---------- */
+
+.modal-background {
+    min-height: 100vh;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 32px;
+}
+
+.word-modal {
+    width: 100%;
+    max-width: 520px;
+    border: 4px solid #1f1f1f;
+    border-radius: 10px;
+    background: white;
+    padding: 28px;
+    position: relative;
+}
+
+.close-button {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    border: 2px solid #1f1f1f;
+    background: white;
+    cursor: pointer;
+}
+
+.modal-section {
+    margin-bottom: 16px;
+}
+
+.modal-section h3 {
+    margin-bottom: 6px;
+}
+
+.modal-section p {
+    border: 2px solid #1f1f1f;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 0;
 }
 
 .button-row {
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
 }
 
-@media (max-width: 700px) {
-  .top-nav {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
+.button-row a,
+.button-row button {
+    flex: 1;
+}
 
-  .language-grid,
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
+/* ---------- Lesson Complete Page ---------- */
 
-  .search-box,
-  .button-row,
-  .lesson-controls {
-    flex-direction: column;
-  }
+.complete-header {
+    border: 3px solid #1f1f1f;
+    border-radius: 8px;
+    background: white;
+    padding: 28px;
+    text-align: center;
+    margin-bottom: 18px;
+}
 
-  .lyric-line p {
-    font-size: 24px;
-  }
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-bottom: 18px;
+}
 
-  .active-line p {
-    font-size: 28px;
-  }
+.stat-card {
+    border-radius: 0;
+    text-align: center;
+}
+
+.stat-card:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.stat-card:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.new-words-box {
+    border: 3px solid #1f1f1f;
+    border-radius: 8px;
+    background: white;
+    padding: 18px;
+}
+
+.word-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    border-bottom: 1px solid #ccc;
+    padding: 10px 0;
+}
+
+.word-row:last-child {
+    border-bottom: none;
+}
+
+/* ---------- My Words Page ---------- */
+
+.word-count {
+    border: 2px solid #1f1f1f;
+    border-radius: 6px;
+    background: white;
+    padding: 8px 12px;
+}
+
+.word-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 800px) {
+
+    .landing-content,
+    .dashboard-grid,
+    .lyrics-layout,
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .song-card,
+    .word-card,
+    .word-row {
+        grid-template-columns: 1fr;
+    }
+
+    .language-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .top-nav,
+    .top-row,
+    .section-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+    }
+
+    .lesson-controls {
+        grid-template-columns: 1fr;
+    }
 }
