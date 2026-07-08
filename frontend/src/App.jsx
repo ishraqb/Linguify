@@ -115,6 +115,14 @@ function App() {
 
       <div className="ticks"></div>
       <section id="spacer"></section>
+
+      <div className="container mt-5">
+        <div className="card p-4">
+          <h1 className="text-primary">Linguify</h1>
+          <p className="lead">Bootstrap is working if this looks styled.</p>
+          <button className="btn btn-success">Test Button</button>
+        </div>
+      </div>
     </>
   )
 }
