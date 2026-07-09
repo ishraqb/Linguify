@@ -3,6 +3,8 @@ from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
 from services.genius_service import search_song_metadata
 from services.translation_service import get_or_create_translation
+from models import Vocabulary
+from extensions import db
 
 import spotify_client as sp
 
@@ -97,3 +99,76 @@ def translate_song():
   if not result: 
     return jsonify(error="Song or lyrics not found"), 404
   return jsonify(result)
+
+@api_bp.post("/api/words")
+def save_word():
+  if "user_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+
+  data = request.get_json() or {}
+
+  word = data.get("word", "").strip()
+  translation = data.get("translation", "").strip()
+  target_language = data.get("target_language", "").strip()
+  song_id = data.get("song_id")
+  example_sentence = data.get("example_sentence")
+  pronunciation = data.get("pronunciation")
+
+  if not word or not translation or not target_language:
+    return jsonify(error="Missing word, translation, or target_language"), 400
+
+  vocab_word = Vocabulary(
+    user_id=session["user_id"],
+    song_id=song_id,
+    word=word,
+    translation=translation,
+    target_language=target_language,
+    example_sentence=example_sentence,
+    pronunciation=pronunciation,
+  )
+
+  db.session.add(vocab_word)
+  db.session.commit()
+
+  song_title = None
+  if vocab_word.song:
+    song_title = vocab_word.song.title
+
+  return jsonify({
+    "id": vocab_word.id,
+    "word": vocab_word.word,
+    "translation": vocab_word.translation,
+    "definition": vocab_word.translation,
+    "targetLanguage": vocab_word.target_language,
+    "exampleSentence": vocab_word.example_sentence,
+    "pronunciation": vocab_word.pronunciation,
+    "songTitle": song_title,
+    "dateAdded": vocab_word.created_at.strftime("%Y-%m-%d"),
+  }), 201
+
+@api_bp.get("/api/words")
+def get_words():
+  if "user_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+
+  vocab_words = (
+    Vocabulary.query
+    .filter_by(user_id=session["user_id"])
+    .order_by(Vocabulary.created_at.desc())
+    .all()
+  )
+
+  return jsonify(words=[
+    {
+      "id": item.id,
+      "word": item.word,
+      "translation": item.translation,
+      "definition": item.translation,
+      "targetLanguage": item.target_language,
+      "exampleSentence": item.example_sentence,
+      "pronunciation": item.pronunciation,
+      "songTitle": item.song.title if item.song else "",
+      "dateAdded": item.created_at.strftime("%Y-%m-%d"),
+    }
+    for item in vocab_words
+  ])

@@ -3,6 +3,9 @@ import secrets
 
 from flask import Blueprint, session, redirect, request, jsonify
 
+from models import User
+from extensions import db
+
 import spotify_client as sp
 
 auth_bp = Blueprint("auth", __name__)
@@ -23,6 +26,19 @@ def callback():
     token_data = sp.exchange_code_for_token(request.args.get("code"))
     profile = sp.get_user_profile(token_data["access_token"])
 
+    user = User.query.filter_by(spotify_id=profile["id"]).first()
+
+    if not user:
+        user = User(
+            spotify_id=profile["id"],
+            display_name=profile.get("display_name"),
+        )
+        db.session.add(user)
+    else:
+        user.display_name = profile.get("display_name")
+    db.session.commit()
+
+    session["user_id"] = user.id
     session["spotify_id"] = profile["id"]
     session["display_name"] = profile.get("display_name")
     session["access_token"] = token_data["access_token"]
@@ -38,7 +54,7 @@ def callback():
 def me():
     if "spotify_id" not in session:
         return jsonify(error="Not authenticated"), 401
-    return jsonify(id=session["spotify_id"], displayName=session.get("display_name"))
+    return jsonify(id=session["user_id"], spotifyId=session["spotify_id"], displayName=session.get("display_name"))
 
 
 @auth_bp.post("/api/logout")
