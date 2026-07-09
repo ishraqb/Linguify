@@ -1,6 +1,7 @@
 import requests
 from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
+from services.genius_service import search_song_metadata
 
 import spotify_client as sp
 
@@ -60,3 +61,18 @@ def get_lyrics():
   if not result:
     return jsonify(error="Lyrics not found"), 404
   return jsonify(result)
+@api_bp.get("/api/genius/search")
+def genius_search():
+  if "spotify_id" not in session: 
+    return jsonify(error="Not authenticated"), 401
+  title = request.args.get("title", "").strip()
+  artist = request.args.get("artist", "").strip()
+  if not title or not artist:
+    return jsonify(error="Missing title or artist"), 400
+  try:
+    metadata = search_song_metadata(title, artist)
+  except RuntimeError as e: 
+    return jsonify(error="Genius API request failed"), 502
+  if not metadata:
+    return jsonify(error="Song metadata not found"), 404
+  return jsonify(metadata)
