@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 from routes import api_bp
@@ -35,11 +35,13 @@ def create_app():
     def index():
         return send_from_directory(app.static_folder, "index.html")
 
-    @app.get("/<path:path>")
-    def spa(path):
-        target = os.path.join(app.static_folder, path)
-        if os.path.isfile(target):
-            return send_from_directory(app.static_folder, path)
+    # React Router owns client-side paths like /search and /dashboard.
+    # Flask's static handler 404s on those (no matching file), so catch the
+    # 404 and return the React entry point. Real /api 404s stay JSON.
+    @app.errorhandler(404)
+    def not_found(_):
+        if request.path.startswith("/api/"):
+            return jsonify(error="Not found"), 404
         return send_from_directory(app.static_folder, "index.html")
 
     return app
