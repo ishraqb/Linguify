@@ -4,13 +4,19 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from routes import api_bp
 from auth import auth_bp
-
+from extensions import db
+import models 
 load_dotenv()
 
 def create_app():
     dist_dir = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
     app = Flask(__name__, static_folder=dist_dir, static_url_path="")
     app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-change-me")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+      "DATABASE_URL",
+      "sqlite:///linguify.db"
+    )
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     app.config.update(
         SESSION_COOKIE_HTTPONLY=True,
@@ -23,6 +29,9 @@ def create_app():
         supports_credentials=True,
         origins=[os.environ.get("FRONTEND_URL", "http://localhost:5173")],
     )
+    db.init_app(app)
+    with app.app_context():
+      db.create_all()
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(api_bp)
