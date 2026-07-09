@@ -102,13 +102,17 @@ def simplify_track(track):
   
   album = track.get("album", {})
   images = album.get("images", [])
+  cover_url = images[0].get("url", "") if images else ""
 
   return{
     "id": track.get("id"),
     "title": track.get("name"),
+    "name": track.get("name"),
     "artist": ", ".join(a.get("name", "") for a in track.get("artists", [])),
     "album": album.get("name"),
     "language": "",
-    "coverUrl": images[0].get("url", "") if images else "",
+    "coverUrl": cover_url,
+    "albumArt": cover_url,
     "previewUrl": track.get("preview_url"),
+    "preview_url": track.get("preview_url"),
   }
