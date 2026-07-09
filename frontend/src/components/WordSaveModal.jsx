@@ -1,4 +1,4 @@
-function WordSaveModal({ word, onClose, onSave }) {
+function WordSaveModal({ word, lyricLine, translation, onClose, onSave }) {
     return (
         <div className="modal-background">
             <div className="word-modal">
@@ -15,23 +15,23 @@ function WordSaveModal({ word, onClose, onSave }) {
 
                 <div className="modal-section">
                     <h3>Translation</h3>
-                    <p>with you</p>
+                    <p>{translation || "Translation unavailable"}</p>
                 </div>
 
-                <div className="modal-section">
+                {/* <div className="modal-section">
                     <h3>Definition</h3>
-                    <p>Used to say “with you” or “together with you.”</p>
-                </div>
+                    <p>Coming soon</p>
+                </div> */}
 
                 <div className="modal-section">
                     <h3>From Lyrics</h3>
-                    <p>Que me quiero ir contigo</p>
+                    <p>{lyricLine || "No lyric line available"}</p>
                 </div>
 
-                <div className="modal-section">
+                {/* <div className="modal-section">
                     <h3>Example Sentence</h3>
-                    <p>Quiero estudiar contigo.</p>
-                </div>
+                    <p>Coming soon</p>
+                </div> */}
 
                 <div className="button-row">
                     <button className="secondary-button" onClick={onClose}>

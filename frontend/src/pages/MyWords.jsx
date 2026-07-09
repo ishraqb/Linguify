@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import WordCard from '../components/WordCard'
 import Navbar from '../components/Navbar'
 import { mockWords } from '../data/mockWords'
@@ -14,7 +15,7 @@ function MyWords() {
         setError('')
         const savedWords = await getSavedWords()
 
-        if (savedWords.length > 0) {
+        if (Array.isArray(savedWords) && savedWords.length > 0) {
           setWords(savedWords)
         }
       } catch (err) {
