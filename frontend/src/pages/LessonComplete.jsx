@@ -1,35 +1,25 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import { mockLessonSummary } from '../data/mockLessonSummary'
 
 function LessonComplete() {
-  const lessonSummary = {
-    songTitle: 'DÁKITI',
-    aritst: 'Bad Bunny, Jhay Cortez',
-    language: 'Spanish',
-    linesReviewed: 3, 
-    wordsSaved: 3,
-    newWords: [
-      {
-        id: 1,
-        word: 'contigo',
-        translation: 'with you',
-        definition: 'together with you',
-      },
-      {
-        id: 2,
-        word: 'cuidad',
-        translation: 'city',
-        definition: 'a large town',
-      },
-      {
-        id: 3,
-        word: 'estrellas',
-        translation: 'stars',
-        definition: 'bright objects seen in the night sky',
-      },
-    ],
+  const location = useLocation()
+
+  const selectedSong = location.state?.song || {
+    title: "Song",
+    artist: "Artist",
   }
+  const sourceLanguage = location.state?.song || {
+    label: "Original",
+    code: '',
+  }
+
+  const targetLanguage = location.state?.targetLanguage || {
+    label: "Translation",
+    code: '',
+  }
+
+  const savedWords = location.state?.savedWords || []
+  const linesReviewed = location.state?.linesReviewed || 0
 
   return (
     <div className="page">
@@ -38,44 +28,52 @@ function LessonComplete() {
       <div className="complete-header">
         <h1>Song Finished</h1>
         <p>
-          You completed a lesson for {lessonSummary.songTitle} by {' '}
-          {lessonSummary.artist}.
+          You completed a lesson for {selectedSong.songTitle} by {' '}
+          {selectedSong.artist}
         </p>
       </div>
 
       <div className="stats-grid">
         <div className="stat-card">
           <h3>Lines Reviewed</h3>
-          <p>{lessonSummary.linesReviewed}</p>
+          <p>{linesReviewed}</p>
         </div>
 
         <div className="stat-card">
           <h3>Words Saved</h3>
-          <p>{lessonSummary.wordsSaved}</p>
+          <p>{savedWords.length}</p>
         </div>
 
         <div className="stat-card">
           <h3>Language</h3>
-          <h3>{lessonSummary.language}</h3>
+          <p>
+            {sourceLanguage.label} → {targetLanguage.label}
+          </p>
         </div>
       </div>
 
       <div className="new-words-box">
         <h2>New words learned</h2>
 
-        <div className="word-row word-row-header">
-          <p>Word</p>
-          <p>Translation</p>
-          <p>Definition</p>
-        </div>
+        {savedWords.length > 0 ? (
+          <>
+            <div className="word-row word-row-header">
+              <p>Word</p>
+              <p>Status</p>
+            </div>
 
-        {lessonSummary.newWords.map((item) => (
-          <div className="word-row" key={item.id}>
-            <p>{item.word}</p>
-            <p>{item.translation}</p>
-            <p>{item.definition}</p>
-          </div>
-        ))}
+            {savedWords.map((word, index) => (
+              <div className="word-row" key={`${word}-${index}`}>
+                <p>{word}</p>
+                <p>Saved to My Words</p>
+              </div>
+            ))}
+          </>
+        ) : (
+          <p className="page-text">
+            No words were saved during this lesson
+          </p>
+        )}
       </div>
 
       <div className="button-row">

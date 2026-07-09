@@ -5,11 +5,11 @@ import SongCard from '../components/SongCard'
 import WordCard from '../components/WordCard'
 import { mockSongs } from '../data/mockSongs'
 import { mockWords } from '../data/mockWords'
-import { getRecentlyPlayedSongs } from '../services/api'
+import { getRecentlyPlayedSongs, getSavedWords } from '../services/api'
 
 function Dashboard() {
   const [recentlyPlayedSongs, setRecentlyPlayedSongs] = useState(mockSongs.slice(0, 3))
-  const recentWords = mockWords.slice(0, 2)
+  const [recentWords, setRecentWords] = useState(mockWords.slice(0,2))
 
   useEffect(() => {
     async function loadRecentlyPlayed() {
@@ -23,7 +23,20 @@ function Dashboard() {
       }
     }
 
+    async function loadRecentWords() {
+      try {
+        const savedWords = await getSavedWords()
+
+        if (savedWords.length > 0) {
+          setRecentWords(savedWords.slice(0, 2))
+        }
+      } catch (err) {
+        console.log("Using mock recent words")
+      }
+    }
+
     loadRecentlyPlayed()
+    loadRecentWords()
   }, [])
   
   return (
@@ -59,11 +72,15 @@ function Dashboard() {
             <WordCard
               key={item.id}
               word={item.word}
-              definition={item.definition}
+              definition={item.definition || item.translation}
               songTitle={item.songTitle}
               dateAdded={item.dateAdded}
             />
           ))}
+
+          {recentWords.length === 0 && (
+            <p className = "page-text">No saved words yet</p>
+          )}
         </div>
       </div>
     </div>

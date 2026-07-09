@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
 import { mockLyrics } from "../data/mockLyrics";
 import { getLyrics, getTranslation, saveWord as saveWordToBackend } from "../services/api";
-import { useEffect, useRef, useState } from "react";
+import { act, useEffect, useRef, useState } from "react";
 
 function LyricsPlayer() {
   const location = useLocation();
@@ -243,7 +243,7 @@ function LyricsPlayer() {
                   : "lyric-line"
               }
             >
-              <p>{line.translation}</p>
+              <p>{line.translation || 'Translation unavailable'}</p>
               <span>{line.original}</span>
             </div>
           ))}
@@ -295,6 +295,8 @@ function LyricsPlayer() {
       {selectedWord && (
         <WordSaveModal
           word={selectedWord}
+          lyriceLine={lyrics[activeLineIndex]?.original}
+          translation={lyrics[activeLineIndex]?.translation}
           onClose={closeModal}
           onSave={saveWord}
         />
