@@ -11,7 +11,7 @@ def search_song_metadata(title,artist):
   query = f"{title} {artist}"
   response = requests.get(
     GENIUS_SEARCH_URL,
-    headers={"Authorization": f"Bearer{token}"},
+    headers={"Authorization": f"Bearer {token}"},
     params={"q": query},
     timeout=10,
   )
@@ -28,5 +28,5 @@ def search_song_metadata(title,artist):
     "title": song.get("title"),
     "artist": song.get("primary_artist", {}).get("name"),
     "url": song.get("url"),
-    "thumbsnail": song.get("song_art_image_thumbnail_url"),
+    "thumbnail": song.get("song_art_image_thumbnail_url"),
   }

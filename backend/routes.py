@@ -87,7 +87,7 @@ def translate_song():
   if not song_id or not target_language:
     return jsonify(error="Missing song_id or target_language"), 400
   try: 
-    result = get_or_create_transaction(
+    result = get_or_create_translation(
       song_id=song_id,
       target_language=target_language,
       source_language=source_language,
