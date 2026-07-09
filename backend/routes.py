@@ -2,6 +2,7 @@ import requests
 from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
 from services.genius_service import search_song_metadata
+from services.translation_service import get_or_create_translation
 
 import spotify_client as sp
 
@@ -76,3 +77,23 @@ def genius_search():
   if not metadata:
     return jsonify(error="Song metadata not found"), 404
   return jsonify(metadata)
+@api_bp.get("/api/translate")
+def translate_song():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  song_id = request.args.get("song_id", type=int)
+  target_language = request.args.get("target_language", "").strip()
+  source_language = request.args.get("source_language", "auto").strip()
+  if not song_id or not target_language:
+    return jsonify(error="Missing song_id or target_language"), 400
+  try: 
+    result = get_or_create_transaction(
+      song_id=song_id,
+      target_language=target_language,
+      source_language=source_language,
+    )
+  except requests.HTTPError:
+    return jsonify(error="Translation API request failed"), 502
+  if not result: 
+    return jsonify(error="Song or lyrics not found"), 404
+  return jsonify(result)
