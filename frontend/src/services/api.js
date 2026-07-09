@@ -56,11 +56,11 @@ export async function getLyrics(song) {
     return response.json()
 }
 
-export async function getTranslation(songId, targetLanguage) {
+export async function getTranslation(songId, sourceLanguage, targetLanguage) {
     const params = new URLSearchParams({
         song_id: songId,
+        source_language: sourceLanguage,
         target_language: targetLanguage,
-        source_language: 'auto',
     })
 
     const response = await fetch(`${API_BASE_URL}/api/translate?${params}`, {
@@ -84,7 +84,7 @@ export async function saveWord(wordData) {
         body: JSON.stringify(wordData),
     })
 
-    if (!response.ok()) {
+    if (!response.ok) {
         throw new Error("Failed to load saved words")
     }
 
@@ -101,5 +101,5 @@ export async function getSavedWords() {
     }
 
     const data = await response.json()
-    return data.json()
+    return data.words
 }

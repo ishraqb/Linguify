@@ -431,6 +431,7 @@ button {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 20px;
+    align-items: flex-start;
 }
 
 .lyrics-list,
@@ -439,6 +440,8 @@ button {
     border-radius: 8px;
     background: white;
     padding: 16px;
+    max-height: 480px;
+    overflow-y: auto;
 }
 
 .lyric-line {
@@ -468,6 +471,9 @@ button {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
+    align-self: flex-start;
+    position: sticky;
+    top: 20px;
 }
 
 .word-panel h3 {

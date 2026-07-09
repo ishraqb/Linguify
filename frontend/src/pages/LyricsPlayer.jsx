@@ -12,33 +12,62 @@ function LyricsPlayer() {
     artist: "Bad Bunny, Jhay Cortez",
   };
 
-  const selectedLanguage = location.state?.language || {
+  const sourceLanguage = location.state?.sourceLanguage || {
+    label: "Spanish",
+    code: "es",
+  }
+
+  const targetLanguage = location.state?.targetLanguage || {
     label: "English",
     code: "en",
   };
 
-  const [sondId, setSongId] = useState(null)
-  const [lyrics, setLyrics] = useState(mockLyrics);
+  const [songId, setSongId] = useState(null)
+  const [lyrics, setLyrics] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeLineIndex, setActiveLineIndex] = useState(0);
   const [selectedWord, setSelectedWord] = useState(null);
   const [savedWords, setSavedWords] = useState([]);
 
+  function cleanLyricLine(line) {
+    return line
+      .replace(/\[\d{2}:\d{2}(?:\.\d{2,3})?\]/g, '')
+      .trim()
+  }
+
+  function shouldSkipLine(line) {
+    const lowerLine = line.toLowerCase()
+
+    return (
+      !line ||
+      lowerLine.includes('lyrics by') ||
+      lowerLine.includes('letra de') ||
+      lowerLine.includes('composed by') ||
+      lowerLine.includes('compuesto por') ||
+      lowerLine.includes('produced by') ||
+      lowerLine.includes('producido por')
+    )
+  }
+
   function formatTranslatedLyrics(translatedLyrics) {
     return translatedLyrics
       .split("\n")
       .filter((line) => line.trim())
       .map((line, index) => {
-        const [original, translation] = line.split(" || ");
+        const [originalRaw, translationRaw] = line.split(" || ");
+
+        const original = cleanLyricLine(originalRaw || '')
+        const translation = cleanLyricLine(translationRaw || '')
 
         return {
           id: index + 1,
           original: original || "",
           translation: translation || "",
           words: (original || "").split(" ").filter(Boolean),
-        };
-      });
+        }
+      })
+      .filter((line) => !shouldSkipLine(line.original))
   }
 
   useEffect(() => {
@@ -51,7 +80,8 @@ function LyricsPlayer() {
         setSongId(lyricsData.song_id)
         const translationData = await getTranslation(
           lyricsData.song_id,
-          selectedLanguage.code,
+          sourceLanguage.code,
+          targetLanguage.code
         );
 
         const formattedLyrics = formatTranslatedLyrics(
@@ -93,7 +123,7 @@ function LyricsPlayer() {
   }
 
   async function saveWord() {
-    if (!selectedWord || savedWords.includes(selectedLanguage)) {
+    if (!selectedWord || savedWords.includes(selectedWord)) {
       setSelectedWord(null)
       return
     }
@@ -102,15 +132,15 @@ function LyricsPlayer() {
 
     try {
       await saveWordToBackend({
-        song_id: songid,
+        song_id: songId,
         word: selectedWord,
         translation: activeLine?.translation || selectedWord,
-        target_language: selectedLanguage.code,
+        target_language: targetLanguage.code,
         example_sentence: activeLine?.original || '',
         pronunciation: '',
       })
     } catch (err) {
-      console.erorr(err)
+      console.error(err)
     }
 
     setSavedWords([...savedWords, selectedWord])
@@ -128,7 +158,9 @@ function LyricsPlayer() {
           <h1>
             {selectedSong.title} - {selectedSong.artist}
           </h1>
-          <p>Translation language: {selectedLanguage.label}</p>
+          <p>
+            {sourceLanguage.label} → {targetLanguage.label}
+          </p>
         </div>
 
         <div className="step-box">Step 3/4</div>
@@ -167,6 +199,10 @@ function LyricsPlayer() {
       )}
 
       {error && <p className="page-text">{error}</p>}
+
+      {!isLoading && lyrics.length === 0 && (
+        <p className="page-text">No lyrics loaded yet</p>
+      )}
 
       <div className="lyrics-layout">
         <div className="lyrics-list">
@@ -213,7 +249,17 @@ function LyricsPlayer() {
       </div>
 
       <div className="button-row">
-        <Link to="/lesson-complete" className="main-button">
+        <Link 
+          to="/lesson-complete" 
+          state={{
+            song: selectedSong,
+            sourceLanguage,
+            targetLanguage,
+            savedWords,
+            linesReviewed: lyrics.length,
+          }}
+          className="main-button"
+        >
           Finish Lesson
         </Link>
       </div>

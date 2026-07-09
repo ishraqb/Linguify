@@ -44,6 +44,7 @@ def recently_played():
   data = _call_spotify(sp.get_recently_played)
   items = data.get("items", [])
   return jsonify(tracks=[sp.simplify_track(i.get("track")) for i in items])
+
 @api_bp.get("/api/lyrics")
 def get_lyrics():
   if "spotify_id" not in session:
@@ -64,6 +65,7 @@ def get_lyrics():
   if not result:
     return jsonify(error="Lyrics not found"), 404
   return jsonify(result)
+
 @api_bp.get("/api/genius/search")
 def genius_search():
   if "spotify_id" not in session: 
@@ -79,15 +81,18 @@ def genius_search():
   if not metadata:
     return jsonify(error="Song metadata not found"), 404
   return jsonify(metadata)
+
 @api_bp.get("/api/translate")
 def translate_song():
   if "spotify_id" not in session:
     return jsonify(error="Not authenticated"), 401
+
   song_id = request.args.get("song_id", type=int)
   target_language = request.args.get("target_language", "").strip()
   source_language = request.args.get("source_language", "auto").strip()
-  if not song_id or not target_language:
-    return jsonify(error="Missing song_id or target_language"), 400
+  
+  if not song_id or not target_language or not source_language:
+    return jsonify(error="Missing song_id, target_language, or source_language"), 400
   try: 
     result = get_or_create_translation(
       song_id=song_id,

@@ -4,7 +4,7 @@ from extensions import db
 
 MYMEMORY_URL = "https://api.mymemory.translated.net/get"
 
-def translate_text(text, source_lang="auto", target_lang="en"):
+def translate_text(text, source_lang="en", target_lang="en"):
   response = requests.get(
     MYMEMORY_URL,
     params={

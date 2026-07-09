@@ -13,7 +13,8 @@ function LanguageSelection() {
 
   const selectedSong = location.state?.song
 
-  const [selectedLanguage, setSelectedLanguage] = useState(null)
+  const [sourceLanguage, setSourceLanguage] = useState(null)
+  const [targetLanguage, setTargetLanguage] = useState(null)
 
   if (!selectedSong) {
     return (
@@ -26,7 +27,7 @@ function LanguageSelection() {
           <div className="step-box">Step 2/4</div>
         </div>
 
-        <h2 className="section-tittle center-text">No song selected</h2>
+        <h2 className="section-title center-text">No song selected</h2>
 
         <p className="page-text center-text">
           Go back and choose a song before you start a lesson!
@@ -73,37 +74,64 @@ function LanguageSelection() {
       </div>
 
       <h2 className="section-title center-text">
-        Choose translation language
+        What language is this song in?
       </h2>
 
       <div className="language-grid">
         {languages.map((language) => (
           <button
-            key={language.code}
+            key={`source-${language.code}`}
             className={
-              selectedLanguage === language.code
+              sourceLanguage?.code === language.code
                 ? 'language-button selected-language'
                 : 'language-button'
             }
-            onClick={() => setSelectedLanguage(language)}
+            onClick={() => setSourceLanguage(language)}
           >
             {language.label}
           </button>
         ))}
       </div>
 
-      {selectedLanguage && (
+      {sourceLanguage && (
         <p className="selected-text">
-          Selected language: {selectedLanguage.label}
+          Selected language: {sourceLanguage.label}
         </p>
       )}
 
-      {selectedLanguage ? (
-        <Link 
+      <h2 className="section-title center-text">
+        Translate into
+      </h2>
+
+      <div className="language-grid">
+        {languages.map((language) => (
+          <button
+            key={`target-${language.code}`}
+            className={
+              targetLanguage?.code === language.code
+                ? 'language-button selected-language'
+                : 'language-button'
+            }
+            onClick={() => setTargetLanguage(language)}
+          >
+            {language.label}
+          </button>
+        ))}
+      </div>
+
+      {targetLanguage && (
+        <p className="selected-text">
+          Translation language: {targetLanguage.label}
+        </p>
+      )}
+
+      {sourceLanguage && targetLanguage ? (
+        <Link
           to="/lyrics"
           state={{
             song: selectedSong,
-            language: selectedLanguage,
+            sourceLanguage,
+            targetLanguage,
           }}
           className="main-button wide-button"
         >
@@ -111,9 +139,10 @@ function LanguageSelection() {
         </Link>
       ) : (
         <button className="main-button wide-button disabled-button" disabled>
-          Choose a language first
+          Choose both languages first
         </button>
       )}
+      
     </div>
   )
 }
