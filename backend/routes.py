@@ -1,5 +1,6 @@
 import requests
 from flask import Blueprint, session, request, jsonify
+from services.lyrics_service import get_or_fetch_lyrics
 
 import spotify_client as sp
 
@@ -39,3 +40,23 @@ def recently_played():
   data = _call_spotify(sp.get_recently_played)
   items = data.get("items", [])
   return jsonify(tracks=[sp.simplify_track(i.get("track")) for i in items])
+@api_bp.get("/api/lyrics")
+def get_lyrics():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  title = request.args.get("title", "").strip() 
+  artist = request.args.get("artist", "").strip()
+  spotify_track_id = request.args.get("spotify_track_id", "").strip() or None
+  album = request.args.get("album", "").strip() or None
+
+  if not title or not artist: 
+    return jsonify(error="Missing title or artist"), 400
+  result = get_or_fetch_lyrics(
+    title=title,
+    artist=artist,
+    spotify_track_id=spotify_track_id,
+    album=album,
+  )
+  if not result:
+    return jsonify(error="Lyrics not found"), 404
+  return jsonify(result)
