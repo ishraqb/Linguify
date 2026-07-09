@@ -15,7 +15,7 @@ def fetch_lyrics_from_lrclib(title, artist):
   if not results:
     return None
   best_match = results[0]
-  return best_match.get("syncedLyrics") or best_match.get("plainLyrics")
+  return best_match.get("plainLyrics") or best_match.get("syncedLyrics")
 def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
   song = None
 
