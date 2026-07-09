@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-function SongCard({ title, artist, language, coverUrl, linkTo = '/language-selection' }) {
+function SongCard({ id, title, artist, language, album, coverUrl, previewUrl, linkTo = '/language-selection' }) {
     return (
         <div className="song-card">
             <div className="song-cover">
@@ -17,7 +17,15 @@ function SongCard({ title, artist, language, coverUrl, linkTo = '/language-selec
                 {language && <p>{language}</p>}
             </div>
 
-            <Link to={linkTo} className="secondary-button">
+            <Link 
+                to={linkTo} 
+                state={{
+                    song : {
+                        id, title, artist, album, coverUrl, previewUrl,
+                    },
+                }}
+                className="secondary-button"
+            >
                 Start Lesson
             </Link>
         </div>

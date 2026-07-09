@@ -1,46 +1,101 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import WordSaveModal from '../components/WordSaveModal'
-import { mockLyrics } from '../data/mockLyrics'
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import WordSaveModal from "../components/WordSaveModal";
+import { mockLyrics } from "../data/mockLyrics";
+import { getLyrics, getTranslation } from "../services/api";
 
 function LyricsPlayer() {
-  const selectedSong = {
-    title: 'DÁKITI',
-    artist: 'Bad Bunny, Jhay Cortez',
+  const location = useLocation();
+
+  const selectedSong = location.state?.song || {
+    title: "DÁKITI",
+    artist: "Bad Bunny, Jhay Cortez",
+  };
+
+  const selectedLanguage = location.state?.language || {
+    label: "English",
+    code: "en",
+  };
+
+  const [lyrics, setLyrics] = useState(mockLyrics);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [activeLineIndex, setActiveLineIndex] = useState(0);
+  const [selectedWord, setSelectedWord] = useState(null);
+  const [savedWords, setSavedWords] = useState([]);
+
+  function formatTranslatedLyrics(translatedLyrics) {
+    return translatedLyrics
+      .split("\n")
+      .filter((line) => line.trim())
+      .map((line, index) => {
+        const [original, translation] = line.split(" || ");
+
+        return {
+          id: index + 1,
+          original: original || "",
+          translation: translation || "",
+          words: (original || "").split(" ").filter(Boolean),
+        };
+      });
   }
 
-  const lyrics = mockLyrics
+  useEffect(() => {
+    async function loadLyricsAndTranslation() {
+      try {
+        setIsLoading(true);
+        setError("");
 
-  const [activeLineIndex, setActiveLineIndex] = useState(0)
-  const [selectedWord, setSelectedWord] = useState(null)
-  const [savedWords, setSavedWords] = useState([])
+        const lyricsData = await getLyrics(selectedSong);
+        const translationData = await getTranslation(
+          lyricsData.song_id,
+          selectedLanguage.code,
+        );
+
+        const formattedLyrics = formatTranslatedLyrics(
+          translationData.translated_lyrics,
+        );
+
+        setLyrics(formattedLyrics);
+        setActiveLineIndex(0);
+      } catch (err) {
+        console.error(err);
+        setError("Using demo lyrics for now");
+        setLyrics(mockLyrics);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadLyricsAndTranslation();
+  }, []);
 
   function goToPreviousLine() {
     if (activeLineIndex > 0) {
-      setActiveLineIndex(activeLineIndex - 1)
+      setActiveLineIndex(activeLineIndex - 1);
     }
   }
 
   function goToNextLine() {
     if (activeLineIndex < lyrics.length - 1) {
-      setActiveLineIndex(activeLineIndex + 1)
+      setActiveLineIndex(activeLineIndex + 1);
     }
   }
 
   function handleWordClick(word) {
-    setSelectedWord(word)
+    setSelectedWord(word);
   }
 
   function closeModal() {
-    setSelectedWord(null)
+    setSelectedWord(null);
   }
 
   function saveWord() {
     if (selectedWord && !savedWords.includes(selectedWord)) {
-      setSavedWords([...savedWords, selectedWord])
+      setSavedWords([...savedWords, selectedWord]);
     }
 
-    setSelectedWord(null)
+    setSelectedWord(null);
   }
 
   return (
@@ -54,7 +109,7 @@ function LyricsPlayer() {
           <h1>
             {selectedSong.title} - {selectedSong.artist}
           </h1>
-          <p>Choose playback mode</p>
+          <p>Translation language: {selectedLanguage.label}</p>
         </div>
 
         <div className="step-box">Step 3/4</div>
@@ -88,6 +143,12 @@ function LyricsPlayer() {
         </div>
       )}
 
+      {isLoading && (
+        <p className="page-text">Loading lyrics and translations...</p>
+      )}
+
+      {error && <p className="page-text">{error}</p>}
+
       <div className="lyrics-layout">
         <div className="lyrics-list">
           {lyrics.map((line, index) => (
@@ -95,8 +156,8 @@ function LyricsPlayer() {
               key={line.id}
               className={
                 index === activeLineIndex
-                  ? 'lyric-line active-lyric'
-                  : 'lyric-line'
+                  ? "lyric-line active-lyric"
+                  : "lyric-line"
               }
             >
               <p>{line.translation}</p>
@@ -108,7 +169,7 @@ function LyricsPlayer() {
         <div className="word-panel">
           <h3>Tap a word to learn</h3>
 
-          {lyrics[activeLineIndex].words.map((word, index) => (
+          {(lyrics[activeLineIndex]?.words || []).map((word, index) => (
             <button
               key={`${word}-${index}`}
               className="word-button"
@@ -146,7 +207,7 @@ function LyricsPlayer() {
         />
       )}
     </div>
-  )
+  );
 }
 
-export default LyricsPlayer
+export default LyricsPlayer;

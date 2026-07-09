@@ -58,9 +58,13 @@ function Search() {
         songs.map((song) => (
           <SongCard
             key={song.id}
+            id={song.id}
             title={song.title}
             artist={song.artist}
+            language={song.language}
+            album={song.album}
             coverUrl={song.coverUrl}
+            previewUrl={song.previewUrl}
           />
         ))
       }

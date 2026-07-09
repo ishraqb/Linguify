@@ -1,16 +1,43 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 function LanguageSelection() {
-  const languages = ['English', 'Spanish', 'French', 'Korean', 'Japanese', 'Other']
+  const location = useLocation()
+  const languages = [
+    {label: 'English', code: 'en'},
+    {label: 'Spanish', code: 'es'},
+    {label: 'French', code: 'fr'},
+    {label: 'Korean', code: 'ko'},
+    {label: 'Japanese', code: 'ja'},
+  ]
 
-  const selectedSong = {
-    title: 'DÁKITI',
-    artist: 'Bad Bunny, Jhay Cortez',
-    coverUrl: '',
+  const selectedSong = location.state?.song
+
+  const [selectedLanguage, setSelectedLanguage] = useState(null)
+
+  if (!selectedSong) {
+    return (
+      <div className="page">
+        <div className="top-row">
+          <Link to="/search" className="secondary-button">
+            Back
+          </Link>
+
+          <div className="step-box">Step 2/4</div>
+        </div>
+
+        <h2 className="section-tittle center-text">No song selected</h2>
+
+        <p className="page-text center-text">
+          Go back and choose a song before you start a lesson!
+        </p>
+
+        <Link to="/search" className="main-button wide-button">
+          Choose a song
+        </Link>
+      </div>
+    )
   }
-
-  const [selectedLanguage, setSelectedLanguage] = useState('')
 
   return (
     <div className="page">
@@ -52,27 +79,34 @@ function LanguageSelection() {
       <div className="language-grid">
         {languages.map((language) => (
           <button
-            key={language}
+            key={language.code}
             className={
-              selectedLanguage === language
+              selectedLanguage === language.code
                 ? 'language-button selected-language'
                 : 'language-button'
             }
             onClick={() => setSelectedLanguage(language)}
           >
-            {language}
+            {language.label}
           </button>
         ))}
       </div>
 
       {selectedLanguage && (
         <p className="selected-text">
-          Selected language: {selectedLanguage}
+          Selected language: {selectedLanguage.label}
         </p>
       )}
 
       {selectedLanguage ? (
-        <Link to="/lyrics" className="main-button wide-button">
+        <Link 
+          to="/lyrics"
+          state={{
+            song: selectedSong,
+            language: selectedLanguage,
+          }}
+          className="main-button wide-button"
+        >
           Start Lesson
         </Link>
       ) : (

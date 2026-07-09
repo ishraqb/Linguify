@@ -30,3 +30,46 @@ export async function getRecentlyPlayedSongs() {
 
     return data.tracks
 }
+
+export async function getLyrics(song) {
+    const params = new URLSearchParams({
+        title: song.title,
+        artist: song.artist
+    })
+
+    if (song.id) {
+        params.append('spotify_track_id', song.id)
+    }
+
+    if (song.album) {
+        params.append('album', song.album)
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/lyrics?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load lyrics")
+    }
+
+    return response.json()
+}
+
+export async function getTranslation(songId, targetLanguage) {
+    const params = new URLSearchParams({
+        song_id: songId,
+        target_language: targetLanguage,
+        source_language: 'auto',
+    })
+
+    const response = await fetch(`${API_BASE_URL}/api/translate?${params}`, {
+        credentials: 'include'
+    })
+
+    if (!response.ok) {
+        throw new Error('Failed to translate lyrics')
+    }
+
+    return response.json()
+}
