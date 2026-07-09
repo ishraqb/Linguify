@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
 import { mockLyrics } from "../data/mockLyrics";
-import { getLyrics, getTranslation } from "../services/api";
+import { getLyrics, getTranslation, saveWord as saveWordToBackend } from "../services/api";
 
 function LyricsPlayer() {
   const location = useLocation();
@@ -17,6 +17,7 @@ function LyricsPlayer() {
     code: "en",
   };
 
+  const [sondId, setSongId] = useState(null)
   const [lyrics, setLyrics] = useState(mockLyrics);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -47,6 +48,7 @@ function LyricsPlayer() {
         setError("");
 
         const lyricsData = await getLyrics(selectedSong);
+        setSongId(lyricsData.song_id)
         const translationData = await getTranslation(
           lyricsData.song_id,
           selectedLanguage.code,
@@ -90,12 +92,29 @@ function LyricsPlayer() {
     setSelectedWord(null);
   }
 
-  function saveWord() {
-    if (selectedWord && !savedWords.includes(selectedWord)) {
-      setSavedWords([...savedWords, selectedWord]);
+  async function saveWord() {
+    if (!selectedWord || savedWords.includes(selectedLanguage)) {
+      setSelectedWord(null)
+      return
     }
 
-    setSelectedWord(null);
+    const activeLine = lyrics[activeLineIndex]
+
+    try {
+      await saveWordToBackend({
+        song_id: songid,
+        word: selectedWord,
+        translation: activeLine?.translation || selectedWord,
+        target_language: selectedLanguage.code,
+        example_sentence: activeLine?.original || '',
+        pronunciation: '',
+      })
+    } catch (err) {
+      console.erorr(err)
+    }
+
+    setSavedWords([...savedWords, selectedWord])
+    setSelectedWord(null)
   }
 
   return (

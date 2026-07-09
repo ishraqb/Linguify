@@ -73,3 +73,33 @@ export async function getTranslation(songId, targetLanguage) {
 
     return response.json()
 }
+
+export async function saveWord(wordData) {
+    const response = await fetch(`${API_BASE_URL}/api/words`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(wordData),
+    })
+
+    if (!response.ok()) {
+        throw new Error("Failed to load saved words")
+    }
+
+    return response.json()
+}
+
+export async function getSavedWords() {
+    const response = await fetch(`${API_BASE_URL}/api/words`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load saved words")
+    }
+
+    const data = await response.json()
+    return data.json()
+}
