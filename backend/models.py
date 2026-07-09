@@ -23,9 +23,10 @@ class Song(db.Model):
   lyrics = db.Column(db.Text, nullable=True)
   created_at = db.Column(db.DateTime, default=utc_now)
   updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
+  album = db.Column(db.String(255), nullable=True)
 
-translations = db.relationship("Translation", back_populates="song", cascade="all, delete-orphan")
-vocab_words = db.relationship("Vocabulary", back_populates="song")
+  translations = db.relationship("Translation", back_populates="song", cascade="all, delete-orphan")
+  vocab_words = db.relationship("Vocabulary", back_populates="song")
 
 class Translation(db.Model):
   __tablename__ = "translations"
