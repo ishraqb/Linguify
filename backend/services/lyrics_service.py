@@ -2,7 +2,7 @@ import requests
 from models import Song
 from extensions import db
 
-LRCLIB_SEARCH_URL = "http://lrclib.net/api/search"
+LRCLIB_SEARCH_URL = "https://lrclib.net/api/search"
 
 def fetch_lyrics_from_lrclib(title, artist):
   response = requests.get(
@@ -14,7 +14,7 @@ def fetch_lyrics_from_lrclib(title, artist):
   results = response.json() 
   if not results:
     return None
-  best_match = resulst[0]
+  best_match = results[0]
   return best_match.get("syncedLyrics") or best_match.get("plainLyrics")
 def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
   song = None
