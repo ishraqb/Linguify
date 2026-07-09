@@ -21,6 +21,15 @@ def translate_lines(lyrics, target_language, source_language="en"):
   lines = [line.strip() for line in lyrics.splitlines() if line.strip()]
   lines = lines[:30]
 
+  if source_language == target_language:
+    return [
+      {
+        "original": line,
+        "translation": line,
+      }
+      for line in lines
+    ]
+
   translated_lines = []
 
   for line in lines:
@@ -31,11 +40,11 @@ def translate_lines(lyrics, target_language, source_language="en"):
         target_lang=target_language,
       )
     except requests.RequestException:
-      translated = ""
-      
+      translated = "Translation unavailable"
+
     translated_lines.append({
       "original": line,
-      "translation": translated or "",
+      "translation": translated or "Translation unavailable"
     })
   return translated_lines
 
@@ -70,6 +79,22 @@ def get_or_create_translation(song_id, target_language, source_language="en"):
     f"{item['original']} || {item['translation']}"
     for item in translated_lines
   )
+
+  has_real_translation = any(
+    item["translation"] != "Translation unavailable"
+    and item["translation"] != item["original"]
+    for item in translated_lines
+  )
+
+  if not has_real_translation:
+    return {
+      "song_id": song.id,
+      "title": song.title,
+      "artist": song.artist,
+      "target_language": target_language,
+      "translated_lyrics": translated_text,
+      "cached": False,
+    }
 
   new_translation = Translation(
     song_id=song.id,
