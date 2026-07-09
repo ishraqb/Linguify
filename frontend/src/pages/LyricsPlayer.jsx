@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
 import { mockLyrics } from "../data/mockLyrics";
 import { getLyrics, getTranslation, saveWord as saveWordToBackend } from "../services/api";
+import { useEffect, useRef, useState } from "react";
 
 function LyricsPlayer() {
   const location = useLocation();
@@ -29,6 +30,8 @@ function LyricsPlayer() {
   const [activeLineIndex, setActiveLineIndex] = useState(0);
   const [selectedWord, setSelectedWord] = useState(null);
   const [savedWords, setSavedWords] = useState([]);
+  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   function cleanLyricLine(line) {
     return line
@@ -114,6 +117,16 @@ function LyricsPlayer() {
     }
   }
 
+  function togglePreview() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
+  }
+
   function handleWordClick(word) {
     setSelectedWord(word);
   }
@@ -166,10 +179,16 @@ function LyricsPlayer() {
         <div className="step-box">Step 3/4</div>
       </div>
 
-      <div className="playback-options">
-        <button className="secondary-button">
-          Preview Free
-          <span>30 sec preview clip</span>
+        <div className="playback-options">
+        <button
+          className="secondary-button"
+          onClick={togglePreview}
+          disabled={!selectedSong.previewUrl}
+        >
+          {isPlaying ? "Pause Preview" : "Preview Free"}
+          <span>
+            {selectedSong.previewUrl ? "30 sec preview clip" : "No preview available"}
+          </span>
         </button>
 
         <button className="secondary-button">
@@ -177,6 +196,16 @@ function LyricsPlayer() {
           <span>Play full song with synced lyrics</span>
         </button>
       </div>
+
+      {selectedSong.previewUrl && (
+        <audio
+          ref={audioRef}
+          src={selectedSong.previewUrl}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onEnded={() => setIsPlaying(false)}
+        />
+      )}
 
       <div className="song-duration-bar">Song Duration Bar</div>
 

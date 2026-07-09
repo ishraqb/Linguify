@@ -1,4 +1,3 @@
-import { useEffect, useEffectEvent, useState } from 'react'
 import WordCard from '../components/WordCard'
 import Navbar from '../components/Navbar'
 import { mockWords } from '../data/mockWords'
