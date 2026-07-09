@@ -17,22 +17,29 @@ def translate_text(text, source_lang="en", target_lang="en"):
   data = response.json()
   return data.get("responseData", {}).get("translatedText")
 
-def translate_lines(lyrics, target_language, source_language="auto"):
+def translate_lines(lyrics, target_language, source_language="en"):
   lines = [line.strip() for line in lyrics.splitlines() if line.strip()]
+  lines = lines[:30]
+
   translated_lines = []
+
   for line in lines:
-    translated = translate_text(
-      line,
-      source_lang=source_language,
-      target_lang=target_language,
-    )
+    try:
+      translated = translate_text(
+        line,
+        source_lang=source_language,
+        target_lang=target_language,
+      )
+    except requests.RequestException:
+      translated = ""
+      
     translated_lines.append({
       "original": line,
       "translation": translated or "",
     })
   return translated_lines
 
-def get_or_create_translation(song_id, target_language, source_language="auto"):
+def get_or_create_translation(song_id, target_language, source_language="en"):
   song = Song.query.get(song_id)
   if not song:
     return None
