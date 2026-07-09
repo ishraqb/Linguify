@@ -99,12 +99,20 @@ def get_recently_played(access_token, limit=20):
 def simplify_track(track):
   if not track:
     return None
-  images = track.get("album", {}).get("images", [])
+  
+  album = track.get("album", {})
+  images = album.get("images", [])
+  cover_url = images[0].get("url", "") if images else ""
+
   return{
     "id": track.get("id"),
+    "title": track.get("name"),
     "name": track.get("name"),
-    "artist": ", ".join(a["name"] for a in track.get("artists", [])),
-    "album": track.get("album", {}).get("name"),
-    "albumArt": images[0]["url"] if images else None,
+    "artist": ", ".join(a.get("name", "") for a in track.get("artists", [])),
+    "album": album.get("name"),
+    "language": "",
+    "coverUrl": cover_url,
+    "albumArt": cover_url,
+    "previewUrl": track.get("preview_url"),
     "preview_url": track.get("preview_url"),
   }

@@ -1,16 +1,36 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import SongCard from '../components/SongCard'
-import { mockSongs } from '../data/mockSongs'
+import { searchSongs } from '../services/api'
 
 function Search() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [songs, setSongs] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const filteredSongs = mockSongs.filter((song) =>
-    song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    song.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    song.language.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  useEffect(() => {
+    async function loadSongs() {
+      if (!searchTerm.trim()) {
+        setSongs([])
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        setError('')
+
+        const results = await searchSongs(searchTerm)
+        setSongs(results)
+      } catch (err) {
+        setError('Could not load songs, Make sure you are logged in with Spotify')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadSongs()
+  }, [searchTerm])
 
   return (
     <div className="page">
@@ -22,7 +42,7 @@ function Search() {
         <input
           className="search-input"
           type="text"
-          placeholder="Search for a song, artist, or language"
+          placeholder="Search for a song or artist"
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
         />
@@ -30,20 +50,23 @@ function Search() {
         <button className="secondary-button">Search</button>
       </div>
 
-      <h2 className="section-title">Search Results</h2>
+      {isLoading && <p className="page-text">Loading songs...</p>}
 
-      {filteredSongs.map((song) =>
-        <SongCard
-          key={song.id}
-          title={song.title}
-          artist={song.artist}
-          language={song.language}
-          coverUrl={song.coverUrl}
-        />
-      )}
+      {error && <p className="page-text">{error}</p>}
 
-      {filteredSongs.length === 0 && (
-        <p className="page-text">No Songs found. Try another search</p>
+      {!isLoading &&
+        songs.map((song) => (
+          <SongCard
+            key={song.id}
+            title={song.title}
+            artist={song.artist}
+            coverUrl={song.coverUrl}
+          />
+        ))
+      }
+
+      {!isLoading && searchTerm && songs.length === 0 && !error && (
+        <p className="page-text">No songs found. Try another search</p>
       )}
       
     </div>
