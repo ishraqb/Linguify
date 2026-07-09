@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 
 function Landing() {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
   return (
     <div className="page">
       <div className="landing-header">
@@ -17,7 +19,7 @@ function Landing() {
       <div className="landing-content">
         <div className="landing-text">
           <div className="large-box">
-            <h2>Learn languages through songs you love</h2>
+            <h2>Learn languages through the songs you love</h2>
           </div>
 
           <div className="small-box">
@@ -39,9 +41,9 @@ function Landing() {
         </p>
       </section>
 
-      <Link to="/dashboard" className="main-button wide-button">
+      <a href={`${API_BASE_URL}/api/login`} className="main-button wide-button">
         Login with Spotify
-      </Link>
+      </a>
     </div>
   )
 }

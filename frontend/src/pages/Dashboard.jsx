@@ -1,14 +1,31 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import SongCard from '../components/SongCard'
 import WordCard from '../components/WordCard'
 import { mockSongs } from '../data/mockSongs'
 import { mockWords } from '../data/mockWords'
+import { getRecentlyPlayedSongs } from '../services/api'
 
 function Dashboard() {
-  const recentlyPlayedSongs = mockSongs.slice(0, 3)
+  const [recentlyPlayedSongs, setRecentlyPlayedSongs] = useState(mockSongs.slice(0, 3))
   const recentWords = mockWords.slice(0, 2)
 
+  useEffect(() => {
+    async function loadRecentlyPlayed() {
+      try {
+        const tracks = await getRecentlyPlayedSongs()
+        if (tracks.length > 0) {
+          setRecentlyPlayedSongs(tracks)
+        }
+      } catch (err) {
+        console.log("Using mock recently played songs for now")
+      }
+    }
+
+    loadRecentlyPlayed()
+  }, [])
+  
   return (
     <div className="page">
       <Navbar />
