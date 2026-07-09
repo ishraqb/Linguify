@@ -1,15 +1,15 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 from routes import api_bp
-
 from auth import auth_bp
 
 load_dotenv()
 
 def create_app():
-    app = Flask(__name__)
+    dist_dir = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
+    app = Flask(__name__, static_folder=dist_dir, static_url_path="")
     app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-change-me")
 
     app.config.update(
@@ -17,7 +17,7 @@ def create_app():
         SESSION_COOKIE_SAMESITE="Lax",
         SESSION_COOKIE_SECURE=os.environ.get("FLASK_ENV") == "production",
     )
-  
+
     CORS(
         app,
         supports_credentials=True,
@@ -30,6 +30,17 @@ def create_app():
     @app.get("/api/health")
     def health():
         return jsonify(status="ok")
+
+    @app.get("/")
+    def index():
+        return send_from_directory(app.static_folder, "index.html")
+
+    @app.get("/<path:path>")
+    def spa(path):
+        target = os.path.join(app.static_folder, path)
+        if os.path.isfile(target):
+            return send_from_directory(app.static_folder, path)
+        return send_from_directory(app.static_folder, "index.html")
 
     return app
 
