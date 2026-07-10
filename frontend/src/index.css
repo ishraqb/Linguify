@@ -198,10 +198,6 @@ button {
 }
 
 .hero {
-    display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    gap: 40px;
-    align-items: center;
     background: linear-gradient(135deg, #eafaf0 0%, #f3f8f5 60%, #ffffff 100%);
     border-radius: 28px;
     padding: 56px 48px;
@@ -244,8 +240,6 @@ button {
     font-weight: 700;
     padding: 15px 30px;
     border-radius: 999px;
-    box-shadow: 0 10px 24px rgba(29, 185, 84, 0.35);
-    transition: transform 0.08s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .spotify-cta::before {
@@ -256,76 +250,6 @@ button {
 .spotify-cta:hover {
     background: #169c46;
     color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 14px 30px rgba(29, 185, 84, 0.45);
-}
-
-.hero-note {
-    font-size: 13px;
-    color: #7a8a82;
-    margin: 14px 0 0;
-}
-
-.hero-visual {
-    display: flex;
-    justify-content: center;
-}
-
-.lyric-preview {
-    width: 100%;
-    max-width: 360px;
-    background: white;
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 20px 50px rgba(31, 41, 51, 0.12);
-}
-
-.lyric-preview-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #1db954;
-    margin-bottom: 16px;
-}
-
-.lyric-row {
-    border-radius: 12px;
-    background: #e9f7ee;
-    padding: 14px 16px;
-    margin-bottom: 12px;
-}
-
-.lyric-row.muted {
-    background: #f3f5f4;
-}
-
-.lyric-row p {
-    margin: 0 0 4px;
-    font-weight: 700;
-}
-
-.lyric-row span {
-    color: #5a6a62;
-    font-size: 14px;
-}
-
-.lyric-chip-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 16px;
-}
-
-.lyric-chip {
-    background: white;
-    border: 2px solid #d4f3e0;
-    color: #0f7a38;
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 700;
 }
 
 .how-section {
@@ -350,12 +274,6 @@ button {
     padding: 28px 22px;
     box-shadow: 0 8px 24px rgba(31, 41, 51, 0.06);
     text-align: center;
-}
-
-.how-icon {
-    font-size: 34px;
-    display: inline-block;
-    margin-bottom: 12px;
 }
 
 .how-card h3 {
