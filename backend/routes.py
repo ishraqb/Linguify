@@ -199,7 +199,7 @@ def get_words():
   ])
   
 @api_bp.delete("/api/words/<int:word_id>")
-def delete_word():
+def delete_word(word_id):
   if "user_id" not in session:
     return jsonify(error="Not authenticated"), 401
   
