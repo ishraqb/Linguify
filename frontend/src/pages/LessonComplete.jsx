@@ -8,7 +8,7 @@ function LessonComplete() {
     title: "Song",
     artist: "Artist",
   }
-  const sourceLanguage = location.state?.song || {
+  const sourceLanguage = location.state?.sourceLanguage || {
     label: "Original",
     code: '',
   }
@@ -28,7 +28,7 @@ function LessonComplete() {
       <div className="complete-header">
         <h1>Song Finished</h1>
         <p>
-          You completed a lesson for {selectedSong.songTitle} by {' '}
+          You completed a lesson for {selectedSong.title} by {' '}
           {selectedSong.artist}
         </p>
       </div>
