@@ -1,4 +1,4 @@
-function WordCard({ word, definition, songTitle, dateAdded }) {
+function WordCard({ word, definition, songTitle, dateAdded, onDelete }) {
     return (
         <div className="word-card">
             <div>
@@ -9,6 +9,11 @@ function WordCard({ word, definition, songTitle, dateAdded }) {
             <div>
                 <p>{songTitle}</p>
                 <p>{dateAdded}</p>
+                {onDelete && (
+                    <button className="secondary-button" onClick={onDelete}>
+                        Remove
+                    </button>
+                )}
             </div>
         </div>
     )
