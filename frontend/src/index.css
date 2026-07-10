@@ -154,60 +154,228 @@ button {
 
 /* ---------- Landing Page ---------- */
 
-.landing-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 3px solid #1f1f1f;
-    padding: 16px;
-    margin-bottom: 28px;
-    background: white;
-}
-
-.brand-box {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.logo-box {
-    border: 2px solid #1f1f1f;
-    padding: 12px;
-    border-radius: 6px;
-    background: white;
-}
-
-.landing-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 28px;
-    margin-bottom: 24px;
-}
-
-.large-box,
-.small-box,
-.image-box {
-    border: 3px solid #1f1f1f;
-    border-radius: 8px;
-    background: white;
+.landing {
+    max-width: 1100px;
+    margin: 0 auto;
     padding: 24px;
 }
 
-.large-box {
-    margin-bottom: 20px;
-    min-height: 120px;
+.landing-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 4px;
+    margin-bottom: 24px;
 }
 
-.small-box {
-    min-height: 90px;
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.image-box {
-    min-height: 250px;
+.brand-logo {
+    font-size: 28px;
+    background: #e9f7ee;
+    border-radius: 12px;
+    padding: 6px 10px;
+}
+
+.brand-name {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.ghost-link {
+    color: #1f1f1f;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 999px;
+}
+
+.ghost-link:hover {
+    background: #e9f7ee;
+}
+
+.hero {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    background: linear-gradient(135deg, #eafaf0 0%, #f3f8f5 60%, #ffffff 100%);
+    border-radius: 28px;
+    padding: 56px 48px;
+    margin-bottom: 48px;
+}
+
+.hero-badge {
+    display: inline-block;
+    background: #d4f3e0;
+    color: #0f7a38;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+}
+
+.hero-text h1 {
+    font-size: 44px;
+    line-height: 1.1;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+}
+
+.hero-text p {
+    font-size: 18px;
+    color: #4a5a52;
+    line-height: 1.6;
+    margin: 0 0 28px;
+    max-width: 460px;
+}
+
+.spotify-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #1db954;
+    color: white;
+    font-size: 17px;
+    font-weight: 700;
+    padding: 15px 30px;
+    border-radius: 999px;
+    box-shadow: 0 10px 24px rgba(29, 185, 84, 0.35);
+    transition: transform 0.08s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.spotify-cta::before {
+    content: "\25B6";
+    font-size: 13px;
+}
+
+.spotify-cta:hover {
+    background: #169c46;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(29, 185, 84, 0.45);
+}
+
+.hero-note {
+    font-size: 13px;
+    color: #7a8a82;
+    margin: 14px 0 0;
+}
+
+.hero-visual {
     display: flex;
     justify-content: center;
-    align-items: center;
-    color: #555;
+}
+
+.lyric-preview {
+    width: 100%;
+    max-width: 360px;
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 20px 50px rgba(31, 41, 51, 0.12);
+}
+
+.lyric-preview-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #1db954;
+    margin-bottom: 16px;
+}
+
+.lyric-row {
+    border-radius: 12px;
+    background: #e9f7ee;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+}
+
+.lyric-row.muted {
+    background: #f3f5f4;
+}
+
+.lyric-row p {
+    margin: 0 0 4px;
+    font-weight: 700;
+}
+
+.lyric-row span {
+    color: #5a6a62;
+    font-size: 14px;
+}
+
+.lyric-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.lyric-chip {
+    background: white;
+    border: 2px solid #d4f3e0;
+    color: #0f7a38;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.how-section {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.how-section h2 {
+    font-size: 30px;
+    margin-bottom: 28px;
+}
+
+.how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.how-card {
+    background: white;
+    border-radius: 18px;
+    padding: 28px 22px;
+    box-shadow: 0 8px 24px rgba(31, 41, 51, 0.06);
+    text-align: center;
+}
+
+.how-icon {
+    font-size: 34px;
+    display: inline-block;
+    margin-bottom: 12px;
+}
+
+.how-card h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+}
+
+.how-card p {
+    margin: 0;
+    color: #5a6a62;
+    line-height: 1.5;
+}
+
+@media (max-width: 800px) {
+    .hero {
+        grid-template-columns: 1fr;
+        padding: 36px 24px;
+    }
+    .hero-text h1 { font-size: 34px; }
+    .how-grid { grid-template-columns: 1fr; }
 }
 
 /* ---------- Cards ---------- */
