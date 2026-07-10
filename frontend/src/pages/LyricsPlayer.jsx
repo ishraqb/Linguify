@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
 import { mockLyrics } from "../data/mockLyrics";
-import { getLyrics, getTranslation, saveWord as saveWordToBackend } from "../services/api";
+import { getLyrics, getTranslation, getWordTranslation, saveWord as saveWordToBackend } from "../services/api";
 import { act, useEffect, useRef, useState } from "react";
 
 function LyricsPlayer() {
@@ -31,6 +31,7 @@ function LyricsPlayer() {
   const [savedWords, setSavedWords] = useState([]);
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [selectedWordTranslation, setSelectedWordTranslation] = useState('');
 
   function cleanLyricLine(line) {
     return line
@@ -126,12 +127,27 @@ function LyricsPlayer() {
     }
   }
 
-  function handleWordClick(word) {
+  async function handleWordClick(word) {
     setSelectedWord(word);
+    setSelectedWordTranslation('Loading...')
+
+    try {
+      const data = await getWordTranslation(
+        word,
+        sourceLanguage.code,
+        targetLanguage.code
+      )
+
+      setSelectedWordTranslation(data.translation || 'Translation unavailable')
+    } catch (err) {
+      console.error(err)
+      setSelectedWordTranslation('Translation unavailable')
+    }
   }
 
   function closeModal() {
     setSelectedWord(null);
+    setSelectedWordTranslation('')
   }
 
   async function saveWord() {
@@ -141,12 +157,18 @@ function LyricsPlayer() {
     }
 
     const activeLine = lyrics[activeLineIndex]
+    const wordTranslation = 
+      selectedWordTranslation &&
+      selectedWordTranslation !== 'Loading...' &&
+      selectedWordTranslation !== 'Translation unavailable'
+        ? selectedWordTranslation
+        : selectedWord
 
     try {
       await saveWordToBackend({
         song_id: songId,
         word: selectedWord,
-        translation: activeLine?.translation || selectedWord,
+        translation: wordTranslation,
         target_language: targetLanguage.code,
         example_sentence: activeLine?.original || '',
         pronunciation: '',
@@ -295,7 +317,8 @@ function LyricsPlayer() {
       {selectedWord && (
         <WordSaveModal
           word={selectedWord}
-          lyriceLine={lyrics[activeLineIndex]?.original}
+          wordTranslation={selectedWordTranslation}
+          lyricLine={lyrics[activeLineIndex]?.original}
           translation={lyrics[activeLineIndex]?.translation}
           onClose={closeModal}
           onSave={saveWord}

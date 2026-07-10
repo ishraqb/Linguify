@@ -1,4 +1,4 @@
-function WordSaveModal({ word, lyricLine, translation, onClose, onSave }) {
+function WordSaveModal({ word, wordTranslation, lyricLine, translation, onClose, onSave }) {
     return (
         <div className="modal-background">
             <div className="word-modal">
@@ -15,7 +15,7 @@ function WordSaveModal({ word, lyricLine, translation, onClose, onSave }) {
 
                 <div className="modal-section">
                     <h3>Translation</h3>
-                    <p>{translation || "Translation unavailable"}</p>
+                    <p>{wordTranslation || "Translation unavailable"}</p>
                 </div>
 
                 {/* <div className="modal-section">
