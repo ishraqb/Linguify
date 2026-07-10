@@ -85,7 +85,7 @@ export async function saveWord(wordData) {
     })
 
     if (!response.ok) {
-        throw new Error("Failed to load saved words")
+        throw new Error("Failed to save word")
     }
 
     return response.json()
@@ -122,7 +122,7 @@ export async function getWordTranslation(word, sourceLanguage, targetLanguage) {
 }
 
 export async function deleteSavedWord(wordId) {
-    const response = await fetch(`${API_BASE_URL}/api/words${wordId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/words/${wordId}`, {
         method: 'DELETE',
         credentials: 'include',
     })

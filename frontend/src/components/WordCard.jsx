@@ -9,6 +9,11 @@ function WordCard({ word, translation, songTitle, dateAdded, onRemove }) {
             <div>
                 <p>{songTitle}</p>
                 <p>{dateAdded}</p>
+                {onDelete && (
+                    <button className="secondary-button" onClick={onDelete}>
+                        Remove
+                    </button>
+                )}
             </div>
 
             {onRemove && (

@@ -49,12 +49,12 @@ def recently_played():
 def get_lyrics():
   if "spotify_id" not in session:
     return jsonify(error="Not authenticated"), 401
-  title = request.args.get("title", "").strip() 
+  title = request.args.get("title", "").strip()
   artist = request.args.get("artist", "").strip()
   spotify_track_id = request.args.get("spotify_track_id", "").strip() or None
   album = request.args.get("album", "").strip() or None
 
-  if not title or not artist: 
+  if not title or not artist:
     return jsonify(error="Missing title or artist"), 400
   result = get_or_fetch_lyrics(
     title=title,
@@ -68,7 +68,7 @@ def get_lyrics():
 
 @api_bp.get("/api/genius/search")
 def genius_search():
-  if "spotify_id" not in session: 
+  if "spotify_id" not in session:
     return jsonify(error="Not authenticated"), 401
   title = request.args.get("title", "").strip()
   artist = request.args.get("artist", "").strip()
@@ -76,7 +76,7 @@ def genius_search():
     return jsonify(error="Missing title or artist"), 400
   try:
     metadata = search_song_metadata(title, artist)
-  except RuntimeError as e: 
+  except RuntimeError as e:
     return jsonify(error="Genius API request failed"), 502
   if not metadata:
     return jsonify(error="Song metadata not found"), 404
@@ -93,7 +93,7 @@ def translate_song():
   
   if not song_id or not target_language or not source_language:
     return jsonify(error="Missing song_id, target_language, or source_language"), 400
-  try: 
+  try:
     result = get_or_create_translation(
       song_id=song_id,
       target_language=target_language,
@@ -101,7 +101,7 @@ def translate_song():
     )
   except requests.HTTPError:
     return jsonify(error="Translation API request failed"), 502
-  if not result: 
+  if not result:
     return jsonify(error="Song or lyrics not found"), 404
   return jsonify(result)
 
@@ -202,18 +202,12 @@ def get_words():
 def delete_word(word_id):
   if "user_id" not in session:
     return jsonify(error="Not authenticated"), 401
-  
-  vocab_row = (
-    Vocabulary.query
-    .filter_by(id=word_id, user_id=session["user_id"])
-    .first()
-  )
-  
-  if not vocab_row:
+
+  # Ownership filter (user_id) prevents deleting another user's word (IDOR).
+  word = Vocabulary.query.filter_by(id=word_id, user_id=session["user_id"]).first()
+  if not word:
     return jsonify(error="Word not found"), 404
-  
-  db.session.delete(vocab_row)
+
+  db.session.delete(word)
   db.session.commit()
-  
-  return jsonify(status="deleted")
-  
+  return jsonify(status="deleted", id=word_id)

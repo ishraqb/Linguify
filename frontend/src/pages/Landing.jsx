@@ -1,49 +1,48 @@
-import { Link } from 'react-router-dom'
-
 function Landing() {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
   return (
-    <div className="page">
-      <div className="landing-header">
-        <div className="brand-box">
-          <div className="logo-box">Icon</div>
-          <h1>Linguify</h1>
+    <div className="landing">
+      <header className="landing-nav">
+        <div className="brand">
+          <span className="brand-logo">🎵</span>
+          <span className="brand-name">Linguify</span>
         </div>
+        <a href="#how-it-works" className="ghost-link">How it works</a>
+      </header>
 
-        <a href="#how-it-works" className="secondary-button">
-          About
-        </a>
-      </div>
-
-      <div className="landing-content">
-        <div className="landing-text">
-          <div className="large-box">
-            <h2>Learn languages through the songs you love</h2>
-          </div>
-
-          <div className="small-box">
-            <p>
-              Pick a song from Spotify, translate the lyrics, save new words,
-              and review them with flashcards
-            </p>
-          </div>
+      <section className="hero">
+        <div className="hero-text">
+          <span className="hero-badge">Learn while you listen</span>
+          <h1>Learn languages through the songs you love</h1>
+          <p>
+            Pick a song from Spotify, read the lyrics line-by-line with
+            translations, save the words you want to remember, and review
+            them as flashcards.
+          </p>
+          <a href={`${API_BASE_URL}/api/login`} className="spotify-cta">
+            Login with Spotify
+          </a>
         </div>
-
-        <div className="image-box">Thumbnail / Image</div>
-      </div>
-
-      <section id="how-it-works" className="info-card">
-        <h2>About</h2>
-        <p>
-          You log in with Spotify, pick a song, and choose a language. Linguify shows the lyrics line-by-line with translations underneath. 
-          Tap any word you don’t know to see its translation and hear how it’s pronounced, then save it to a personal flashcard deck to review later
-        </p>
       </section>
 
-      <a href={`${API_BASE_URL}/api/login`} className="main-button wide-button">
-        Login with Spotify
-      </a>
+      <section id="how-it-works" className="how-section">
+        <h2>How it works</h2>
+        <div className="how-grid">
+          <div className="how-card">
+            <h3>Pick a song</h3>
+            <p>Search Spotify or use a track you recently played.</p>
+          </div>
+          <div className="how-card">
+            <h3>See translations</h3>
+            <p>Lyrics appear line-by-line with the meaning underneath.</p>
+          </div>
+          <div className="how-card">
+            <h3>Save &amp; review</h3>
+            <p>Tap any word to save it, then study with flashcards.</p>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
