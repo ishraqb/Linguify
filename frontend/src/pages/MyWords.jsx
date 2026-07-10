@@ -2,12 +2,26 @@ import { useEffect, useState } from 'react'
 import WordCard from '../components/WordCard'
 import Navbar from '../components/Navbar'
 import { mockWords } from '../data/mockWords'
-import { getSavedWords } from '../services/api'
+import { getSavedWords, deleteSavedWord } from '../services/api'
 
 function MyWords() {
   const [searchTerm, setSearchTerm] = useState('')
   const [words, setWords] = useState(mockWords)
   const [error, setError] = useState('')
+
+  async function handleDeleteWord(wordId) {
+    try {
+      setError('')
+      await deleteSavedWord(wordId)
+
+      setWords((currentWords) =>
+        currentWords.filter((item) => item.id !== wordId)
+    )
+    } catch (err) {
+      console.error(err)
+      setError("Could not delete saved word")
+    }
+  }
 
   useEffect(() => {
     async function loadWords() {
@@ -15,7 +29,7 @@ function MyWords() {
         setError('')
         const savedWords = await getSavedWords()
 
-        if (Array.isArray(savedWords) && savedWords.length > 0) {
+        if (Array.isArray(savedWords)) {
           setWords(savedWords)
         }
       } catch (err) {
@@ -52,9 +66,10 @@ function MyWords() {
         <WordCard
           key={item.id}
           word={item.word}
-          definition={item.definition || item.translation}
+          translation={item.translation || item.definition}
           songTitle={item.songTitle}
           dateAdded={item.dateAdded}
+          onRemove={() => handleDeleteWord(item.id)}
         />
       )}
 
