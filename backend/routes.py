@@ -2,7 +2,7 @@ import requests
 from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
 from services.genius_service import search_song_metadata
-from services.translation_service import get_or_create_translation
+from services.translation_service import get_or_create_translation, translate_text
 from models import Vocabulary
 from extensions import db
 
@@ -89,7 +89,7 @@ def translate_song():
 
   song_id = request.args.get("song_id", type=int)
   target_language = request.args.get("target_language", "").strip()
-  source_language = request.args.get("source_language", "auto").strip()
+  source_language = request.args.get("source_language", "en").strip()
   
   if not song_id or not target_language or not source_language:
     return jsonify(error="Missing song_id, target_language, or source_language"), 400
@@ -104,6 +104,26 @@ def translate_song():
   if not result: 
     return jsonify(error="Song or lyrics not found"), 404
   return jsonify(result)
+
+@api_bp.get("/api/word-translation")
+def translate_word():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  
+  target_language = request.args.get("target_language", "").strip()
+  source_language = request.args.get("source_language", "en").strip()
+  word = request.args.get("word", "").strip()
+  
+  if not word or not target_language or not source_language:
+    return jsonify(error="Missing target_language, source_language, or word"), 400
+  try:
+    translated = translate_text(word, source_lang=source_language, target_lang=target_language)
+    return jsonify({
+      "word": word,
+      "translation": translated or "Translation unavailable"
+    })
+  except requests.RequestException:
+    return jsonify(error="Translation API request failed"), 502
 
 @api_bp.post("/api/words")
 def save_word():
