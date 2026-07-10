@@ -103,3 +103,20 @@ export async function getSavedWords() {
     const data = await response.json()
     return data.words
 }
+
+export async function getWordTranslation(word, sourceLanguage, targetLanguage) {
+    const params = new URLSearchParams({
+        word: word,
+        source_language: sourceLanguage,
+        target_language: targetLanguage
+    })
+    const response = await fetch(`${API_BASE_URL}/api/word-translation?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to translate word")
+    }
+
+    return response.json()
+}
