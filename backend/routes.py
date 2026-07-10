@@ -197,3 +197,23 @@ def get_words():
     }
     for item in vocab_words
   ])
+  
+@api_bp.delete("/api/words/<int:word_id>")
+def delete_word():
+  if "user_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  
+  vocab_row = (
+    Vocabulary.query
+    .filter_by(id=word_id, user_id=session["user_id"])
+    .first()
+  )
+  
+  if not vocab_row:
+    return jsonify(error="Word not found"), 404
+  
+  db.session.delete(vocab_row)
+  db.session.commit()
+  
+  return jsonify(status="deleted")
+  

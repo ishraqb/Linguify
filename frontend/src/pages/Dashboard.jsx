@@ -72,7 +72,7 @@ function Dashboard() {
             <WordCard
               key={item.id}
               word={item.word}
-              definition={item.definition || item.translation}
+              translation={item.translation || item.definition}
               songTitle={item.songTitle}
               dateAdded={item.dateAdded}
             />
