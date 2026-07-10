@@ -104,14 +104,31 @@ export async function getSavedWords() {
     return data.words
 }
 
-export async function deleteWord(id) {
-    const response = await fetch(`${API_BASE_URL}/api/words/${id}`, {
+export async function getWordTranslation(word, sourceLanguage, targetLanguage) {
+    const params = new URLSearchParams({
+        word: word,
+        source_language: sourceLanguage,
+        target_language: targetLanguage
+    })
+    const response = await fetch(`${API_BASE_URL}/api/word-translation?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to translate word")
+    }
+
+    return response.json()
+}
+
+export async function deleteSavedWord(wordId) {
+    const response = await fetch(`${API_BASE_URL}/api/words/${wordId}`, {
         method: 'DELETE',
         credentials: 'include',
     })
 
     if (!response.ok) {
-        throw new Error("Failed to delete word")
+        throw new Error("Failed to delete saved word")
     }
 
     return response.json()

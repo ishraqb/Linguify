@@ -1,9 +1,9 @@
-function WordCard({ word, definition, songTitle, dateAdded, onDelete }) {
+function WordCard({ word, translation, songTitle, dateAdded, onRemove }) {
     return (
         <div className="word-card">
             <div>
                 <h3>{word}</h3>
-                <p>{definition}</p>
+                <p>{translation}</p>
             </div>
 
             <div>
@@ -15,6 +15,12 @@ function WordCard({ word, definition, songTitle, dateAdded, onDelete }) {
                     </button>
                 )}
             </div>
+
+            {onRemove && (
+                <button onClick={onRemove}>
+                    Remove
+                </button>
+            )}
         </div>
     )
 }

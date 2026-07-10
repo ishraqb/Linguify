@@ -2,16 +2,29 @@ import { useEffect, useState } from 'react'
 import WordCard from '../components/WordCard'
 import Navbar from '../components/Navbar'
 import { mockWords } from '../data/mockWords'
-import { getSavedWords, deleteWord } from '../services/api'
+import { getSavedWords, deleteSavedWord } from '../services/api'
 
 function MyWords() {
   const [searchTerm, setSearchTerm] = useState('')
   const [words, setWords] = useState(mockWords)
   const [error, setError] = useState('')
-
   const [reviewMode, setReviewMode] = useState(false)
   const [reviewIndex, setReviewIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
+  
+  async function handleDeleteWord(wordId) {
+    try {
+      setError('')
+      await deleteSavedWord(wordId)
+
+      setWords((currentWords) =>
+        currentWords.filter((item) => item.id !== wordId)
+    )
+    } catch (err) {
+      console.error(err)
+      setError("Could not delete saved word")
+    }
+  }
 
   useEffect(() => {
     async function loadWords() {
@@ -19,7 +32,7 @@ function MyWords() {
         setError('')
         const savedWords = await getSavedWords()
 
-        if (Array.isArray(savedWords) && savedWords.length > 0) {
+        if (Array.isArray(savedWords)) {
           setWords(savedWords)
         }
       } catch (err) {
@@ -34,15 +47,6 @@ function MyWords() {
   const filteredWords = words.filter((item) =>
     item.word.toLowerCase().includes(searchTerm.toLowerCase())
   )
-
-  async function handleDelete(id) {
-    try {
-      await deleteWord(id)
-      setWords(words.filter((item) => item.id !== id))
-    } catch (err) {
-      console.error(err)
-    }
-  }
 
   function startReview() {
     if (words.length === 0) return
@@ -154,10 +158,10 @@ function MyWords() {
         <WordCard
           key={item.id}
           word={item.word}
-          definition={item.definition || item.translation}
+          translation={item.translation || item.definition}
           songTitle={item.songTitle}
           dateAdded={item.dateAdded}
-          onDelete={() => handleDelete(item.id)}
+          onRemove={() => handleDeleteWord(item.id)}
         />
       )}
 
