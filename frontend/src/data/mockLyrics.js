@@ -1,3 +1,6 @@
+/**
+ * Temporary data to fill up Lyrics when testing
+ */
 export const mockLyrics = [
   {
     id: 1,

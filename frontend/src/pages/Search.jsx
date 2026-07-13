@@ -3,12 +3,17 @@ import Navbar from '../components/Navbar'
 import SongCard from '../components/SongCard'
 import { searchSongs } from '../services/api'
 
+/**
+ * Page for searching Spotify songs by the title or artists
+ * Displays matching song results as SongCards and allows users to start a lesson
+ */
 function Search() {
   const [searchTerm, setSearchTerm] = useState('')
   const [songs, setSongs] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Searches for songs whenever the search input is changed
   useEffect(() => {
     async function loadSongs() {
       if (!searchTerm.trim()) {

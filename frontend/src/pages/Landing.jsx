@@ -1,3 +1,8 @@
+/** 
+ * Landing page view for all unsigned / new users
+ * Provides a description of the app, how it works, and a button to login with Spotify
+ */
+
 function Landing() {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 

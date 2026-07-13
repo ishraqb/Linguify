@@ -1,3 +1,7 @@
+/** 
+ * Pop up modal that appears after user taps a word in the lyrics
+ * Shows the word translation and lyric line, and provides the option to save to My Words or exit out (using cancel or x)
+ */
 function WordSaveModal({ word, wordTranslation, lyricLine, translation, onClose, onSave }) {
     return (
         <div className="modal-background">

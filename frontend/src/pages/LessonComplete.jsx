@@ -1,6 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 
+/**
+ * Page for displaying the summary after user finishes a song
+ * Displays the selected song, artist, lines reviewed, words saved, and source & target language
+ * Provides navigation  back to Dashboard, My Words a new Song, or choosing a new song
+ */
 function LessonComplete() {
   const location = useLocation()
 

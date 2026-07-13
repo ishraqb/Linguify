@@ -7,10 +7,15 @@ import { mockSongs } from '../data/mockSongs'
 import { mockWords } from '../data/mockWords'
 import { getRecentlyPlayedSongs, getSavedWords } from '../services/api'
 
+/**
+ * Dashboard view for signed in users
+ * Displays their recently played songs and recently saved words
+ */
 function Dashboard() {
   const [recentlyPlayedSongs, setRecentlyPlayedSongs] = useState(mockSongs.slice(0, 3))
   const [recentWords, setRecentWords] = useState(mockWords.slice(0,2))
 
+  // Loads in the recently played songs and recent saved words, validates it and checks for errors
   useEffect(() => {
     async function loadRecentlyPlayed() {
       try {

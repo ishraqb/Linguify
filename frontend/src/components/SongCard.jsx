@@ -1,5 +1,9 @@
 import { Link } from 'react-router-dom'
 
+/** 
+ * Reusable card for displaying a song result
+ * Passes the selected song data to the next page when the user begins the lesson
+ */
 function SongCard({ id, title, artist, language, album, coverUrl, previewUrl, linkTo = '/language-selection' }) {
     return (
         <div className="song-card">

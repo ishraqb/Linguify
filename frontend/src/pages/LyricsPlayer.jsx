@@ -2,8 +2,12 @@ import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
 import { mockLyrics } from "../data/mockLyrics";
 import { getLyrics, getTranslation, getWordTranslation, saveWord as saveWordToBackend } from "../services/api";
-import { act, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+/**
+ * Main lesson page for displaying the lyrics of the song, in the selected source & target language
+ * Lets users move through the lyrics lines, tap words from bank for more information, and save words to My Words
+ */
 function LyricsPlayer() {
   const location = useLocation();
 
@@ -33,12 +37,14 @@ function LyricsPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedWordTranslation, setSelectedWordTranslation] = useState('');
 
+  // Removes time stamp markers from the retrieved synced lyric lines
   function cleanLyricLine(line) {
     return line
       .replace(/\[\d{2}:\d{2}(?:\.\d{2,3})?\]/g, '')
       .trim()
   }
 
+  // Skips lines if they contain anything that is not part of the actual lyrics
   function shouldSkipLine(line) {
     const lowerLine = line.toLowerCase()
 
@@ -53,6 +59,7 @@ function LyricsPlayer() {
     )
   }
 
+  // Converts backend translated lyrics text into line objects to be used for rendering
   function formatTranslatedLyrics(translatedLyrics) {
     return translatedLyrics
       .split("\n")
@@ -73,6 +80,7 @@ function LyricsPlayer() {
       .filter((line) => !shouldSkipLine(line.original))
   }
 
+  // Loads original lyrics and translated lyrics when page opens, validates and catches any errors
   useEffect(() => {
     async function loadLyricsAndTranslation() {
       try {
@@ -105,18 +113,21 @@ function LyricsPlayer() {
     loadLyricsAndTranslation();
   }, []);
 
+  // Goes to previous lyric line
   function goToPreviousLine() {
     if (activeLineIndex > 0) {
       setActiveLineIndex(activeLineIndex - 1);
     }
   }
 
+  // Goes to next lyric line
   function goToNextLine() {
     if (activeLineIndex < lyrics.length - 1) {
       setActiveLineIndex(activeLineIndex + 1);
     }
   }
 
+  // Toggles audio playblock for the preview clip (implementing)
   function togglePreview() {
     const audio = audioRef.current;
     if (!audio) return;
@@ -127,6 +138,7 @@ function LyricsPlayer() {
     }
   }
 
+  // Loads the WordSaveModal when a word gets clicked
   async function handleWordClick(word) {
     setSelectedWord(word);
     setSelectedWordTranslation('Loading...')
@@ -145,11 +157,13 @@ function LyricsPlayer() {
     }
   }
 
+  // Closes the WordSaveModal
   function closeModal() {
     setSelectedWord(null);
     setSelectedWordTranslation('')
   }
 
+  // Saves the selected word to the backend vocabulary list
   async function saveWord() {
     if (!selectedWord || savedWords.includes(selectedWord)) {
       setSelectedWord(null)
