@@ -1,3 +1,6 @@
+/**
+ * Temporary data to fill up words when testing
+ */
 export const mockWords = [
   {
     id: 1,

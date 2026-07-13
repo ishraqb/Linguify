@@ -1,5 +1,12 @@
+/** 
+ * Central frontend API helper file
+ * Each function sends a request to the Flask backend and returns JSON data to be used
+ * Avoids have to duplicate fetch logic everywhere
+ */
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
+// Searches Spotify songs by title or artist
 export async function searchSongs(query) {
     const response = await fetch(
         `${API_BASE_URL}/api/search?q=${encodeURIComponent(query)}`,
@@ -17,6 +24,7 @@ export async function searchSongs(query) {
     return data.tracks
 }
 
+// Gets the recently played songs in users Spotify
 export async function getRecentlyPlayedSongs() {
     const response = await fetch(`${API_BASE_URL}/api/recently-played`, {
         credentials: 'include',
@@ -31,6 +39,7 @@ export async function getRecentlyPlayedSongs() {
     return data.tracks
 }
 
+// Gets the synced lyrics for a selected song from the backend
 export async function getLyrics(song) {
     const params = new URLSearchParams({
         title: song.title,
@@ -56,6 +65,7 @@ export async function getLyrics(song) {
     return response.json()
 }
 
+// Gets the translated lyrics for a selected song using the soure & target language
 export async function getTranslation(songId, sourceLanguage, targetLanguage) {
     const params = new URLSearchParams({
         song_id: songId,
@@ -74,6 +84,7 @@ export async function getTranslation(songId, sourceLanguage, targetLanguage) {
     return response.json()
 }
 
+// Saves a selected vocabulary word to the backend
 export async function saveWord(wordData) {
     const response = await fetch(`${API_BASE_URL}/api/words`, {
         method: 'POST',
@@ -91,6 +102,7 @@ export async function saveWord(wordData) {
     return response.json()
 }
 
+// Loads all the user's saved words from the backend
 export async function getSavedWords() {
     const response = await fetch(`${API_BASE_URL}/api/words`, {
         credentials: 'include',
@@ -104,6 +116,7 @@ export async function getSavedWords() {
     return data.words
 }
 
+// Gets a word translation for a specific tapped word
 export async function getWordTranslation(word, sourceLanguage, targetLanguage) {
     const params = new URLSearchParams({
         word: word,
@@ -121,6 +134,7 @@ export async function getWordTranslation(word, sourceLanguage, targetLanguage) {
     return response.json()
 }
 
+// Deletes the users saved word from the backend using the id
 export async function deleteSavedWord(wordId) {
     const response = await fetch(`${API_BASE_URL}/api/words/${wordId}`, {
         method: 'DELETE',

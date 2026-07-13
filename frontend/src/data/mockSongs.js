@@ -1,3 +1,6 @@
+/**
+ * Temporary data to fill up Songs when testing
+ */
 export const mockSongs = [
   {
     id: 1,

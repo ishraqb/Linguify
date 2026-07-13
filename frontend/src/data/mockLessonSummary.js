@@ -1,3 +1,6 @@
+/**
+ * Temporary data to fill up LessonSummary when testing
+ */
 export const mockLessonSummary = {
   songTitle: 'DÁKITI',
   artist: 'Bad Bunny, Jhay Cortez',

@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
+/**
+ * Page for choosing the song's source language and the target translation language (language to learn)
+ * Passes the selected song and language choices to LyricsPlayer
+ */
 function LanguageSelection() {
   const location = useLocation()
   const languages = [
@@ -16,6 +20,8 @@ function LanguageSelection() {
   const [sourceLanguage, setSourceLanguage] = useState(null)
   const [targetLanguage, setTargetLanguage] = useState(null)
 
+  // If someone accesses "/language-selection" with choosing a song it throws an error
+  // Prevents page from crashing
   if (!selectedSong) {
     return (
       <div className="page">

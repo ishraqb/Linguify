@@ -1,3 +1,7 @@
+/**
+ * Reusable card for displaying a saved vocabulary word from a song
+ * Optionally shows a remove button when OnRemove is used
+ */
 function WordCard({ word, translation, songTitle, dateAdded, onRemove }) {
     return (
         <div className="word-card">
@@ -12,7 +16,7 @@ function WordCard({ word, translation, songTitle, dateAdded, onRemove }) {
             </div>
 
             {onRemove && (
-                <button onClick={onRemove}>
+                <button className="secondary-buton" onClick={onRemove}>
                     Remove
                 </button>
             )}

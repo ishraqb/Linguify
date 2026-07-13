@@ -1,5 +1,9 @@
 import { NavLink, Link } from 'react-router-dom'
 
+/**
+ * Reusable navigation bar for signed in users
+ * Contains links to Dashboard, Search, My Words, and Logout
+ */
 function Navbar() {
   return (
     <nav className="top-nav">

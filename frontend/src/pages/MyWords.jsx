@@ -4,6 +4,10 @@ import Navbar from '../components/Navbar'
 import { mockWords } from '../data/mockWords'
 import { getSavedWords, deleteSavedWord } from '../services/api'
 
+/** 
+ * Page for displaying and managing the user's saved words
+ * Allows for searching, removing saved words, and reviewing words in flashcard mode
+ */
 function MyWords() {
   const [searchTerm, setSearchTerm] = useState('')
   const [words, setWords] = useState(mockWords)
@@ -12,6 +16,7 @@ function MyWords() {
   const [reviewIndex, setReviewIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
   
+  // Deletes a saved word from the backend and removes it from the local state
   async function handleDeleteWord(wordId) {
     try {
       setError('')
@@ -26,6 +31,7 @@ function MyWords() {
     }
   }
 
+  // Load user's saved words from the backend when the page opens
   useEffect(() => {
     async function loadWords() {
       try {
@@ -44,10 +50,12 @@ function MyWords() {
     loadWords()
   }, [])
 
+  // Filters saved words based on the given search input
   const filteredWords = words.filter((item) =>
     item.word.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  // Starts a flashcard review from the first saved word
   function startReview() {
     if (words.length === 0) return
     setReviewMode(true)
@@ -55,11 +63,13 @@ function MyWords() {
     setShowAnswer(false)
   }
 
+  // Exists the flashcard review mode
   function exitReview() {
     setReviewMode(false)
     setShowAnswer(false)
   }
 
+  // Goes to the next card in flashcard review
   function goToNextCard() {
     if (reviewIndex < words.length - 1) {
       setReviewIndex(reviewIndex + 1)
@@ -67,6 +77,7 @@ function MyWords() {
     }
   }
 
+  // Goes to prevous card in flashcard review
   function goToPreviousCard() {
     if (reviewIndex > 0) {
       setReviewIndex(reviewIndex - 1)
@@ -94,7 +105,7 @@ function MyWords() {
           <div className="flashcard" onClick={() => setShowAnswer(!showAnswer)}>
             {showAnswer ? (
               <div>
-                <h2>{card.definition || card.translation}</h2>
+                <h2>{card.translation || card.definition}</h2>
                 {card.songTitle && (
                   <p className="page-text">from {card.songTitle}</p>
                 )}
