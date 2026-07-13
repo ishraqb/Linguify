@@ -10,16 +10,19 @@ import spotify_client as sp
 
 auth_bp = Blueprint("auth", __name__)
 
+# GET /api/login - start Spotify OAuth with a random state for CSRF protection.
 @auth_bp.get("/api/login")
 def login():
     state = secrets.token_urlsafe(16)
     session["oauth_state"] = state
     return redirect(sp.build_authorize_url(state))
 
+# GET /api/callback - handle Spotify's redirect, verify state, and log the user in.
 @auth_bp.get("/api/callback")
 def callback():
     if request.args.get("error"):
         return jsonify(error="Authorization failed"), 400
+    # Reject if the returned state doesn't match what we stored (CSRF check).
     if request.args.get("state") != session.get("oauth_state"):
         return jsonify(error="Invalid state"), 400
 
@@ -28,6 +31,7 @@ def callback():
 
     user = User.query.filter_by(spotify_id=profile["id"]).first()
 
+    # Create the user on first login, otherwise refresh their display name.
     if not user:
         user = User(
             spotify_id=profile["id"],
@@ -50,6 +54,7 @@ def callback():
     return redirect(f"{frontend}/search")
 
 
+# GET /api/me - return the current session's user info.
 @auth_bp.get("/api/me")
 def me():
     if "spotify_id" not in session:
@@ -57,6 +62,7 @@ def me():
     return jsonify(id=session["user_id"], spotifyId=session["spotify_id"], displayName=session.get("display_name"))
 
 
+# POST /api/logout - clear the session.
 @auth_bp.post("/api/logout")
 def logout():
     session.clear()

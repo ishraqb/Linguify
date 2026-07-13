@@ -12,6 +12,8 @@ save words to review later as flashcards.
 - **External APIs:** Spotify Web API (auth + search + recently played), LRCLIB (lyrics), MyMemory (translation), Genius (song metadata)
 - **Deploy:** Render (Flask serves the built React app as a single service)
 
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for an architecture overview and diagrams.
+
 ## Prerequisites
 
 - A Spotify Developer app (Client ID + Secret): https://developer.spotify.com/dashboard

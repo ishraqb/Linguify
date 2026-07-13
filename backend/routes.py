@@ -10,6 +10,7 @@ import spotify_client as sp
 
 api_bp = Blueprint("api", __name__)
 
+# Use the stored refresh token to get a fresh access token and update the session.
 def _refresh_session_token():
   new_tokens = sp.refresh_access_token(session["refresh_token"])
   session["access_token"] = new_tokens["access_token"]
@@ -18,6 +19,7 @@ def _refresh_session_token():
     session["refresh_token"] = new_tokens["refresh_token"]
   return session["access_token"]
 
+# Call Spotify; if the token is rejected (400/401), refresh once and retry.
 def _call_spotify(make_request):
   try:
     return make_request(session.get("access_token"))
@@ -26,6 +28,7 @@ def _call_spotify(make_request):
       return make_request(_refresh_session_token())
     raise
 
+# GET /api/search - search Spotify tracks for the query string 'q'.
 @api_bp.get("/api/search")
 def search():
   if "spotify_id" not in session:
@@ -37,6 +40,7 @@ def search():
   items = data.get("tracks", {}).get("items", [])
   return jsonify(tracks=[sp.simplify_track(t) for t in items])
 
+# GET /api/recently-played - return the user's recently played tracks.
 @api_bp.get("/api/recently-played")
 def recently_played():
   if "spotify_id" not in session:
@@ -45,6 +49,7 @@ def recently_played():
   items = data.get("items", [])
   return jsonify(tracks=[sp.simplify_track(i.get("track")) for i in items])
 
+# GET /api/lyrics - fetch (or look up cached) lyrics for a title/artist.
 @api_bp.get("/api/lyrics")
 def get_lyrics():
   if "spotify_id" not in session:
@@ -66,6 +71,7 @@ def get_lyrics():
     return jsonify(error="Lyrics not found"), 404
   return jsonify(result)
 
+# GET /api/genius/search - look up song metadata from Genius.
 @api_bp.get("/api/genius/search")
 def genius_search():
   if "spotify_id" not in session:
@@ -82,6 +88,7 @@ def genius_search():
     return jsonify(error="Song metadata not found"), 404
   return jsonify(metadata)
 
+# GET /api/translate - translate a full song's lyrics into the target language.
 @api_bp.get("/api/translate")
 def translate_song():
   if "spotify_id" not in session:
@@ -105,6 +112,7 @@ def translate_song():
     return jsonify(error="Song or lyrics not found"), 404
   return jsonify(result)
 
+# GET /api/word-translation - translate a single word on demand.
 @api_bp.get("/api/word-translation")
 def translate_word():
   if "spotify_id" not in session:
@@ -125,6 +133,7 @@ def translate_word():
   except requests.RequestException:
     return jsonify(error="Translation API request failed"), 502
 
+# POST /api/words - save a vocabulary word for the logged-in user.
 @api_bp.post("/api/words")
 def save_word():
   if "user_id" not in session:
@@ -171,6 +180,7 @@ def save_word():
     "dateAdded": vocab_word.created_at.strftime("%Y-%m-%d"),
   }), 201
 
+# GET /api/words - return the user's saved vocabulary, newest first.
 @api_bp.get("/api/words")
 def get_words():
   if "user_id" not in session:
@@ -198,6 +208,7 @@ def get_words():
     for item in vocab_words
   ])
   
+# DELETE /api/words/<id> - remove one of the user's saved words.
 @api_bp.delete("/api/words/<int:word_id>")
 def delete_word(word_id):
   if "user_id" not in session:

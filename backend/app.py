@@ -8,6 +8,7 @@ from extensions import db
 import models 
 load_dotenv()
 
+# Build and configure the Flask app (DB, CORS, cookies, blueprints).
 def create_app():
     dist_dir = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
     app = Flask(__name__, static_folder=dist_dir, static_url_path="")
@@ -30,12 +31,14 @@ def create_app():
         origins=[os.environ.get("FRONTEND_URL", "http://localhost:5173")],
     )
     db.init_app(app)
+    # Initialize the database and create tables if they don't exist.
     with app.app_context():
       db.create_all()
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(api_bp)
 
+    # Simple health check endpoint.
     @app.get("/api/health")
     def health():
         return jsonify(status="ok")

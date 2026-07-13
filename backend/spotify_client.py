@@ -21,10 +21,12 @@ def _client_secret():
 def _redirect_uri():
   return os.environ["SPOTIFY_REDIRECT_URI"]
 
+# Build the Basic auth header Spotify requires for token requests.
 def _basic_auth_header():
   creds = f"{_client_id()}:{_client_secret()}".encode()
   return {"Authorization": "Basic " + base64.b64encode(creds).decode()}
 
+# Build the Spotify login URL the user is redirected to.
 def build_authorize_url(state):
   params = {
     "client_id": _client_id(),
@@ -35,6 +37,7 @@ def build_authorize_url(state):
   }
   return f"{SPOTIFY_AUTH_URL}?{urlencode(params)}"
 
+# Trade the OAuth 'code' from the callback for access/refresh tokens.
 def exchange_code_for_token(code):
   resp = requests.post(
     SPOTIFY_TOKEN_URL,
@@ -49,6 +52,7 @@ def exchange_code_for_token(code):
   resp.raise_for_status()
   return resp.json()
 
+# Get a new access token using the stored refresh token.
 def refresh_access_token(refresh_token):
   resp = requests.post(
     SPOTIFY_TOKEN_URL,
@@ -59,6 +63,7 @@ def refresh_access_token(refresh_token):
   resp.raise_for_status()
   return resp.json()
 
+# Fetch the logged-in user's Spotify profile.
 def get_user_profile(access_token):
   resp = requests.get(
     f"{SPOTIFY_API_BASE}/me",
@@ -68,14 +73,17 @@ def get_user_profile(access_token):
   resp.raise_for_status()
   return resp.json()
 
+# Convert Spotify's 'expires_in' seconds into an absolute expiry time.
 def token_expiry_timestamp(expires_in, now=None):
   now = now if now is not None else time.time()
   return now + expires_in
 
+# True if the token is expired or within 60s of expiring.
 def is_token_expired(expires_at, now=None):
   now = now if now is not None else time.time()
   return now >= (expires_at - 60)
 
+# Search Spotify for tracks matching the query.
 def search_tracks(access_token, query, limit=10):
   resp = requests.get(
     f"{SPOTIFY_API_BASE}/search",
@@ -86,6 +94,7 @@ def search_tracks(access_token, query, limit=10):
   resp.raise_for_status()
   return resp.json()
 
+# Fetch the user's recently played tracks.
 def get_recently_played(access_token, limit=20):
   resp = requests.get(
     f"{SPOTIFY_API_BASE}/me/player/recently-played",
@@ -96,6 +105,7 @@ def get_recently_played(access_token, limit=20):
   resp.raise_for_status()
   return resp.json()
 
+# Flatten Spotify's track object into the shape the frontend expects.
 def simplify_track(track):
   if not track:
     return None

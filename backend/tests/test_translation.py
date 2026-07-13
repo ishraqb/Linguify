@@ -1,6 +1,7 @@
 from services.translation_service import translate_text, translate_lines
 
 
+# Stub MyMemory translation API response.
 class MockResponse:
     def raise_for_status(self):
         pass
@@ -13,6 +14,7 @@ class MockResponse:
         }
 
 
+# translate_text should return the translated string.
 def test_translate_text_mocked(monkeypatch):
     def mock_get(*args, **kwargs):
         return MockResponse()
@@ -24,6 +26,7 @@ def test_translate_text_mocked(monkeypatch):
     assert result == "Hello"
 
 
+# translate_lines should translate each line into original/translation pairs.
 def test_translate_lines_mocked(monkeypatch):
     def mock_translate_text(text, source_lang="auto", target_lang="en"):
         return f"translated-{text}"

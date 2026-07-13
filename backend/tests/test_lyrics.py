@@ -1,6 +1,7 @@
 from services.lyrics_service import fetch_lyrics_from_lrclib
 
 
+# Stub LRCLIB lyrics API response.
 class MockResponse:
     def raise_for_status(self):
         pass
@@ -14,6 +15,7 @@ class MockResponse:
         ]
 
 
+# fetch_lyrics_from_lrclib should return the plain lyrics text.
 def test_fetch_lyrics_from_lrclib(monkeypatch):
     def mock_get(*args, **kwargs):
         return MockResponse()
