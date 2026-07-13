@@ -19,6 +19,20 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for an architecture overview an
 - A Spotify Developer app (Client ID + Secret): https://developer.spotify.com/dashboard
 - In the Spotify app settings, add your Redirect URI (see below). It must match **exactly**.
 - (Optional) A Genius API access token for song metadata.
+## Features
+
+- Spotify authentication
+- Search songs using Spotify
+- View song lyrics
+- Translate lyrics into another language
+- Interactive and personalized vocabulary card deck
+- Save words for review
+
+## Future Add-Ons
+- Multiple translation
+- Word pronounciation
+- Additional practice exercises
+
 
 ## Backend Setup
 
