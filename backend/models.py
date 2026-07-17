@@ -14,6 +14,7 @@ class User(db.Model):
   created_at = db.Column(db.DateTime, default=utc_now)
 
   vocab_words = db.relationship("Vocabulary", back_populates="user", cascade="all, delete-orphan")
+  progress = db.relationship("UserProgress", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
 class Song(db.Model):
   __tablename__ = "songs"
@@ -81,3 +82,19 @@ class Vocabulary(db.Model):
 
     user = db.relationship("User", back_populates="vocab_words")
     song = db.relationship("Song", back_populates="vocab_words")
+
+class UserProgress(db.Model):
+    __tablename__ = "user_progress"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
+    total_xp = db.Column(db.Integer, default=0, nullable=False)
+    current_streak = db.Column(db.Integer, default=0, nullable=False)
+    longest_streak = db.Column(db.Integer, default=0, nullable=False)
+    last_activity_date = db.Column(db.Date, nullable=True)
+    # Words-per-day target and how many count toward today's goal.
+    daily_goal = db.Column(db.Integer, default=5, nullable=False)
+    daily_count = db.Column(db.Integer, default=0, nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now)
+
+    user = db.relationship("User", back_populates="progress")

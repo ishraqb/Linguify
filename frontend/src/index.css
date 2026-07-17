@@ -617,6 +617,70 @@ button {
     vertical-align: middle;
 }
 
+/* ---------- Progress / gamification ---------- */
+.progress-card {
+    border: 2px solid #1f1f1f;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    background: white;
+    box-shadow: 0 4px 0 #1f1f1f;
+}
+
+.progress-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.progress-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.progress-stat-value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.progress-stat-label {
+    font-size: 13px;
+    color: #666;
+}
+
+.progress-bar-section {
+    margin-top: 12px;
+}
+
+.progress-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.progress-bar {
+    height: 12px;
+    border-radius: 6px;
+    background: #ededed;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: #58cc02;
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.progress-bar-fill.goal {
+    background: #1cb0f6;
+}
+
 /* ---------- Playlists ---------- */
 .playlist-grid {
     display: grid;

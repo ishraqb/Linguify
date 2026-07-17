@@ -1,5 +1,7 @@
+import { useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import { recordActivity } from '../services/api'
 
 /**
  * Page for displaying the summary after user finishes a song
@@ -28,6 +30,18 @@ function LessonComplete() {
   const quizScore = location.state?.quizScore
   const quizTotal = location.state?.quizTotal
   const hasQuizResult = typeof quizScore === 'number' && quizTotal > 0
+
+  // Award XP/streak once for finishing the lesson (and again if a quiz was taken).
+  const hasRecordedRef = useRef(false)
+  useEffect(() => {
+    if (hasRecordedRef.current) return
+    hasRecordedRef.current = true
+
+    recordActivity('song').catch(() => {})
+    if (hasQuizResult) {
+      recordActivity('quiz').catch(() => {})
+    }
+  }, [hasQuizResult])
 
   return (
     <div className="page">

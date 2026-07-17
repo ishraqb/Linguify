@@ -133,6 +133,55 @@ export async function updatePreferences(prefs) {
     return response.json()
 }
 
+// Gets the user's gamification stats (XP, level, streak, daily goal)
+export async function getProgress() {
+    const response = await fetch(`${API_BASE_URL}/api/progress`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load progress")
+    }
+
+    return response.json()
+}
+
+// Records a learning activity ('word', 'song', or 'quiz') and returns updated stats
+export async function recordActivity(type) {
+    const response = await fetch(`${API_BASE_URL}/api/progress/activity`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ type }),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to record activity")
+    }
+
+    return response.json()
+}
+
+// Updates the user's daily words goal and returns updated stats
+export async function updateDailyGoal(dailyGoal) {
+    const response = await fetch(`${API_BASE_URL}/api/progress/goal`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ dailyGoal }),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to update daily goal")
+    }
+
+    return response.json()
+}
+
 // Gets the current user's own Spotify playlists
 export async function getPlaylists() {
     const response = await fetch(`${API_BASE_URL}/api/playlists`, {
