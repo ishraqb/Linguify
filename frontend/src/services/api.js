@@ -126,6 +126,22 @@ export async function getPreviewUrl(title, artist){
   return data.preview_url
 }
 
+// Detects the source language of a song from its lyrics
+export async function detectLanguage(title, artist) {
+    const params = new URLSearchParams({ title, artist })
+
+    const response = await fetch(`${API_BASE_URL}/api/detect-language?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to detect language")
+    }
+
+    const data = await response.json()
+    return data.language
+}
+
 // Gets the translated lyrics for a selected song using the soure & target language
 export async function getTranslation(songId, sourceLanguage, targetLanguage) {
     const params = new URLSearchParams({
