@@ -20,9 +20,12 @@ pytest==9.1.1
 python-dotenv==1.2.2
 requests==2.34.2
 six==1.17.0
+pykakasi==2.3.0
+pypinyin==0.55.0
 SQLAlchemy==2.0.51
 syncedlyrics==1.0.1
 typing_extensions==4.16.0
+Unidecode==1.4.0
 urllib3==2.7.0
 Werkzeug==3.1.8
 wordfreq==3.1.1

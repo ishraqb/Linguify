@@ -192,6 +192,25 @@ export async function getLyrics(song) {
     return response.json()
 }
 
+// Romanizes non-Latin lyric lines into readable Latin script, aligned by index
+export async function getRomanization(lines, language) {
+    const response = await fetch(`${API_BASE_URL}/api/romanize`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ lines, language }),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to romanize lyrics")
+    }
+
+    const data = await response.json()
+    return data.romanized
+}
+
 // Gets a 30s Deezer preview URL for a song
 export async function getPreviewUrl(title, artist){
   const params = new URLSearchParams({ title, artist })
@@ -323,6 +342,25 @@ export async function getWordTranslation(word, sourceLanguage, targetLanguage) {
 
     if (!response.ok) {
         throw new Error("Failed to translate word")
+    }
+
+    return response.json()
+}
+
+// Gets a word's direct translation plus its lyric line translated for context
+export async function getWordContext(word, line, sourceLanguage, targetLanguage) {
+    const params = new URLSearchParams({
+        word,
+        line: line || '',
+        source_language: sourceLanguage,
+        target_language: targetLanguage,
+    })
+    const response = await fetch(`${API_BASE_URL}/api/word-context?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load word context")
     }
 
     return response.json()
