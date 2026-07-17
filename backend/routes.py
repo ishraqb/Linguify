@@ -8,7 +8,7 @@ from services.language_service import detect_language
 from services.difficulty_service import compute_difficulty
 from services.cloze_service import generate_cloze_questions
 from services.discovery_service import discover_songs, available_languages
-from models import Vocabulary, Song
+from models import Vocabulary, Song, User
 from extensions import db
 
 import spotify_client as sp
@@ -33,6 +33,12 @@ def _call_spotify(make_request):
       return make_request(_refresh_session_token())
     raise
 
+# Drop explicit tracks from a simplified-track list when the user has opted out.
+def _filter_explicit(tracks):
+  if not session.get("hide_explicit"):
+    return tracks
+  return [t for t in tracks if t and not t.get("explicit")]
+
 # GET /api/search - search Spotify tracks for the query string 'q'.
 @api_bp.get("/api/search")
 def search():
@@ -43,7 +49,7 @@ def search():
     return jsonify(error="Missing query parameter 'q'"), 400
   data = _call_spotify(lambda token: sp.search_tracks(token, query))
   items = data.get("tracks", {}).get("items", [])
-  return jsonify(tracks=[sp.simplify_track(t) for t in items])
+  return jsonify(tracks=_filter_explicit([sp.simplify_track(t) for t in items]))
 
 # GET /api/recently-played - return the user's recently played tracks.
 @api_bp.get("/api/recently-played")
@@ -52,7 +58,8 @@ def recently_played():
     return jsonify(error="Not authenticated"), 401
   data = _call_spotify(sp.get_recently_played)
   items = data.get("items", [])
-  return jsonify(tracks=[sp.simplify_track(i.get("track")) for i in items])
+  tracks = [sp.simplify_track(i.get("track")) for i in items]
+  return jsonify(tracks=_filter_explicit([t for t in tracks if t]))
 
 # GET /api/playlists - return the user's own Spotify playlists.
 @api_bp.get("/api/playlists")
@@ -181,8 +188,34 @@ def discover():
   language = request.args.get("language", "").strip() or None
   difficulty = request.args.get("difficulty", "").strip() or None
   query = request.args.get("q", "").strip() or None
-  songs = discover_songs(language=language, difficulty=difficulty, query=query)
+  songs = discover_songs(
+    language=language,
+    difficulty=difficulty,
+    query=query,
+    include_explicit=not session.get("hide_explicit"),
+  )
   return jsonify(songs=songs, languages=available_languages())
+
+# GET /api/preferences - return the user's saved preferences.
+@api_bp.get("/api/preferences")
+def get_preferences():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  return jsonify(hideExplicit=bool(session.get("hide_explicit")))
+
+# PUT /api/preferences - update the user's preferences (currently the explicit filter).
+@api_bp.put("/api/preferences")
+def update_preferences():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  data = request.get_json() or {}
+  hide_explicit = bool(data.get("hideExplicit"))
+  user = db.session.get(User, session.get("user_id"))
+  if user:
+    user.hide_explicit = hide_explicit
+    db.session.commit()
+  session["hide_explicit"] = hide_explicit
+  return jsonify(hideExplicit=hide_explicit)
 
 # GET /api/cloze - build fill-in-the-blank questions from a song's lyrics.
 @api_bp.get("/api/cloze")

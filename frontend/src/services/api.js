@@ -102,6 +102,37 @@ export async function getRecentlyPlayedSongs() {
     return data.tracks
 }
 
+// Gets the user's saved preferences (e.g. hiding explicit tracks)
+export async function getPreferences() {
+    const response = await fetch(`${API_BASE_URL}/api/preferences`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load preferences")
+    }
+
+    return response.json()
+}
+
+// Updates the user's preferences and returns the saved values
+export async function updatePreferences(prefs) {
+    const response = await fetch(`${API_BASE_URL}/api/preferences`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(prefs),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to update preferences")
+    }
+
+    return response.json()
+}
+
 // Gets the current user's own Spotify playlists
 export async function getPlaylists() {
     const response = await fetch(`${API_BASE_URL}/api/playlists`, {

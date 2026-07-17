@@ -45,6 +45,7 @@ def callback():
     session["user_id"] = user.id
     session["spotify_id"] = profile["id"]
     session["display_name"] = profile.get("display_name")
+    session["hide_explicit"] = user.hide_explicit
     # Spotify subscription level ("premium", "free", or "open") drives playback mode.
     session["product"] = profile.get("product")
     session["access_token"] = token_data["access_token"]

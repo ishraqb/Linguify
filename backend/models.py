@@ -9,6 +9,8 @@ class User(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   spotify_id = db.Column(db.String(120), unique=True, nullable=False)
   display_name = db.Column(db.String(120))
+  # When true, explicit tracks are hidden from search and discovery for this user.
+  hide_explicit = db.Column(db.Boolean, default=False, nullable=False)
   created_at = db.Column(db.DateTime, default=utc_now)
 
   vocab_words = db.relationship("Vocabulary", back_populates="user", cascade="all, delete-orphan")
@@ -29,6 +31,7 @@ class Song(db.Model):
   difficulty_level = db.Column(db.String(20), nullable=True, index=True)
   difficulty_score = db.Column(db.Integer, nullable=True)
   cover_url = db.Column(db.String(500), nullable=True)
+  explicit = db.Column(db.Boolean, nullable=True)
 
   translations = db.relationship("Translation", back_populates="song", cascade="all, delete-orphan")
   vocab_words = db.relationship("Vocabulary", back_populates="song")

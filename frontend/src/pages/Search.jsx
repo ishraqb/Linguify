@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import SongCard from '../components/SongCard'
-import { searchSongs, discoverSongs } from '../services/api'
+import { searchSongs, discoverSongs, getPreferences, updatePreferences } from '../services/api'
 import { TARGET_LANGUAGES, findLanguage } from '../data/languages'
 
 const DIFFICULTY_LEVELS = ['Beginner', 'Intermediate', 'Advanced']
@@ -18,6 +18,26 @@ function Search() {
   const [isSearching, setIsSearching] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [hideExplicit, setHideExplicit] = useState(false)
+
+  // Load the saved explicit-filter preference once on mount.
+  useEffect(() => {
+    getPreferences()
+      .then((prefs) => setHideExplicit(!!prefs.hideExplicit))
+      .catch(() => {})
+  }, [])
+
+  // Persist the explicit-filter preference; results refetch via the dependency below.
+  async function toggleHideExplicit() {
+    const next = !hideExplicit
+    setHideExplicit(next)
+    try {
+      await updatePreferences({ hideExplicit: next })
+    } catch (err) {
+      // Roll back the toggle if the save failed.
+      setHideExplicit(!next)
+    }
+  }
 
   // Typing searches Spotify; an empty box browses the catalog with the filters.
   useEffect(() => {
@@ -53,7 +73,7 @@ function Search() {
       active = false
       clearTimeout(timer)
     }
-  }, [query, languageFilter, difficultyFilter])
+  }, [query, languageFilter, difficultyFilter, hideExplicit])
 
   return (
     <div className="page">
@@ -112,6 +132,13 @@ function Search() {
         </div>
       </div>
 
+      <div className="filter-group">
+        <label className="explicit-toggle">
+          <input type="checkbox" checked={hideExplicit} onChange={toggleHideExplicit} />
+          Hide explicit songs
+        </label>
+      </div>
+
       {isSearching && (
         <p className="page-text">Showing Spotify search results. Clear the search to browse the catalog.</p>
       )}
@@ -131,6 +158,7 @@ function Search() {
             previewUrl={song.previewUrl}
             language={song.language ? findLanguage(song.language)?.label || song.language : undefined}
             difficulty={song.difficulty}
+            explicit={song.explicit}
           />
         ))}
 
