@@ -415,6 +415,64 @@ button {
     background: #d64545;
 }
 
+.detected-language-text {
+    margin: 18px 0;
+}
+
+.link-button {
+    border: none;
+    background: none;
+    color: #1db954;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    font-size: inherit;
+    text-decoration: underline;
+}
+
+.target-language-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-width: 640px;
+    margin: 0 auto 16px;
+}
+
+.target-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    border: 3px solid #1f1f1f;
+    border-radius: 10px;
+    background: white;
+    padding: 18px 12px;
+    cursor: pointer;
+}
+
+.target-card:hover {
+    background: #eeeeee;
+}
+
+.target-card-label {
+    font-weight: bold;
+    font-size: 17px;
+}
+
+.target-card-native {
+    font-size: 13px;
+    color: #777;
+}
+
+.target-card.selected-language {
+    background: #e9f7ee;
+    border-color: #1db954;
+}
+
+.target-card.selected-language .target-card-native {
+    color: #1f1f1f;
+}
+
 .selected-song-box {
     display: flex;
     justify-content: center;
@@ -675,7 +733,12 @@ button {
     padding: 14px;
     margin-bottom: 12px;
     opacity: 0.55;
+    cursor: pointer;
     transition: opacity 0.3s ease, background 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+}
+
+.lyric-line:hover {
+    opacity: 0.85;
 }
 
 .lyric-line p {
@@ -997,7 +1060,8 @@ button {
         grid-template-columns: 1fr;
     }
 
-    .language-grid {
+    .language-grid,
+    .target-language-grid {
         grid-template-columns: 1fr 1fr;
     }
 
