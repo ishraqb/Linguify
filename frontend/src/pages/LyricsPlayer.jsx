@@ -197,6 +197,13 @@ function LyricsPlayer() {
     }
   }
 
+  // Clicking a lyric line makes it active and (for full song) jumps the audio to it
+  function handleLineClick(index) {
+    setActiveLineIndex(index);
+    if (loopLine) setLoopIndex(index);
+    seekToLine(index);
+  }
+
   // Toggles looping; locks onto the current line so the loop target can't drift
   function toggleLoop() {
     const next = !loopLine;
@@ -526,6 +533,16 @@ function LyricsPlayer() {
                   ? "lyric-line active-lyric"
                   : "lyric-line"
               }
+              role="button"
+              tabIndex={0}
+              title="Jump to this line"
+              onClick={() => handleLineClick(index)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleLineClick(index);
+                }
+              }}
             >
               <p>{line.translation || 'Translation unavailable'}</p>
               <span>{line.original}</span>
