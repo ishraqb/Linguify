@@ -1,3 +1,5 @@
+import requests
+
 from services.translation_service import translate_text, translate_lines
 
 
@@ -14,14 +16,76 @@ class MockResponse:
         }
 
 
-# translate_text should return the translated string.
-def test_translate_text_mocked(monkeypatch):
+# Stub DeepL translation API response.
+class MockDeepLResponse:
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return {"translations": [{"text": "你好", "detected_source_language": "ES"}]}
+
+
+# Without a DeepL key, translate_text should use MyMemory and return its string.
+def test_translate_text_uses_mymemory_without_key(monkeypatch):
+    monkeypatch.delenv("DEEPL_API_KEY", raising=False)
+
     def mock_get(*args, **kwargs):
         return MockResponse()
 
     monkeypatch.setattr("services.translation_service.requests.get", mock_get)
 
     result = translate_text("Hola", source_lang="es", target_lang="en")
+
+    assert result == "Hello"
+
+
+# With a DeepL key and a supported language pair, DeepL should be used.
+def test_translate_text_uses_deepl_when_available(monkeypatch):
+    monkeypatch.setenv("DEEPL_API_KEY", "test-key")
+
+    def mock_post(*args, **kwargs):
+        return MockDeepLResponse()
+
+    monkeypatch.setattr("services.translation_service.requests.post", mock_post)
+
+    result = translate_text("Hola", source_lang="es", target_lang="zh")
+
+    assert result == "你好"
+
+
+# If DeepL errors (e.g. quota exhausted), translate_text falls back to MyMemory.
+def test_translate_text_falls_back_to_mymemory_on_deepl_error(monkeypatch):
+    monkeypatch.setenv("DEEPL_API_KEY", "test-key")
+
+    def mock_post(*args, **kwargs):
+        raise requests.RequestException("quota exhausted")
+
+    def mock_get(*args, **kwargs):
+        return MockResponse()
+
+    monkeypatch.setattr("services.translation_service.requests.post", mock_post)
+    monkeypatch.setattr("services.translation_service.requests.get", mock_get)
+
+    result = translate_text("Hola", source_lang="es", target_lang="en")
+
+    assert result == "Hello"
+
+
+# DeepL doesn't support every language; unsupported targets route to MyMemory.
+def test_translate_text_uses_mymemory_for_unsupported_language(monkeypatch):
+    monkeypatch.setenv("DEEPL_API_KEY", "test-key")
+
+    def mock_post(*args, **kwargs):
+        raise AssertionError("DeepL should not be called for unsupported languages")
+
+    def mock_get(*args, **kwargs):
+        return MockResponse()
+
+    monkeypatch.setattr("services.translation_service.requests.post", mock_post)
+    monkeypatch.setattr("services.translation_service.requests.get", mock_get)
+
+    # Hindi ("hi") is not in DEEPL_SUPPORTED, so MyMemory must handle it.
+    result = translate_text("Hola", source_lang="es", target_lang="hi")
 
     assert result == "Hello"
 
