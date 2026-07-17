@@ -1,8 +1,31 @@
+import re
 import requests
 from models import Song
 from extensions import db
 
 LRCLIB_SEARCH_URL = "https://lrclib.net/api/search"
+
+# Matches an LRCLIB timestamp like [00:12.34] at the start of a synced line.
+_TIMESTAMP_RE = re.compile(r"\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]")
+
+
+# Parse LRCLIB synced lyrics into ordered {time (seconds), text} entries.
+def parse_synced_lyrics(synced_lyrics):
+  if not synced_lyrics:
+    return []
+
+  parsed = []
+  for line in synced_lyrics.split("\n"):
+    match = _TIMESTAMP_RE.match(line.strip())
+    if not match:
+      continue
+    minutes = int(match.group(1))
+    seconds = int(match.group(2))
+    fraction = float(f"0.{match.group(3)}") if match.group(3) else 0.0
+    time = minutes * 60 + seconds + fraction
+    text = _TIMESTAMP_RE.sub("", line).strip()
+    parsed.append({"time": round(time, 2), "text": text})
+  return parsed
 
 def fetch_lyrics_from_lrclib(title, artist):
   response = requests.get(
@@ -35,6 +58,7 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
       "artist": song.artist,
       "lyrics": song.lyrics,
       "synced_lyrics": song.synced_lyrics,
+      "synced_lines": parse_synced_lyrics(song.synced_lyrics),
       "cached": True
     }
   fetched = fetch_lyrics_from_lrclib(title, artist)
@@ -66,5 +90,6 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
     "artist": song.artist,
     "lyrics": song.lyrics,
     "synced_lyrics": song.synced_lyrics,
+    "synced_lines": parse_synced_lyrics(song.synced_lyrics),
     "cached": False
   }

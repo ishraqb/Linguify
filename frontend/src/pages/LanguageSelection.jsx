@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { detectLanguage } from '../services/api'
+import { detectLanguage, getDifficulty } from '../services/api'
 
 // Turns a language code (e.g. "de") into a readable name (e.g. "German")
 function languageLabel(code) {
@@ -31,6 +31,7 @@ function LanguageSelection() {
   const [targetLanguage, setTargetLanguage] = useState(null)
   const [detecting, setDetecting] = useState(true)
   const [autoDetected, setAutoDetected] = useState(false)
+  const [difficulty, setDifficulty] = useState(null)
 
   // Auto-detect the song's language from its lyrics and pre-select it (user can still override)
   useEffect(() => {
@@ -48,6 +49,20 @@ function LanguageSelection() {
       .finally(() => {
         if (active) setDetecting(false)
       })
+    return () => {
+      active = false
+    }
+  }, [selectedSong])
+
+  // Fetch a difficulty rating so the learner knows if the song fits their level
+  useEffect(() => {
+    if (!selectedSong) return
+    let active = true
+    getDifficulty(selectedSong.title, selectedSong.artist)
+      .then((result) => {
+        if (active && result) setDifficulty(result)
+      })
+      .catch(() => {})
     return () => {
       active = false
     }
@@ -115,6 +130,13 @@ function LanguageSelection() {
         <div>
           <h3>{selectedSong.title}</h3>
           <p>{selectedSong.artist}</p>
+          {difficulty && (
+            <span
+              className={`difficulty-badge difficulty-${difficulty.level.toLowerCase()}`}
+            >
+              {difficulty.level}
+            </span>
+          )}
         </div>
       </div>
 

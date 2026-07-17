@@ -1,8 +1,11 @@
 import requests
-from models import Song, Translation
+from models import Song, Translation, WordTranslation
 from extensions import db
 
 MYMEMORY_URL = "https://api.mymemory.translated.net/get"
+
+# Cap kept high enough to cover full songs; repeated lines are only translated once.
+MAX_TRANSLATION_LINES = 120
 
 def translate_text(text, source_lang="en", target_lang="en"):
   response = requests.get(
@@ -19,7 +22,7 @@ def translate_text(text, source_lang="en", target_lang="en"):
 
 def translate_lines(lyrics, target_language, source_language="en"):
   lines = [line.strip() for line in lyrics.splitlines() if line.strip()]
-  lines = lines[:30]
+  lines = lines[:MAX_TRANSLATION_LINES]
 
   if source_language == target_language:
     return [
@@ -30,9 +33,12 @@ def translate_lines(lyrics, target_language, source_language="en"):
       for line in lines
     ]
 
-  translated_lines = []
+  # Translate each distinct line only once so repeated choruses don't re-hit the API.
+  translation_cache = {}
 
   for line in lines:
+    if line in translation_cache:
+      continue
     try:
       translated = translate_text(
         line,
@@ -41,12 +47,42 @@ def translate_lines(lyrics, target_language, source_language="en"):
       )
     except requests.RequestException:
       translated = "Translation unavailable"
+    translation_cache[line] = translated or "Translation unavailable"
 
-    translated_lines.append({
-      "original": line,
-      "translation": translated or "Translation unavailable"
-    })
-  return translated_lines
+  return [
+    {"original": line, "translation": translation_cache[line]}
+    for line in lines
+  ]
+
+# Look up a single word's translation, caching the result so repeat taps skip the API.
+def get_or_create_word_translation(word, source_language, target_language):
+  normalized = word.strip().lower()
+
+  cached = WordTranslation.query.filter_by(
+    word=normalized,
+    source_language=source_language,
+    target_language=target_language,
+  ).first()
+  if cached:
+    return cached.translation
+
+  translated = translate_text(
+    word,
+    source_lang=source_language,
+    target_lang=target_language,
+  )
+  if not translated:
+    return None
+
+  entry = WordTranslation(
+    word=normalized,
+    source_language=source_language,
+    target_language=target_language,
+    translation=translated,
+  )
+  db.session.add(entry)
+  db.session.commit()
+  return translated
 
 def get_or_create_translation(song_id, target_language, source_language="en"):
   song = Song.query.get(song_id)

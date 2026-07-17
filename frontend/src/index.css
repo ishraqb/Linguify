@@ -393,6 +393,28 @@ button {
     flex: 1;
 }
 
+.difficulty-badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: bold;
+    color: white;
+}
+
+.difficulty-beginner {
+    background: #1db954;
+}
+
+.difficulty-intermediate {
+    background: #e0a100;
+}
+
+.difficulty-advanced {
+    background: #d64545;
+}
+
 .selected-song-box {
     display: flex;
     justify-content: center;
@@ -703,17 +725,6 @@ button {
     margin: 0 auto 8px;
 }
 
-.speed-control {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.speed-label {
-    font-weight: bold;
-    margin-right: 2px;
-}
-
 .practice-button {
     border: 2px solid #1f1f1f;
     border-radius: 8px;
@@ -944,8 +955,7 @@ button {
         align-items: stretch;
     }
 
-    .practice-controls .practice-button,
-    .speed-control {
+    .practice-controls .practice-button {
         width: 100%;
         justify-content: center;
     }

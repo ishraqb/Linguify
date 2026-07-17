@@ -42,6 +42,23 @@ class Translation(db.Model):
   __table_args__=(
     db.UniqueConstraint("song_id", "target_language", name="unique_song_language_translation"),
   )
+class WordTranslation(db.Model):
+    __tablename__ = "word_translations"
+
+    id = db.Column(db.Integer, primary_key=True)
+    word = db.Column(db.String(255), nullable=False, index=True)
+    source_language = db.Column(db.String(20), nullable=False)
+    target_language = db.Column(db.String(20), nullable=False)
+    translation = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now)
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "word", "source_language", "target_language",
+            name="unique_word_language_pair",
+        ),
+    )
+
 class Vocabulary(db.Model):
     __tablename__ = "vocab"
 

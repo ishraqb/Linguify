@@ -142,6 +142,22 @@ export async function detectLanguage(title, artist) {
     return data.language
 }
 
+// Gets a difficulty rating (level + score) for a song based on its lyrics
+export async function getDifficulty(title, artist) {
+    const params = new URLSearchParams({ title, artist })
+
+    const response = await fetch(`${API_BASE_URL}/api/difficulty?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load difficulty")
+    }
+
+    const data = await response.json()
+    return data.difficulty
+}
+
 // Gets the translated lyrics for a selected song using the soure & target language
 export async function getTranslation(songId, sourceLanguage, targetLanguage) {
     const params = new URLSearchParams({

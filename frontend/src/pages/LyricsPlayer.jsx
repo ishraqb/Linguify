@@ -51,7 +51,7 @@ function LyricsPlayer() {
   const [durationSec, setDurationSec] = useState(0);
   const [selectedWordTranslation, setSelectedWordTranslation] = useState('');
   const [loopLine, setLoopLine] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(1);
+  const [loopIndex, setLoopIndex] = useState(null);
 
   // Removes time stamp markers from the retrieved synced lyric lines
   function cleanLyricLine(line) {
@@ -181,6 +181,8 @@ function LyricsPlayer() {
     if (activeLineIndex > 0) {
       const index = activeLineIndex - 1;
       setActiveLineIndex(index);
+      // Move the loop target too so looping follows the line the user picked
+      if (loopLine) setLoopIndex(index);
       seekToLine(index);
     }
   }
@@ -190,22 +192,27 @@ function LyricsPlayer() {
     if (activeLineIndex < lyrics.length - 1) {
       const index = activeLineIndex + 1;
       setActiveLineIndex(index);
+      if (loopLine) setLoopIndex(index);
       seekToLine(index);
     }
   }
 
-  // Toggles looping the active line; jumps to its start when turned on
+  // Toggles looping; locks onto the current line so the loop target can't drift
   function toggleLoop() {
     const next = !loopLine;
     setLoopLine(next);
     if (next) {
+      setLoopIndex(activeLineIndex);
       seekToLine(activeLineIndex);
+    } else {
+      setLoopIndex(null);
     }
   }
 
   // Highlights the lyric line whose timestamp matches the current playback position
   useEffect(() => {
-    if (lineTimes.length === 0) return;
+    // While looping we keep the active line fixed so it can't ping-pong with the next line
+    if (lineTimes.length === 0 || loopLine) return;
 
     let index = 0;
     for (let i = 0; i < lineTimes.length; i++) {
@@ -216,29 +223,22 @@ function LyricsPlayer() {
       }
     }
     setActiveLineIndex((prev) => (prev === index ? prev : index));
-  }, [positionSec, lineTimes]);
+  }, [positionSec, lineTimes, loopLine]);
 
-  // Loops the active line for shadowing: seek back to its start once playback reaches the end
+  // Loops the locked line for shadowing: seek back to its start once playback reaches the end
   useEffect(() => {
-    if (!loopLine || !isPremium || lineTimes.length === 0) return;
+    if (!loopLine || !isPremium || lineTimes.length === 0 || loopIndex == null) return;
 
-    const start = lineTimes[activeLineIndex];
+    const start = lineTimes[loopIndex];
     const end =
-      activeLineIndex + 1 < lineTimes.length
-        ? lineTimes[activeLineIndex + 1]
+      loopIndex + 1 < lineTimes.length
+        ? lineTimes[loopIndex + 1]
         : durationSec || start + 8;
 
     if (positionSec >= end - 0.15 || positionSec < start - 0.5) {
       handleSeek(start);
     }
-  }, [positionSec, loopLine, isPremium, activeLineIndex, lineTimes, durationSec]);
-
-  // Applies the chosen playback speed to the preview audio (Spotify's SDK has no speed control)
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.playbackRate = playbackRate;
-    }
-  }, [playbackRate, previewUrl, isPlaying]);
+  }, [positionSec, loopLine, isPremium, loopIndex, lineTimes, durationSec]);
 
   // Smoothly keeps the active lyric centered in the list, like Apple Music
   useEffect(() => {
@@ -461,40 +461,23 @@ function LyricsPlayer() {
         }
       />
 
-      {/* Shadowing tools: loop the active line (full song) and slow the preview down */}
-      <div className="practice-controls">
-        <button
-          className={loopLine ? "practice-button practice-active" : "practice-button"}
-          onClick={toggleLoop}
-          disabled={!isPremium || lineTimes.length === 0}
-        >
-          {loopLine ? "Looping line ↻" : "Loop line"}
-        </button>
-
-        <div className="speed-control">
-          <span className="speed-label">Speed</span>
-          {[1, 0.75, 0.5].map((rate) => (
+      {/* Shadowing tool: loop the active line (full song / Premium only) */}
+      {isPremium && lineTimes.length > 0 && (
+        <>
+          <div className="practice-controls">
             <button
-              key={rate}
-              className={
-                playbackRate === rate
-                  ? "practice-button practice-active"
-                  : "practice-button"
-              }
-              onClick={() => setPlaybackRate(rate)}
-              disabled={isPremium}
+              className={loopLine ? "practice-button practice-active" : "practice-button"}
+              onClick={toggleLoop}
             >
-              {rate}x
+              {loopLine ? "Looping line ↻" : "Loop line"}
             </button>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      <p className="practice-hint">
-        {isPremium
-          ? "Loop replays the current line for shadowing. Speed control isn't available on Spotify's full-song player."
-          : "Slow the preview down to practice pronunciation. Line loop needs full-song playback (Premium)."}
-      </p>
+          <p className="practice-hint">
+            Loop replays the current line over and over for shadowing practice.
+          </p>
+        </>
+      )}
 
       {!isPremium && previewUrl && (
         <audio

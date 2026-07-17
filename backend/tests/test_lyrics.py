@@ -1,4 +1,4 @@
-from services.lyrics_service import fetch_lyrics_from_lrclib
+from services.lyrics_service import fetch_lyrics_from_lrclib, parse_synced_lyrics
 
 
 # Stub LRCLIB lyrics API response.
@@ -52,3 +52,23 @@ def test_fetch_lyrics_from_lrclib_synced(monkeypatch):
     result = fetch_lyrics_from_lrclib("Test Song", "Test Artist")
 
     assert result["synced"] == "[00:10.00] Line one\n[00:13.50] Line two"
+
+
+# parse_synced_lyrics should turn timestamps into seconds paired with the line text.
+def test_parse_synced_lyrics():
+    synced = "[00:10.00] Line one\n[01:13.50] Line two"
+    result = parse_synced_lyrics(synced)
+
+    assert result == [
+        {"time": 10.0, "text": "Line one"},
+        {"time": 73.5, "text": "Line two"},
+    ]
+
+
+# parse_synced_lyrics should skip lines without a timestamp and handle empty input.
+def test_parse_synced_lyrics_skips_untimed_and_empty():
+    assert parse_synced_lyrics("") == []
+    assert parse_synced_lyrics(None) == []
+
+    result = parse_synced_lyrics("Lyrics by Someone\n[00:05.00] Real line")
+    assert result == [{"time": 5.0, "text": "Real line"}]
