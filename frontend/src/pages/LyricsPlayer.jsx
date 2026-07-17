@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
+import NowPlaying from "../components/NowPlaying";
 import { mockLyrics } from "../data/mockLyrics";
-import { getLyrics, getMe, getPreviewUrl, getTranslation, getWordTranslation, saveWord as saveWordToBackend } from "../services/api";
+import { getLyrics, getMe, getPreviewUrl, getToken, getTranslation, getWordTranslation, saveWord as saveWordToBackend, startPlayback } from "../services/api";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -35,10 +36,17 @@ function LyricsPlayer() {
   const [savedWords, setSavedWords] = useState([]);
   const audioRef = useRef(null);
   const hasLoadedRef = useRef(false);
+  const playerRef = useRef(null);
+  const deviceIdRef = useRef(null);
+  const hasStartedRef = useRef(false);
+  const playerInitRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [lineTimes, setLineTimes] = useState([]);
   const [isPremium, setIsPremium] = useState(false);
+  const [playerReady, setPlayerReady] = useState(false);
+  const [positionSec, setPositionSec] = useState(0);
+  const [durationSec, setDurationSec] = useState(0);
   const [selectedWordTranslation, setSelectedWordTranslation] = useState('');
 
   // Removes time stamp markers from the retrieved synced lyric lines
@@ -171,7 +179,86 @@ function LyricsPlayer() {
     }
   }
 
-  // Toggles audio playblock for the preview clip (implementing)
+  // Highlights the lyric line whose timestamp matches the current playback position
+  useEffect(() => {
+    if (lineTimes.length === 0) return;
+
+    let index = 0;
+    for (let i = 0; i < lineTimes.length; i++) {
+      if (lineTimes[i] <= positionSec) {
+        index = i;
+      } else {
+        break;
+      }
+    }
+    setActiveLineIndex((prev) => (prev === index ? prev : index));
+  }, [positionSec, lineTimes]);
+
+  // Loads the Spotify Web Playback SDK and creates a player for Premium users
+  useEffect(() => {
+    if (!isPremium || playerInitRef.current) return;
+    playerInitRef.current = true;
+
+    function initPlayer() {
+      const player = new window.Spotify.Player({
+        name: "Linguify Player",
+        getOAuthToken: (cb) => {
+          getToken().then(cb).catch((err) => console.error(err));
+        },
+        volume: 0.8,
+      });
+
+      player.addListener("ready", ({ device_id }) => {
+        deviceIdRef.current = device_id;
+        setPlayerReady(true);
+      });
+
+      player.addListener("player_state_changed", (state) => {
+        if (!state) return;
+        setIsPlaying(!state.paused);
+        setPositionSec(state.position / 1000);
+        setDurationSec(state.duration / 1000);
+      });
+
+      player.connect();
+      playerRef.current = player;
+    }
+
+    if (window.Spotify) {
+      initPlayer();
+    } else {
+      window.onSpotifyWebPlaybackSDKReady = initPlayer;
+      const script = document.createElement("script");
+      script.src = "https://sdk.scdn.co/spotify-player.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.disconnect();
+      }
+    };
+  }, [isPremium]);
+
+  // Keeps the position advancing smoothly while the full song plays (SDK only emits on changes)
+  useEffect(() => {
+    if (!isPremium || !isPlaying) return;
+
+    const intervalId = setInterval(async () => {
+      const player = playerRef.current;
+      if (!player) return;
+      const state = await player.getCurrentState();
+      if (state) {
+        setPositionSec(state.position / 1000);
+        setDurationSec(state.duration / 1000);
+      }
+    }, 500);
+
+    return () => clearInterval(intervalId);
+  }, [isPremium, isPlaying]);
+
+  // Plays/pauses the 30s preview clip for free users
   function togglePreview() {
     const audio = audioRef.current;
     if (!audio) return;
@@ -182,21 +269,40 @@ function LyricsPlayer() {
     }
   }
 
-  //Highlights the lyric line matching the audio's current playback time
-  function handleTimeUpdate(){
-    const audio = audioRef.current;
-    if (!audio || lineTimes.length === 0) return;
-
-    const currentTime = audio.currentTime;
-    let index = 0;
-    for (let i = 0; i < lineTimes.length; i++){
-      if (lineTimes[i] <= currentTime) {
-        index = i;
-      } else {
-        break;
-      }
+  // Plays/pauses the active source: full song (Premium) or 30s preview (free)
+  async function togglePlayback() {
+    if (!isPremium) {
+      togglePreview();
+      return;
     }
-    setActiveLineIndex((prev) => (prev === index ? prev : index));
+
+    const player = playerRef.current;
+    if (!player) return;
+
+    // First press starts the track on our device; later presses just toggle play/pause
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true;
+      try {
+        await startPlayback(deviceIdRef.current, selectedSong.id);
+      } catch (err) {
+        console.error(err);
+        hasStartedRef.current = false;
+      }
+    } else {
+      player.togglePlay();
+    }
+  }
+
+  // Seeks the active source to a given time in seconds
+  function handleSeek(seconds) {
+    if (isPremium) {
+      if (playerRef.current) {
+        playerRef.current.seek(Math.floor(seconds * 1000));
+      }
+    } else if (audioRef.current) {
+      audioRef.current.currentTime = seconds;
+    }
+    setPositionSec(seconds);
   }
 
   // Loads the WordSaveModal when a word gets clicked
@@ -275,28 +381,25 @@ function LyricsPlayer() {
         <div className="step-box">Step 3/4</div>
       </div>
 
-        <div className="playback-options">
-        {/* Free/open users only see the 30s preview; Premium users only see full song */}
-        {!isPremium && (
-          <button
-            className="secondary-button"
-            onClick={togglePreview}
-            disabled={!previewUrl}
-          >
-            {isPlaying ? "Pause Preview" : "Preview Free"}
-            <span>
-              {previewUrl ? "30 sec preview clip" : "No preview available"}
-            </span>
-          </button>
-        )}
-
-        {isPremium && (
-          <button className="secondary-button">
-            Full Song Premium
-            <span>Play full song with synced lyrics</span>
-          </button>
-        )}
-      </div>
+      {/* Free/open users get the 30s preview; Premium users get the full song via the SDK */}
+      <NowPlaying
+        coverUrl={selectedSong.coverUrl || selectedSong.albumArt}
+        title={selectedSong.title}
+        artist={selectedSong.artist}
+        isPlaying={isPlaying}
+        positionSec={positionSec}
+        durationSec={durationSec}
+        onToggle={togglePlayback}
+        onSeek={handleSeek}
+        disabled={isPremium ? !playerReady || !selectedSong.id : !previewUrl}
+        note={
+          isPremium
+            ? playerReady
+              ? "Full song"
+              : "Connecting to Spotify..."
+            : "30-second preview"
+        }
+      />
 
       {!isPremium && previewUrl && (
         <audio
@@ -305,11 +408,10 @@ function LyricsPlayer() {
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
-          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={(e) => setDurationSec(e.currentTarget.duration)}
+          onTimeUpdate={(e) => setPositionSec(e.currentTarget.currentTime)}
         />
       )}
-
-      <div className="song-duration-bar">Song Duration Bar</div>
 
       <div className="saved-count-box">
         Words saved this lesson: {savedWords.length}

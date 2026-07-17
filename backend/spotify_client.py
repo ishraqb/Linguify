@@ -9,7 +9,7 @@ SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_API_BASE = "https://api.spotify.com/v1"
 
-SCOPES = "user-read-recently-played user-read-email user-read-private streaming"
+SCOPES = "user-read-recently-played user-read-email user-read-private streaming user-modify-playback-state user-read-playback-state"
 
 
 def _client_id():
@@ -104,6 +104,18 @@ def get_recently_played(access_token, limit=20):
   )
   resp.raise_for_status()
   return resp.json()
+
+# Start playback of a track on a specific Web Playback SDK device.
+def start_playback(access_token, device_id, track_id):
+  resp = requests.put(
+    f"{SPOTIFY_API_BASE}/me/player/play",
+    headers={"Authorization": f"Bearer {access_token}"},
+    params={"device_id": device_id},
+    json={"uris": [f"spotify:track:{track_id}"]},
+    timeout=10,
+  )
+  resp.raise_for_status()
+  return {}
 
 # Flatten Spotify's track object into the shape the frontend expects.
 def simplify_track(track):
