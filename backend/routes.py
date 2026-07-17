@@ -2,12 +2,12 @@ import re
 import requests
 from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
-from services.genius_service import search_song_metadata
 from services.translation_service import get_or_create_translation, get_or_create_word_translation
 from services.deezer_service import get_preview_url
 from services.language_service import detect_language
 from services.difficulty_service import compute_difficulty
-from models import Vocabulary
+from services.cloze_service import generate_cloze_questions
+from models import Vocabulary, Song
 from extensions import db
 
 import spotify_client as sp
@@ -148,22 +148,20 @@ def song_difficulty():
   language = language or detect_language(lyrics) or "en"
   return jsonify(difficulty=compute_difficulty(lyrics, language))
 
-# GET /api/genius/search - look up song metadata from Genius.
-@api_bp.get("/api/genius/search")
-def genius_search():
+# GET /api/cloze - build fill-in-the-blank questions from a song's lyrics.
+@api_bp.get("/api/cloze")
+def cloze_quiz():
   if "spotify_id" not in session:
     return jsonify(error="Not authenticated"), 401
-  title = request.args.get("title", "").strip()
-  artist = request.args.get("artist", "").strip()
-  if not title or not artist:
-    return jsonify(error="Missing title or artist"), 400
-  try:
-    metadata = search_song_metadata(title, artist)
-  except RuntimeError as e:
-    return jsonify(error="Genius API request failed"), 502
-  if not metadata:
-    return jsonify(error="Song metadata not found"), 404
-  return jsonify(metadata)
+  song_id = request.args.get("song_id", type=int)
+  language = request.args.get("language", "en").strip() or "en"
+  if not song_id:
+    return jsonify(error="Missing song_id"), 400
+  song = Song.query.get(song_id)
+  if not song or not song.lyrics:
+    return jsonify(error="Song or lyrics not found"), 404
+  questions = generate_cloze_questions(song.lyrics, language=language)
+  return jsonify(questions=questions)
 
 # GET /api/translate - translate a full song's lyrics into the target language.
 @api_bp.get("/api/translate")

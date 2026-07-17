@@ -561,10 +561,11 @@ function LyricsPlayer() {
       </div>
 
       <div className="button-row">
-        <Link 
-          to="/lesson-complete" 
+        <Link
+          to="/quiz"
           state={{
             song: selectedSong,
+            songId,
             sourceLanguage,
             targetLanguage,
             savedWords,
@@ -572,7 +573,21 @@ function LyricsPlayer() {
           }}
           className="main-button"
         >
-          Finish Lesson
+          Take the Quiz
+        </Link>
+
+        <Link
+          to="/lesson-complete"
+          state={{
+            song: selectedSong,
+            sourceLanguage,
+            targetLanguage,
+            savedWords,
+            linesReviewed: lyrics.length,
+          }}
+          className="secondary-button"
+        >
+          Skip to Finish
         </Link>
       </div>
 

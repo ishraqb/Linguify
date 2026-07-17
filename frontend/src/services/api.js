@@ -158,6 +158,25 @@ export async function getDifficulty(title, artist) {
     return data.difficulty
 }
 
+// Gets fill-in-the-blank (cloze) quiz questions built from a song's lyrics
+export async function getCloze(songId, language) {
+    const params = new URLSearchParams({ song_id: songId })
+    if (language) {
+        params.append('language', language)
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/cloze?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load quiz")
+    }
+
+    const data = await response.json()
+    return data.questions
+}
+
 // Gets the translated lyrics for a selected song using the soure & target language
 export async function getTranslation(songId, sourceLanguage, targetLanguage) {
     const params = new URLSearchParams({

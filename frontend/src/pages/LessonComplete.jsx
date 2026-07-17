@@ -25,6 +25,9 @@ function LessonComplete() {
 
   const savedWords = location.state?.savedWords || []
   const linesReviewed = location.state?.linesReviewed || 0
+  const quizScore = location.state?.quizScore
+  const quizTotal = location.state?.quizTotal
+  const hasQuizResult = typeof quizScore === 'number' && quizTotal > 0
 
   return (
     <div className="page">
@@ -55,6 +58,15 @@ function LessonComplete() {
             {sourceLanguage.label} → {targetLanguage.label}
           </p>
         </div>
+
+        {hasQuizResult && (
+          <div className="stat-card">
+            <h3>Quiz Score</h3>
+            <p>
+              {quizScore}/{quizTotal}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="new-words-box">
