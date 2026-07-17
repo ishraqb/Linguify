@@ -204,4 +204,5 @@ def simplify_track(track):
     "albumArt": cover_url,
     "previewUrl": track.get("preview_url"),
     "preview_url": track.get("preview_url"),
+    "explicit": bool(track.get("explicit", False)),
   }

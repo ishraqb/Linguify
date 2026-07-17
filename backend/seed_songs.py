@@ -46,6 +46,8 @@ def _upsert_song(title, artist, language, token):
     song.cover_url = cover
   if track_id and not song.spotify_track_id:
     song.spotify_track_id = track_id
+  if track and song.explicit is None:
+    song.explicit = track.get("explicit", False)
 
   db.session.commit()
 
