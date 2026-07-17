@@ -9,7 +9,7 @@ save words to review later as flashcards.
 - **Frontend:** React + Vite, React Router, Bootstrap
 - **Backend:** Flask, Flask-SQLAlchemy, Flask-CORS
 - **Database:** SQLite (local dev), Postgres (production)
-- **External APIs:** Spotify Web API (auth + search + recently played), LRCLIB (lyrics), Deezer (30s previews), MyMemory (translation)
+- **External APIs:** Spotify Web API (auth + search + recently played), LRCLIB (lyrics), Deezer (30s previews), DeepL (translation, preferred) with MyMemory fallback
 - **Deploy:** Render (Flask serves the built React app as a single service)
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for an architecture overview and diagrams.
@@ -53,6 +53,7 @@ python app.py                      # runs on port 5000
 - `FLASK_SECRET_KEY` — generate with `python -c "import secrets; print(secrets.token_hex(32))"`
 - `SESSION_COOKIE_SAMESITE` — `Lax` for local dev
 - `SESSION_COOKIE_SECURE` — `false` locally, `true` in production (HTTPS)
+- `DEEPL_API_KEY` *(optional)* — free key from the [DeepL API](https://www.deepl.com/pro-api) for higher-quality translation; falls back to MyMemory when unset or unsupported
 
 > Never commit your real `.env`. Only `.env.example` (with placeholders) is tracked.
 

@@ -26,7 +26,7 @@ language, more supported languages, and an alternative music source (YouTube).
 - `backend/services/` - Business logic that talks to third-party APIs and the database:
   - `lyrics_service.py` - fetches/caches lyrics from LRCLIB, including timestamped
     `synced_lyrics`.
-  - `translation_service.py` - translates lyrics/words via MyMemory and caches results.
+  - `translation_service.py` - translates lyrics/words via DeepL (preferred) with an automatic MyMemory fallback, and caches results.
   - `language_detection.py` - detects the song's language from its lyrics (langdetect).
   - `dictionary_service.py` - fetches real definitions from a dictionary API.
   - `youtube_service.py` - searches the YouTube Data API as an alternative music source.
@@ -67,7 +67,8 @@ flowchart TD
 
     Spotify["Spotify Web API - auth, search, recently played, playback"]
     LRCLIB["LRCLIB - plain + synced lyrics"]
-    MyMemory["MyMemory - translation"]
+    DeepL["DeepL - translation (preferred)"]
+    MyMemory["MyMemory - translation (fallback)"]
     Dictionary["Dictionary API - NEW"]
     YouTube["YouTube Data API - NEW"]
 
@@ -87,7 +88,8 @@ flowchart TD
     SpotifyClient --> Spotify
     LyricsSvc --> LRCLIB
     LangSvc -->|"detect from lyrics"| LyricsSvc
-    TransSvc --> MyMemory
+    TransSvc -->|"preferred"| DeepL
+    TransSvc -->|"fallback"| MyMemory
     DictSvc --> Dictionary
     YtSvc --> YouTube
 
@@ -215,8 +217,11 @@ erDiagram
   Premium is detected from the profile `product` field.
 - **LRCLIB** - plain and synced (timestamped) lyrics, fetched and cached by
   `lyrics_service.py`.
-- **MyMemory** - line-by-line and single-word translation via `translation_service.py`.
-  Repeated lines are translated once and single-word lookups are cached to stay within API limits.
+- **DeepL** - preferred line-by-line and single-word translation via `translation_service.py`
+  (free tier, key in `DEEPL_API_KEY`). Higher quality, especially for slang and cross-family pairs.
+- **MyMemory** - automatic translation fallback when DeepL is unavailable (no key, unsupported
+  language, or quota exhausted). Repeated lines are translated once and single-word lookups are
+  cached to stay within API limits.
 - **Dictionary API** (NEW) - real word definitions via `dictionary_service.py`.
 - **YouTube Data API** (NEW) - alternative music source (search) via `youtube_service.py`,
   played with the YouTube IFrame player on the client.
