@@ -9,7 +9,7 @@ SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_API_BASE = "https://api.spotify.com/v1"
 
-SCOPES = "user-read-recently-played user-read-email user-read-private streaming user-modify-playback-state user-read-playback-state"
+SCOPES = "user-read-recently-played user-read-email user-read-private streaming user-modify-playback-state user-read-playback-state playlist-read-private playlist-read-collaborative"
 
 
 def _client_id():
@@ -63,6 +63,27 @@ def refresh_access_token(refresh_token):
   resp.raise_for_status()
   return resp.json()
 
+
+# Cached app-only (client credentials) token for catalog ingest that needs no user login.
+_app_token = {"value": None, "expires_at": 0}
+
+
+# Get an app-only access token via the client credentials flow, caching until it expires.
+def get_app_token():
+  if _app_token["value"] and not is_token_expired(_app_token["expires_at"]):
+    return _app_token["value"]
+  resp = requests.post(
+    SPOTIFY_TOKEN_URL,
+    data={"grant_type": "client_credentials"},
+    headers=_basic_auth_header(),
+    timeout=10,
+  )
+  resp.raise_for_status()
+  data = resp.json()
+  _app_token["value"] = data["access_token"]
+  _app_token["expires_at"] = token_expiry_timestamp(data.get("expires_in", 3600))
+  return _app_token["value"]
+
 # Fetch the logged-in user's Spotify profile.
 def get_user_profile(access_token):
   resp = requests.get(
@@ -94,6 +115,13 @@ def search_tracks(access_token, query, limit=10):
   resp.raise_for_status()
   return resp.json()
 
+# Search for a single track by title/artist and return the best simplified match.
+def find_track(access_token, title, artist):
+  query = f"track:{title} artist:{artist}"
+  data = search_tracks(access_token, query, limit=1)
+  items = data.get("tracks", {}).get("items", [])
+  return simplify_track(items[0]) if items else None
+
 # Fetch the user's recently played tracks.
 def get_recently_played(access_token, limit=20):
   resp = requests.get(
@@ -104,6 +132,45 @@ def get_recently_played(access_token, limit=20):
   )
   resp.raise_for_status()
   return resp.json()
+
+# Fetch the logged-in user's own playlists.
+def get_user_playlists(access_token, limit=50):
+  resp = requests.get(
+    f"{SPOTIFY_API_BASE}/me/playlists",
+    headers={"Authorization": f"Bearer {access_token}"},
+    params={"limit": limit},
+    timeout=10,
+  )
+  resp.raise_for_status()
+  return resp.json()
+
+# Fetch the tracks inside a specific playlist.
+def get_playlist_tracks(access_token, playlist_id, limit=50):
+  resp = requests.get(
+    f"{SPOTIFY_API_BASE}/playlists/{playlist_id}/tracks",
+    headers={"Authorization": f"Bearer {access_token}"},
+    params={"limit": limit},
+    timeout=10,
+  )
+  resp.raise_for_status()
+  return resp.json()
+
+# Flatten Spotify's playlist object into the shape the frontend expects.
+def simplify_playlist(playlist):
+  if not playlist:
+    return None
+
+  images = playlist.get("images") or []
+  cover_url = images[0].get("url", "") if images else ""
+
+  return {
+    "id": playlist.get("id"),
+    "name": playlist.get("name"),
+    "description": playlist.get("description"),
+    "coverUrl": cover_url,
+    "trackCount": (playlist.get("tracks") or {}).get("total", 0),
+    "owner": (playlist.get("owner") or {}).get("display_name"),
+  }
 
 # Start playback of a track on a specific Web Playback SDK device.
 def start_playback(access_token, device_id, track_id):

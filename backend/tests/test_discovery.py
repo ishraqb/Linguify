@@ -47,13 +47,16 @@ def test_discover_text_query_matches_title_or_artist(app_ctx):
   assert [song["title"] for song in discover_songs(query="lennon")] == ["Imagine"]
 
 
-# Songs without lyrics are not part of the catalog.
-def test_discover_ignores_songs_without_lyrics(app_ctx):
-  _add_song("Has Lyrics", "x", "es", "Beginner")
-  db.session.add(Song(title="No Lyrics", artist="y", language="es"))
+# Catalog songs are browsable even without lyrics, but songs without a known
+# language (not yet part of the catalog) are excluded.
+def test_discover_includes_catalog_songs_without_lyrics(app_ctx):
+  db.session.add(Song(title="Catalog Song", artist="x", language="es", cover_url="http://c"))
+  db.session.add(Song(title="Unknown", artist="y"))
   db.session.commit()
 
-  assert [song["title"] for song in discover_songs()] == ["Has Lyrics"]
+  titles = [song["title"] for song in discover_songs()]
+  assert "Catalog Song" in titles
+  assert "Unknown" not in titles
 
 
 # Available languages are distinct and sorted.

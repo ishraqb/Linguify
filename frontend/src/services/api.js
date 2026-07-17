@@ -102,6 +102,34 @@ export async function getRecentlyPlayedSongs() {
     return data.tracks
 }
 
+// Gets the current user's own Spotify playlists
+export async function getPlaylists() {
+    const response = await fetch(`${API_BASE_URL}/api/playlists`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load playlists")
+    }
+
+    const data = await response.json()
+    return data.playlists
+}
+
+// Gets the tracks inside one of the user's playlists
+export async function getPlaylistTracks(playlistId) {
+    const response = await fetch(`${API_BASE_URL}/api/playlists/${playlistId}/tracks`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load playlist tracks")
+    }
+
+    const data = await response.json()
+    return data.tracks
+}
+
 // Gets the synced lyrics for a selected song from the backend
 export async function getLyrics(song) {
     const params = new URLSearchParams({

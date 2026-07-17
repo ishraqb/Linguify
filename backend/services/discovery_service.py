@@ -19,9 +19,11 @@ def _serialize(song):
 
 
 # Filter the stored song catalog by language, difficulty level, and a text query.
+# Catalog songs are browsable even before their lyrics are fetched, so we key on
+# having a known language rather than on lyrics being present.
 # Uses ORM filters (parameterized) so user input can't be injected into SQL.
 def discover_songs(language=None, difficulty=None, query=None, limit=60):
-  songs = Song.query.filter(Song.lyrics.isnot(None))
+  songs = Song.query.filter(Song.language.isnot(None))
 
   if language:
     songs = songs.filter(Song.language == language)
@@ -39,7 +41,7 @@ def discover_songs(language=None, difficulty=None, query=None, limit=60):
 def available_languages():
   rows = (
     db.session.query(Song.language)
-    .filter(Song.language.isnot(None), Song.lyrics.isnot(None))
+    .filter(Song.language.isnot(None))
     .distinct()
     .all()
   )
