@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
 import { mockLyrics } from "../data/mockLyrics";
-import { getLyrics, getTranslation, getWordTranslation, saveWord as saveWordToBackend } from "../services/api";
+import { getLyrics, getPreviewUrl, getTranslation, getWordTranslation, saveWord as saveWordToBackend } from "../services/api";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -35,6 +35,8 @@ function LyricsPlayer() {
   const [savedWords, setSavedWords] = useState([]);
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [lineTimes, setLineTimes] = useState([]);
   const [selectedWordTranslation, setSelectedWordTranslation] = useState('');
 
   // Removes time stamp markers from the retrieved synced lyric lines
@@ -80,6 +82,26 @@ function LyricsPlayer() {
       .filter((line) => !shouldSkipLine(line.original))
   }
 
+  // Parses timestamps from synced lyrics into seconds, aligned to the displayed lines
+  function parseSyncedTimes(syncedLyrics){
+    if (!syncedLyrics) return [];
+
+    return syncedLyrics
+      .split("\n")
+      .map((line) => {
+        const match = line.match(/\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/);
+        if (!match) return null;
+
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseInt(match[2], 10);
+        const fraction = match[3] ? parseFloat('0.${match[3]}') : 0;
+
+        return { time: minutes * 60 + seconds + fraction, text: cleanLyricLine(line) };
+      })
+      .filter((item) => item && item.text && !shouldSkipLine(item.text))
+      .map((item) => item.time);
+  }
+
   // Loads original lyrics and translated lyrics when page opens, validates and catches any errors
   useEffect(() => {
     async function loadLyricsAndTranslation() {
@@ -100,7 +122,15 @@ function LyricsPlayer() {
         );
 
         setLyrics(formattedLyrics);
+        setLineTimes(parseSyncedTimes(lyricsData.synced_lyrics));
         setActiveLineIndex(0);
+
+        try{
+          const preview = await getPreviewUrl(selectedSong.title, selectedSong.artist);
+          setPreviewUrl(preview);
+        } catch (previewErr) {
+          console.error(previewErr);
+        }
       } catch (err) {
         console.error(err);
         setError("Using demo lyrics for now");
@@ -136,6 +166,23 @@ function LyricsPlayer() {
     } else {
       audio.play();
     }
+  }
+
+  //Highlights the lyric line matching the audio's current playback time
+  function handleTimeUpdate(){
+    const audio = audioRef.current;
+    if (!audio || lineTimes.length === 0) return;
+
+    const currentTime = audio.currentTime;
+    let index = 0;
+    for (let i = 0; i < lineTimes.length; i++){
+      if (linesTimes[i] <= currentTime) {
+        index = i;
+      } else {
+        break;
+      }
+    }
+    setActiveLineIndex((prev) => (prev === index ? prev : index));
   }
 
   // Loads the WordSaveModal when a word gets clicked
@@ -218,11 +265,11 @@ function LyricsPlayer() {
         <button
           className="secondary-button"
           onClick={togglePreview}
-          disabled={!selectedSong.previewUrl}
+          disabled={!previewUrl}
         >
           {isPlaying ? "Pause Preview" : "Preview Free"}
           <span>
-            {selectedSong.previewUrl ? "30 sec preview clip" : "No preview available"}
+            {previewUrl ? "30 sec preview clip" : "No preview available"}
           </span>
         </button>
 
@@ -232,13 +279,14 @@ function LyricsPlayer() {
         </button>
       </div>
 
-      {selectedSong.previewUrl && (
+      {previewUrl && (
         <audio
           ref={audioRef}
-          src={selectedSong.previewUrl}
+          src={previewUrl}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
+          onTimeUpdate={handleTimeUpdate}
         />
       )}
 

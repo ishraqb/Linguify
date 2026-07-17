@@ -65,6 +65,22 @@ export async function getLyrics(song) {
     return response.json()
 }
 
+// Gets a 30s Deezer preview URL for a song
+export async function getPreviewUrl(title, artist){
+  const params = new URLSearchParams({ title, artist })
+
+  const response = await fetch(`${API_BASE_URL}/api/preview?${params}`, {
+    credentials: 'include',
+  })
+
+  if (!response.ok){
+    throw new Error("Failed to load preview")
+  }
+
+  const data = await response.json()
+  return data.preview_url
+}
+
 // Gets the translated lyrics for a selected song using the soure & target language
 export async function getTranslation(songId, sourceLanguage, targetLanguage) {
     const params = new URLSearchParams({
