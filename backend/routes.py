@@ -1,3 +1,4 @@
+import re
 import requests
 from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
@@ -60,6 +61,36 @@ def get_preview():
   if not title or not artist:
     return jsonify(error="Missing title or artist"), 400
   return jsonify(preview_url=get_preview_url(title, artist))
+
+# GET /api/token - return the current Spotify access token for the Web Playback SDK.
+@api_bp.get("/api/token")
+def get_token():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  # Refresh first if the stored token is expired so the SDK always gets a valid one.
+  if sp.is_token_expired(session.get("expires_at", 0)):
+    _refresh_session_token()
+  return jsonify(access_token=session.get("access_token"))
+
+# PUT /api/play - start playing a track on the given Web Playback SDK device (Premium only).
+@api_bp.put("/api/play")
+def play_track():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  data = request.get_json() or {}
+  device_id = (data.get("device_id") or "").strip()
+  track_id = (data.get("track_id") or "").strip()
+  if not device_id or not track_id:
+    return jsonify(error="Missing device_id or track_id"), 400
+  # Allow only Spotify's base62 track IDs so we never build a URI from unchecked input.
+  if not re.fullmatch(r"[A-Za-z0-9]+", track_id):
+    return jsonify(error="Invalid track_id"), 400
+  try:
+    _call_spotify(lambda token: sp.start_playback(token, device_id, track_id))
+  except requests.HTTPError:
+    # Keep Spotify's detailed error server-side; return a generic message to the client.
+    return jsonify(error="Playback could not be started"), 502
+  return jsonify(status="playing")
 
 # GET /api/lyrics - fetch (or look up cached) lyrics for a title/artist.
 @api_bp.get("/api/lyrics")

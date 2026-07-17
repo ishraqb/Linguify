@@ -19,6 +19,38 @@ export async function getMe() {
     return response.json()
 }
 
+// Gets a valid Spotify access token for the Web Playback SDK
+export async function getToken() {
+    const response = await fetch(`${API_BASE_URL}/api/token`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load token")
+    }
+
+    const data = await response.json()
+    return data.access_token
+}
+
+// Starts full-song playback of a track on the given SDK device (Premium)
+export async function startPlayback(deviceId, trackId) {
+    const response = await fetch(`${API_BASE_URL}/api/play`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ device_id: deviceId, track_id: trackId }),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to start playback")
+    }
+
+    return response.json()
+}
+
 // Searches Spotify songs by title or artist
 export async function searchSongs(query) {
     const response = await fetch(
