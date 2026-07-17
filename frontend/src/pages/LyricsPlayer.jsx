@@ -51,6 +51,7 @@ function LyricsPlayer() {
   const [durationSec, setDurationSec] = useState(0);
   const [selectedWordTranslation, setSelectedWordTranslation] = useState('');
   const [loopLine, setLoopLine] = useState(false);
+  const [loopIndex, setLoopIndex] = useState(null);
   const [playbackRate, setPlaybackRate] = useState(1);
 
   // Removes time stamp markers from the retrieved synced lyric lines
@@ -181,6 +182,8 @@ function LyricsPlayer() {
     if (activeLineIndex > 0) {
       const index = activeLineIndex - 1;
       setActiveLineIndex(index);
+      // Move the loop target too so looping follows the line the user picked
+      if (loopLine) setLoopIndex(index);
       seekToLine(index);
     }
   }
@@ -190,22 +193,27 @@ function LyricsPlayer() {
     if (activeLineIndex < lyrics.length - 1) {
       const index = activeLineIndex + 1;
       setActiveLineIndex(index);
+      if (loopLine) setLoopIndex(index);
       seekToLine(index);
     }
   }
 
-  // Toggles looping the active line; jumps to its start when turned on
+  // Toggles looping; locks onto the current line so the loop target can't drift
   function toggleLoop() {
     const next = !loopLine;
     setLoopLine(next);
     if (next) {
+      setLoopIndex(activeLineIndex);
       seekToLine(activeLineIndex);
+    } else {
+      setLoopIndex(null);
     }
   }
 
   // Highlights the lyric line whose timestamp matches the current playback position
   useEffect(() => {
-    if (lineTimes.length === 0) return;
+    // While looping we keep the active line fixed so it can't ping-pong with the next line
+    if (lineTimes.length === 0 || loopLine) return;
 
     let index = 0;
     for (let i = 0; i < lineTimes.length; i++) {
@@ -216,22 +224,22 @@ function LyricsPlayer() {
       }
     }
     setActiveLineIndex((prev) => (prev === index ? prev : index));
-  }, [positionSec, lineTimes]);
+  }, [positionSec, lineTimes, loopLine]);
 
-  // Loops the active line for shadowing: seek back to its start once playback reaches the end
+  // Loops the locked line for shadowing: seek back to its start once playback reaches the end
   useEffect(() => {
-    if (!loopLine || !isPremium || lineTimes.length === 0) return;
+    if (!loopLine || !isPremium || lineTimes.length === 0 || loopIndex == null) return;
 
-    const start = lineTimes[activeLineIndex];
+    const start = lineTimes[loopIndex];
     const end =
-      activeLineIndex + 1 < lineTimes.length
-        ? lineTimes[activeLineIndex + 1]
+      loopIndex + 1 < lineTimes.length
+        ? lineTimes[loopIndex + 1]
         : durationSec || start + 8;
 
     if (positionSec >= end - 0.15 || positionSec < start - 0.5) {
       handleSeek(start);
     }
-  }, [positionSec, loopLine, isPremium, activeLineIndex, lineTimes, durationSec]);
+  }, [positionSec, loopLine, isPremium, loopIndex, lineTimes, durationSec]);
 
   // Applies the chosen playback speed to the preview audio (Spotify's SDK has no speed control)
   useEffect(() => {
