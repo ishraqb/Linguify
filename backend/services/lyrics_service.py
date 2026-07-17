@@ -2,6 +2,7 @@ import re
 import requests
 from models import Song
 from extensions import db
+from services.song_stats_service import ensure_song_stats
 
 LRCLIB_SEARCH_URL = "https://lrclib.net/api/search"
 
@@ -44,7 +45,7 @@ def fetch_lyrics_from_lrclib(title, artist):
   }
 
 
-def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
+def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None, cover_url=None):
   song = None
 
   if spotify_track_id:
@@ -52,6 +53,8 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
   if not song:
     song = Song.query.filter_by(title=title, artist=artist).first()
   if song and song.lyrics:
+    # Backfill discovery stats for songs stored before this feature existed.
+    ensure_song_stats(song, song.lyrics)
     return {
       "song_id": song.id,
       "title": song.title,
@@ -73,7 +76,8 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
       artist=artist,
       album=album,
       lyrics=lyrics,
-      synced_lyrics=synced
+      synced_lyrics=synced,
+      cover_url=cover_url,
     )
     db.session.add(song)
   else:
@@ -83,7 +87,11 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
       song.spotify_track_id = spotify_track_id
     if album and not song.album:
       song.album = album
+    if cover_url and not song.cover_url:
+      song.cover_url = cover_url
   db.session.commit()
+  # Compute language + difficulty once so the song shows up in Discovery.
+  ensure_song_stats(song, lyrics)
   return {
     "song_id": song.id,
     "title": song.title,

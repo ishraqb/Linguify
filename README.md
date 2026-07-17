@@ -57,6 +57,19 @@ python app.py                      # runs on port 5000
 
 > Never commit your real `.env`. Only `.env.example` (with placeholders) is tracked.
 
+### Discover catalog
+
+The Discover page filters songs by language and difficulty. These are stored on each
+song and filled in automatically the first time a song is studied. To populate the
+catalog up front (so Discover isn't empty), run once:
+
+```bash
+python seed_songs.py
+```
+
+> If you have an existing `linguify.db` from before the Discover feature, delete it once
+> so the new song columns are created (`python app.py` rebuilds it on startup).
+
 ## Frontend Setup
 
 ```bash

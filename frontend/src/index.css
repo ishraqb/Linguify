@@ -549,6 +549,51 @@ button {
     color: #777;
 }
 
+/* ---------- Discover filters ---------- */
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0;
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    font-weight: bold;
+    min-width: 72px;
+}
+
+.filter-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-pill {
+    border: 2px solid #1f1f1f;
+    border-radius: 999px;
+    background: white;
+    padding: 6px 14px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.filter-pill:hover {
+    background: #eeeeee;
+}
+
+.filter-pill-active {
+    background: #1db954;
+    color: white;
+    border-color: #1db954;
+}
+
+.filter-pill-active:hover {
+    background: #169c46;
+}
+
 .selected-song-box {
     display: flex;
     justify-content: center;

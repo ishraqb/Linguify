@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
  * Reusable card for displaying a song result
  * Passes the selected song data to the next page when the user begins the lesson
  */
-function SongCard({ id, title, artist, language, album, coverUrl, previewUrl, linkTo = '/language-selection' }) {
+function SongCard({ id, title, artist, language, album, coverUrl, previewUrl, difficulty, linkTo = '/language-selection' }) {
     return (
         <div className="song-card">
             <div className="song-cover">
@@ -19,6 +19,11 @@ function SongCard({ id, title, artist, language, album, coverUrl, previewUrl, li
                 <h3>{title}</h3>
                 <p>{artist}</p>
                 {language && <p>{language}</p>}
+                {difficulty && (
+                    <span className={`difficulty-badge difficulty-${difficulty.toLowerCase()}`}>
+                        {difficulty}
+                    </span>
+                )}
             </div>
 
             <Link 
