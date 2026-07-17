@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
 import { mockLyrics } from "../data/mockLyrics";
-import { getLyrics, getPreviewUrl, getTranslation, getWordTranslation, saveWord as saveWordToBackend } from "../services/api";
+import { getLyrics, getMe, getPreviewUrl, getTranslation, getWordTranslation, saveWord as saveWordToBackend } from "../services/api";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -38,6 +38,7 @@ function LyricsPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [lineTimes, setLineTimes] = useState([]);
+  const [isPremium, setIsPremium] = useState(false);
   const [selectedWordTranslation, setSelectedWordTranslation] = useState('');
 
   // Removes time stamp markers from the retrieved synced lyric lines
@@ -135,6 +136,14 @@ function LyricsPlayer() {
           setPreviewUrl(preview);
         } catch (previewErr) {
           console.error(previewErr);
+        }
+
+        // Detect the user's Spotify plan so playback can auto-pick preview vs full song
+        try {
+          const me = await getMe();
+          setIsPremium(me.product === "premium");
+        } catch (meErr) {
+          console.error(meErr);
         }
       } catch (err) {
         console.error(err);
@@ -278,9 +287,11 @@ function LyricsPlayer() {
           </span>
         </button>
 
-        <button className="secondary-button">
+        <button className="secondary-button" disabled={!isPremium}>
           Full Song Premium
-          <span>Play full song with synced lyrics</span>
+          <span>
+            {isPremium ? "Play full song with synced lyrics" : "Spotify Premium required"}
+          </span>
         </button>
       </div>
 

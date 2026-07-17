@@ -6,6 +6,19 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
+// Gets the current logged-in user's info, including their Spotify plan (product)
+export async function getMe() {
+    const response = await fetch(`${API_BASE_URL}/api/me`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load user info")
+    }
+
+    return response.json()
+}
+
 // Searches Spotify songs by title or artist
 export async function searchSongs(query) {
     const response = await fetch(

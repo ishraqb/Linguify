@@ -45,6 +45,8 @@ def callback():
     session["user_id"] = user.id
     session["spotify_id"] = profile["id"]
     session["display_name"] = profile.get("display_name")
+    # Spotify subscription level ("premium", "free", or "open") drives playback mode.
+    session["product"] = profile.get("product")
     session["access_token"] = token_data["access_token"]
     session["refresh_token"] = token_data.get("refresh_token")
     session["expires_at"] = sp.token_expiry_timestamp(token_data["expires_in"])
@@ -59,7 +61,12 @@ def callback():
 def me():
     if "spotify_id" not in session:
         return jsonify(error="Not authenticated"), 401
-    return jsonify(id=session["user_id"], spotifyId=session["spotify_id"], displayName=session.get("display_name"))
+    return jsonify(
+        id=session["user_id"],
+        spotifyId=session["spotify_id"],
+        displayName=session.get("display_name"),
+        product=session.get("product"),
+    )
 
 
 # POST /api/logout - clear the session.

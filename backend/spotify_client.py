@@ -9,7 +9,7 @@ SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_API_BASE = "https://api.spotify.com/v1"
 
-SCOPES = "user-read-recently-played user-read-email"
+SCOPES = "user-read-recently-played user-read-email user-read-private streaming"
 
 
 def _client_id():
