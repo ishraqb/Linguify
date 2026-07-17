@@ -50,6 +50,8 @@ function LyricsPlayer() {
   const [positionSec, setPositionSec] = useState(0);
   const [durationSec, setDurationSec] = useState(0);
   const [selectedWordTranslation, setSelectedWordTranslation] = useState('');
+  const [loopLine, setLoopLine] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
 
   // Removes time stamp markers from the retrieved synced lyric lines
   function cleanLyricLine(line) {
@@ -167,17 +169,37 @@ function LyricsPlayer() {
     loadLyricsAndTranslation();
   }, []);
 
+  // Jumps playback to a line's start when the full song is playing (so nav/loop stay in sync)
+  function seekToLine(index) {
+    if (isPremium && lineTimes[index] != null) {
+      handleSeek(lineTimes[index]);
+    }
+  }
+
   // Goes to previous lyric line
   function goToPreviousLine() {
     if (activeLineIndex > 0) {
-      setActiveLineIndex(activeLineIndex - 1);
+      const index = activeLineIndex - 1;
+      setActiveLineIndex(index);
+      seekToLine(index);
     }
   }
 
   // Goes to next lyric line
   function goToNextLine() {
     if (activeLineIndex < lyrics.length - 1) {
-      setActiveLineIndex(activeLineIndex + 1);
+      const index = activeLineIndex + 1;
+      setActiveLineIndex(index);
+      seekToLine(index);
+    }
+  }
+
+  // Toggles looping the active line; jumps to its start when turned on
+  function toggleLoop() {
+    const next = !loopLine;
+    setLoopLine(next);
+    if (next) {
+      seekToLine(activeLineIndex);
     }
   }
 
@@ -195,6 +217,28 @@ function LyricsPlayer() {
     }
     setActiveLineIndex((prev) => (prev === index ? prev : index));
   }, [positionSec, lineTimes]);
+
+  // Loops the active line for shadowing: seek back to its start once playback reaches the end
+  useEffect(() => {
+    if (!loopLine || !isPremium || lineTimes.length === 0) return;
+
+    const start = lineTimes[activeLineIndex];
+    const end =
+      activeLineIndex + 1 < lineTimes.length
+        ? lineTimes[activeLineIndex + 1]
+        : durationSec || start + 8;
+
+    if (positionSec >= end - 0.15 || positionSec < start - 0.5) {
+      handleSeek(start);
+    }
+  }, [positionSec, loopLine, isPremium, activeLineIndex, lineTimes, durationSec]);
+
+  // Applies the chosen playback speed to the preview audio (Spotify's SDK has no speed control)
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackRate;
+    }
+  }, [playbackRate, previewUrl, isPlaying]);
 
   // Smoothly keeps the active lyric centered in the list, like Apple Music
   useEffect(() => {
@@ -269,7 +313,7 @@ function LyricsPlayer() {
         setPositionSec(state.position / 1000);
         setDurationSec(state.duration / 1000);
       }
-    }, 500);
+    }, 250);
 
     return () => clearInterval(intervalId);
   }, [isPremium, isPlaying]);
@@ -416,6 +460,41 @@ function LyricsPlayer() {
             : "30-second preview"
         }
       />
+
+      {/* Shadowing tools: loop the active line (full song) and slow the preview down */}
+      <div className="practice-controls">
+        <button
+          className={loopLine ? "practice-button practice-active" : "practice-button"}
+          onClick={toggleLoop}
+          disabled={!isPremium || lineTimes.length === 0}
+        >
+          {loopLine ? "Looping line ↻" : "Loop line"}
+        </button>
+
+        <div className="speed-control">
+          <span className="speed-label">Speed</span>
+          {[1, 0.75, 0.5].map((rate) => (
+            <button
+              key={rate}
+              className={
+                playbackRate === rate
+                  ? "practice-button practice-active"
+                  : "practice-button"
+              }
+              onClick={() => setPlaybackRate(rate)}
+              disabled={isPremium}
+            >
+              {rate}x
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <p className="practice-hint">
+        {isPremium
+          ? "Loop replays the current line for shadowing. Speed control isn't available on Spotify's full-song player."
+          : "Slow the preview down to practice pronunciation. Line loop needs full-song playback (Premium)."}
+      </p>
 
       {!isPremium && previewUrl && (
         <audio
