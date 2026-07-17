@@ -4,12 +4,16 @@ from wordfreq import zipf_frequency, available_languages
 # Matches word-like tokens (letters only) across scripts, ignoring digits/punctuation.
 _WORD_RE = re.compile(r"[^\W\d_]+", re.UNICODE)
 
+# Zipf frequency below this counts as a "rare" word a learner likely won't know.
+# (Zipf is ~7 for the most common words and ~1-2 for uncommon ones; 0 means unknown.)
+RARE_ZIPF = 3.0
+
 
 def _tokenize(text):
   return _WORD_RE.findall(text.lower())
 
 
-# Score how hard a song's lyrics are from average word frequency (1-100, higher = harder).
+# Rate how hard a song's lyrics are from the share of rare/unknown words (0-100, higher = harder).
 def compute_difficulty(lyrics, language="en"):
   # wordfreq only has data for a fixed set of languages; skip scoring otherwise.
   if language not in available_languages():
@@ -19,18 +23,20 @@ def compute_difficulty(lyrics, language="en"):
   if not words:
     return None
 
-  # Zipf frequency is ~7 for very common words and ~1-2 for rare ones.
-  scores = [zipf_frequency(word, language) for word in words]
-  average = sum(scores) / len(scores)
+  # Share of rare words discriminates songs far better than the raw average,
+  # which tends to bunch most lyrics together around common filler words.
+  rare_count = sum(1 for word in words if zipf_frequency(word, language) < RARE_ZIPF)
+  rare_ratio = rare_count / len(words)
 
-  if average >= 4.5:
+  if rare_ratio < 0.15:
     level = "Beginner"
-  elif average >= 3.8:
+  elif rare_ratio < 0.30:
     level = "Intermediate"
   else:
     level = "Advanced"
 
-  # Invert the average onto a 0-100 scale so rarer vocabulary reads as harder.
-  score = round(max(0, min(100, (7 - average) / 6 * 100)))
-
-  return {"level": level, "score": score, "average_frequency": round(average, 2)}
+  return {
+    "level": level,
+    "score": round(rare_ratio * 100),
+    "rare_word_ratio": round(rare_ratio, 2),
+  }
