@@ -1,6 +1,10 @@
 import requests
 
-from services.translation_service import translate_text, translate_lines
+from services.translation_service import (
+    translate_text,
+    translate_lines,
+    is_cacheable_translation,
+)
 
 
 # Stub MyMemory translation API response.
@@ -132,3 +136,43 @@ def test_translate_lines_dedupes_repeats(monkeypatch):
     assert result[0]["translation"] == "translated-Chorus"
     assert result[2]["translation"] == "translated-Chorus"
     assert result[3]["translation"] == "translated-Chorus"
+
+
+# A translation that is actually in the target language should be cacheable.
+def test_is_cacheable_translation_accepts_target_language():
+    lines = [
+        {"original": "Hello my friend", "translation": "Hola amigo cómo estás hoy"},
+        {"original": "Good morning sir", "translation": "Buenos días señor bienvenido"},
+    ]
+
+    assert is_cacheable_translation(lines, "es") is True
+
+
+# A wrong-language result should NOT be cached, so it can be retried later.
+def test_is_cacheable_translation_rejects_wrong_language():
+    lines = [
+        {"original": "你好", "translation": "hello how are you my friend today"},
+        {"original": "早上好", "translation": "good morning sir welcome to the show"},
+    ]
+
+    assert is_cacheable_translation(lines, "zh") is False
+
+
+# Nothing meaningful to cache (all failed) should not be cached.
+def test_is_cacheable_translation_rejects_unavailable():
+    lines = [
+        {"original": "Hola", "translation": "Translation unavailable"},
+        {"original": "Mundo", "translation": "Translation unavailable"},
+    ]
+
+    assert is_cacheable_translation(lines, "en") is False
+
+
+# When the translation just echoes the original, there's nothing to cache.
+def test_is_cacheable_translation_rejects_echoed_original():
+    lines = [
+        {"original": "Hola", "translation": "Hola"},
+        {"original": "Mundo", "translation": "Mundo"},
+    ]
+
+    assert is_cacheable_translation(lines, "es") is False

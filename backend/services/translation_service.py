@@ -2,6 +2,7 @@ import os
 import requests
 from models import Song, Translation, WordTranslation
 from extensions import db
+from services.language_service import detect_language
 
 MYMEMORY_URL = "https://api.mymemory.translated.net/get"
 # DeepL free tier endpoint; the key comes from the DEEPL_API_KEY env var.
@@ -21,9 +22,7 @@ DEEPL_TARGET_OVERRIDES = {"en": "EN-US", "pt": "PT-PT"}
 MAX_TRANSLATION_LINES = 120
 
 
-# Translate one string using DeepL. Returns the text, or None if DeepL had no result.
-# Raises requests.RequestException on network/HTTP errors (incl. 456 quota) so the
-# caller can fall back to MyMemory.
+# Translate one string via DeepL; raises on error so the caller can fall back.
 def _translate_deepl(text, source_lang, target_lang, api_key):
   target = DEEPL_TARGET_OVERRIDES.get(target_lang, target_lang.upper())
   params = {"text": text, "target_lang": target}
@@ -59,9 +58,7 @@ def _translate_mymemory(text, source_lang, target_lang):
   return data.get("responseData", {}).get("translatedText")
 
 
-# Translate a single string. Prefers DeepL for quality, but falls back to
-# MyMemory when DeepL is unavailable (no API key, unsupported language pair,
-# or an error such as an exhausted monthly quota).
+# Translate a string via DeepL when possible, falling back to MyMemory.
 def translate_text(text, source_lang="en", target_lang="en"):
   api_key = os.environ.get("DEEPL_API_KEY")
   if api_key and source_lang in DEEPL_SUPPORTED and target_lang in DEEPL_SUPPORTED:
@@ -70,8 +67,7 @@ def translate_text(text, source_lang="en", target_lang="en"):
       if translated:
         return translated
     except requests.RequestException:
-      # DeepL failed (network, quota, etc.) — fall through to MyMemory.
-      pass
+      pass  # DeepL failed (network, quota, etc.) — fall through to MyMemory.
   return _translate_mymemory(text, source_lang, target_lang)
 
 def translate_lines(lyrics, target_language, source_language="en"):
@@ -107,6 +103,25 @@ def translate_lines(lyrics, target_language, source_language="en"):
     {"original": line, "translation": translation_cache[line]}
     for line in lines
   ]
+
+
+# Only cache translations that are present and actually in the target language.
+def is_cacheable_translation(translated_lines, target_language):
+  meaningful = [
+    item["translation"]
+    for item in translated_lines
+    if item["translation"] != "Translation unavailable"
+    and item["translation"] != item["original"]
+  ]
+  if not meaningful:
+    return False
+
+  # Reject results that came back in the wrong language; stay lenient if unsure.
+  detected = detect_language(" ".join(meaningful))
+  if detected and detected != target_language.split("-")[0]:
+    return False
+  return True
+
 
 # Look up a single word's translation, caching the result so repeat taps skip the API.
 def get_or_create_word_translation(word, source_language, target_language):
@@ -170,13 +185,8 @@ def get_or_create_translation(song_id, target_language, source_language="en"):
     for item in translated_lines
   )
 
-  has_real_translation = any(
-    item["translation"] != "Translation unavailable"
-    and item["translation"] != item["original"]
-    for item in translated_lines
-  )
-
-  if not has_real_translation:
+  # Only cache real translations that actually came back in the target language.
+  if not is_cacheable_translation(translated_lines, target_language):
     return {
       "song_id": song.id,
       "title": song.title,
