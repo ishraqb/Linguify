@@ -21,6 +21,7 @@ class Song(db.Model):
   title = db.Column(db.String(255), nullable=False)
   artist = db.Column(db.String(255), nullable=True)
   lyrics = db.Column(db.Text, nullable=True)
+  synced_lyrics = db.Column(db.Text, nullable=True)
   created_at = db.Column(db.DateTime, default=utc_now)
   updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
   album = db.Column(db.String(255), nullable=True)

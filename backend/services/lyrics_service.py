@@ -15,13 +15,18 @@ def fetch_lyrics_from_lrclib(title, artist):
   if not results:
     return None
   best_match = results[0]
-  return best_match.get("plainLyrics") or best_match.get("syncedLyrics")
+  return {
+    "plain": best_match.get("plainLyrics"),
+    "synced": best_match.get("syncedLyrics"),
+  }
+
+
 def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
   song = None
 
   if spotify_track_id:
     song = Song.query.filter_by(spotify_track_id=spotify_track_id).first()
-  if not song: 
+  if not song:
     song = Song.query.filter_by(title=title, artist=artist).first()
   if song and song.lyrics:
     return {
@@ -29,22 +34,27 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
       "title": song.title,
       "artist": song.artist,
       "lyrics": song.lyrics,
+      "synced_lyrics": song.synced_lyrics,
       "cached": True
     }
-  lyrics = fetch_lyrics_from_lrclib(title, artist)
-  if not lyrics:
+  fetched = fetch_lyrics_from_lrclib(title, artist)
+  if not fetched or not (fetched["plain"] or fetched["synced"]):
     return None
-  if not song: 
+  lyrics = fetched["plain"] or fetched["synced"]
+  synced = fetched["synced"]
+  if not song:
     song = Song(
       spotify_track_id=spotify_track_id,
       title=title,
       artist=artist,
       album=album,
-      lyrics=lyrics
+      lyrics=lyrics,
+      synced_lyrics=synced
     )
     db.session.add(song)
-  else: 
+  else:
     song.lyrics = lyrics
+    song.synced_lyrics = synced
     if spotify_track_id and not song.spotify_track_id:
       song.spotify_track_id = spotify_track_id
     if album and not song.album:
@@ -55,5 +65,6 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
     "title": song.title,
     "artist": song.artist,
     "lyrics": song.lyrics,
+    "synced_lyrics": song.synced_lyrics,
     "cached": False
   }

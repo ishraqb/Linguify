@@ -3,6 +3,7 @@ from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
 from services.genius_service import search_song_metadata
 from services.translation_service import get_or_create_translation, translate_text
+from services.deezer_service import get_preview_url
 from models import Vocabulary
 from extensions import db
 
@@ -48,6 +49,17 @@ def recently_played():
   data = _call_spotify(sp.get_recently_played)
   items = data.get("items", [])
   return jsonify(tracks=[sp.simplify_track(i.get("track")) for i in items])
+
+# GET /api/preview - fetch 30s preview URL from Deezer for a title/artist
+@api_bp.get("/api/preview")
+def get_preview():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  title = request.args.get("title", "").strip()
+  arist = requests.args.get("artist", "".strip())
+  if not title or not arist:
+    return jsonify(error="Missing title or arist"), 400
+  return jsonify(preview_url=get_preview_url(title, artist))
 
 # GET /api/lyrics - fetch (or look up cached) lyrics for a title/artist.
 @api_bp.get("/api/lyrics")
