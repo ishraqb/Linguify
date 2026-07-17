@@ -25,16 +25,7 @@ function Navbar() {
             isActive ? 'nav-link active-nav-link' : 'nav-link'
           }
         >
-          Search
-        </NavLink>
-
-        <NavLink
-          to="/discover"
-          className={({ isActive }) =>
-            isActive ? 'nav-link active-nav-link' : 'nav-link'
-          }
-        >
-          Discover
+          Songs
         </NavLink>
 
         <NavLink

@@ -1,5 +1,6 @@
 import re
 import requests
+import syncedlyrics
 from models import Song
 from extensions import db
 from services.song_stats_service import ensure_song_stats
@@ -45,6 +46,32 @@ def fetch_lyrics_from_lrclib(title, artist):
   }
 
 
+# Fallback that aggregates several lyric providers (NetEase, Megalobiz, etc.).
+def fetch_lyrics_from_syncedlyrics(title, artist):
+  try:
+    result = syncedlyrics.search(f"{title} {artist}")
+  except Exception:
+    return None
+  if not result:
+    return None
+  # A result with [mm:ss] tags is synced; otherwise treat it as plain lyrics.
+  if _TIMESTAMP_RE.search(result):
+    plain = "\n".join(line["text"] for line in parse_synced_lyrics(result) if line["text"])
+    return {"plain": plain or None, "synced": result}
+  return {"plain": result, "synced": None}
+
+
+# Try LRCLIB first (best synced quality), then fall back to other providers.
+def fetch_lyrics(title, artist):
+  try:
+    fetched = fetch_lyrics_from_lrclib(title, artist)
+  except requests.RequestException:
+    fetched = None
+  if fetched and (fetched.get("plain") or fetched.get("synced")):
+    return fetched
+  return fetch_lyrics_from_syncedlyrics(title, artist)
+
+
 def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None, cover_url=None):
   song = None
 
@@ -64,11 +91,11 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None, cover_
       "synced_lines": parse_synced_lyrics(song.synced_lyrics),
       "cached": True
     }
-  fetched = fetch_lyrics_from_lrclib(title, artist)
-  if not fetched or not (fetched["plain"] or fetched["synced"]):
+  fetched = fetch_lyrics(title, artist)
+  if not fetched or not (fetched.get("plain") or fetched.get("synced")):
     return None
-  lyrics = fetched["plain"] or fetched["synced"]
-  synced = fetched["synced"]
+  lyrics = fetched.get("plain") or fetched.get("synced")
+  synced = fetched.get("synced")
   if not song:
     song = Song(
       spotify_track_id=spotify_track_id,

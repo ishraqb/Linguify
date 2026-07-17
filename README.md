@@ -57,18 +57,31 @@ python app.py                      # runs on port 5000
 
 > Never commit your real `.env`. Only `.env.example` (with placeholders) is tracked.
 
-### Discover catalog
+### Songs catalog
 
-The Discover page filters songs by language and difficulty. These are stored on each
-song and filled in automatically the first time a song is studied. To populate the
-catalog up front (so Discover isn't empty), run once:
+The **Songs** tab lets you browse by language and difficulty or search Spotify live.
+Each song stores its language, difficulty, and cover art. Difficulty is filled in the
+first time a song is studied; language and cover art are set when the catalog is seeded.
+
+To populate a rich, cover-rich catalog across all supported languages, run once:
 
 ```bash
 python seed_songs.py
 ```
 
-> If you have an existing `linguify.db` from before the Discover feature, delete it once
-> so the new song columns are created (`python app.py` rebuilds it on startup).
+This reads the curated per-language lists in `data/catalog_songs.py`, looks each song up
+on Spotify (using your `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`) to attach cover art
+and a track ID, and also backfills covers for any existing songs missing them.
+
+> Spotify's own editorial playlists (Top 50, etc.) are no longer accessible via the API
+> for development apps, so the catalog is built from curated song lists + Spotify search.
+
+> If you have an existing `linguify.db` from before this feature, delete it once so the
+> new song columns are created (`python app.py` rebuilds it on startup).
+
+Lyrics come from **LRCLIB** first, then fall back to the **`syncedlyrics`** providers
+(NetEase, Megalobiz, and others) for broader coverage. When no source has lyrics, the
+lesson shows a clear "couldn't find lyrics" message instead of demo lyrics.
 
 ## Frontend Setup
 

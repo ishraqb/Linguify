@@ -1,7 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
 import NowPlaying from "../components/NowPlaying";
-import { mockLyrics } from "../data/mockLyrics";
 import { getLyrics, getMe, getPreviewUrl, getToken, getTranslation, getWordTranslation, saveWord as saveWordToBackend, startPlayback } from "../services/api";
 import { useEffect, useRef, useState } from "react";
 
@@ -159,8 +158,8 @@ function LyricsPlayer() {
         }
       } catch (err) {
         console.error(err);
-        setError("Using demo lyrics for now");
-        setLyrics(mockLyrics);
+        setError("We couldn't find lyrics for this song. Try another one from the Songs page.");
+        setLyrics([]);
       } finally {
         setIsLoading(false);
       }
@@ -518,10 +517,11 @@ function LyricsPlayer() {
 
       {error && <p className="page-text">{error}</p>}
 
-      {!isLoading && lyrics.length === 0 && (
+      {!isLoading && lyrics.length === 0 && !error && (
         <p className="page-text">No lyrics loaded yet</p>
       )}
 
+      {lyrics.length > 0 && (
       <div className="lyrics-layout">
         <div className="lyrics-list" ref={lyricsListRef}>
           {lyrics.map((line, index) => (
@@ -564,6 +564,7 @@ function LyricsPlayer() {
           ))}
         </div>
       </div>
+      )}
 
       <div className="lesson-controls">
         <button className="secondary-button" onClick={goToPreviousLine}>

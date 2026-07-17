@@ -54,6 +54,28 @@ def recently_played():
   items = data.get("items", [])
   return jsonify(tracks=[sp.simplify_track(i.get("track")) for i in items])
 
+# GET /api/playlists - return the user's own Spotify playlists.
+@api_bp.get("/api/playlists")
+def playlists():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  data = _call_spotify(sp.get_user_playlists)
+  items = data.get("items", [])
+  return jsonify(playlists=[sp.simplify_playlist(p) for p in items if p])
+
+# GET /api/playlists/<playlist_id>/tracks - return the tracks in one of the user's playlists.
+@api_bp.get("/api/playlists/<playlist_id>/tracks")
+def playlist_tracks(playlist_id):
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  # Allow only Spotify's base62 IDs so user input can't be injected into the outbound URL (SSRF/path-traversal guard).
+  if not re.fullmatch(r"[A-Za-z0-9]+", playlist_id):
+    return jsonify(error="Invalid playlist_id"), 400
+  data = _call_spotify(lambda token: sp.get_playlist_tracks(token, playlist_id))
+  items = data.get("items", [])
+  tracks = [sp.simplify_track(i.get("track")) for i in items]
+  return jsonify(tracks=[t for t in tracks if t])
+
 # GET /api/preview - fetch 30s preview URL from Deezer for a title/artist
 @api_bp.get("/api/preview")
 def get_preview():

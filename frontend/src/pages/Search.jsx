@@ -1,83 +1,146 @@
 import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import SongCard from '../components/SongCard'
-import { searchSongs } from '../services/api'
+import { searchSongs, discoverSongs } from '../services/api'
+import { TARGET_LANGUAGES, findLanguage } from '../data/languages'
+
+const DIFFICULTY_LEVELS = ['Beginner', 'Intermediate', 'Advanced']
 
 /**
- * Page for searching Spotify songs by the title or artists
- * Displays matching song results as SongCards and allows users to start a lesson
+ * Unified Songs page: browse the catalog by language and difficulty, or type a
+ * query to search Spotify live. An empty search box shows the filtered catalog.
  */
 function Search() {
-  const [searchTerm, setSearchTerm] = useState('')
+  const [query, setQuery] = useState('')
+  const [languageFilter, setLanguageFilter] = useState('')
+  const [difficultyFilter, setDifficultyFilter] = useState(null)
   const [songs, setSongs] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Searches for songs whenever the search input is changed
+  // Typing searches Spotify; an empty box browses the catalog with the filters.
   useEffect(() => {
-    async function loadSongs() {
-      if (!searchTerm.trim()) {
-        setSongs([])
-        return
-      }
-
+    let active = true
+    const timer = setTimeout(async () => {
       try {
         setIsLoading(true)
         setError('')
+        const trimmed = query.trim()
 
-        const results = await searchSongs(searchTerm)
-        setSongs(results)
+        if (trimmed) {
+          const results = await searchSongs(trimmed)
+          if (!active) return
+          setIsSearching(true)
+          setSongs(results || [])
+        } else {
+          const data = await discoverSongs({
+            language: languageFilter || undefined,
+            difficulty: difficultyFilter || undefined,
+          })
+          if (!active) return
+          setIsSearching(false)
+          setSongs(data.songs || [])
+        }
       } catch (err) {
-        setError('Could not load songs, Make sure you are logged in with Spotify')
+        if (active) setError('Could not load songs. Make sure you are logged in with Spotify.')
       } finally {
-        setIsLoading(false)
+        if (active) setIsLoading(false)
       }
-    }
+    }, 300)
 
-    loadSongs()
-  }, [searchTerm])
+    return () => {
+      active = false
+      clearTimeout(timer)
+    }
+  }, [query, languageFilter, difficultyFilter])
 
   return (
     <div className="page">
       <Navbar />
 
-      <h2 className="section-title">Search Songs</h2>
+      <h2 className="section-title">Songs</h2>
+      <p className="page-text">Browse by language and difficulty, or search for any song.</p>
 
       <div className="search-box">
         <input
           className="search-input"
           type="text"
           placeholder="Search for a song or artist"
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
         />
-
-        <button className="secondary-button">Search</button>
       </div>
 
-      {isLoading && <p className="page-text">Loading songs...</p>}
+      <div className="filter-group">
+        <span className="filter-label">Language</span>
+        <select
+          className="filter-select"
+          value={languageFilter}
+          onChange={(event) => setLanguageFilter(event.target.value)}
+        >
+          <option value="">All languages</option>
+          {TARGET_LANGUAGES.map((language) => (
+            <option key={language.code} value={language.code}>
+              {language.label}
+              {language.native ? ` (${language.native})` : ''}
+            </option>
+          ))}
+        </select>
+      </div>
 
+      <div className="filter-group">
+        <span className="filter-label">Level</span>
+        <div className="filter-pills">
+          <button
+            className={difficultyFilter ? 'filter-pill' : 'filter-pill filter-pill-active'}
+            onClick={() => setDifficultyFilter(null)}
+          >
+            All
+          </button>
+          {DIFFICULTY_LEVELS.map((level) => (
+            <button
+              key={level}
+              className={
+                difficultyFilter === level ? 'filter-pill filter-pill-active' : 'filter-pill'
+              }
+              onClick={() => setDifficultyFilter(level)}
+            >
+              {level}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {isSearching && (
+        <p className="page-text">Showing Spotify search results. Clear the search to browse the catalog.</p>
+      )}
+
+      {isLoading && <p className="page-text">Loading songs...</p>}
       {error && <p className="page-text">{error}</p>}
 
       {!isLoading &&
-        songs.map((song) => (
+        songs.map((song, index) => (
           <SongCard
-            key={song.id}
+            key={song.songId || song.id || index}
             id={song.id}
             title={song.title}
             artist={song.artist}
-            language={song.language}
             album={song.album}
             coverUrl={song.coverUrl}
             previewUrl={song.previewUrl}
+            language={song.language ? findLanguage(song.language)?.label || song.language : undefined}
+            difficulty={song.difficulty}
           />
-        ))
-      }
+        ))}
 
-      {!isLoading && searchTerm && songs.length === 0 && !error && (
-        <p className="page-text">No songs found. Try another search</p>
+      {!isLoading && songs.length === 0 && !error && (
+        <p className="page-text">
+          {isSearching
+            ? 'No songs found. Try another search.'
+            : 'No songs match these filters yet. Try a different combination.'}
+        </p>
       )}
-      
     </div>
   )
 }
