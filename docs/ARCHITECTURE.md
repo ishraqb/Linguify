@@ -30,7 +30,6 @@ language, more supported languages, and an alternative music source (YouTube).
   - `language_detection.py` - detects the song's language from its lyrics (langdetect).
   - `dictionary_service.py` - fetches real definitions from a dictionary API.
   - `youtube_service.py` - searches the YouTube Data API as an alternative music source.
-  - `genius_service.py` - looks up song metadata from Genius.
 - `backend/models.py` - SQLAlchemy models: `User`, `Song`, `Translation`, `Vocabulary`.
 - `backend/extensions.py` - shared SQLAlchemy `db` instance.
 - `backend/tests/` - pytest suite (mocks external HTTP calls); run in CI via GitHub Actions.
@@ -62,7 +61,6 @@ flowchart TD
         TransSvc["translation_service"]
         DictSvc["dictionary_service - NEW"]
         YtSvc["youtube_service - NEW"]
-        GeniusSvc["genius_service"]
     end
 
     DB[("DB: User, Song +synced_lyrics, Translation, Vocabulary +definition")]
@@ -72,7 +70,6 @@ flowchart TD
     MyMemory["MyMemory - translation"]
     Dictionary["Dictionary API - NEW"]
     YouTube["YouTube Data API - NEW"]
-    Genius["Genius"]
 
     Browser --> AuthBp
     Browser --> ApiBp
@@ -86,7 +83,6 @@ flowchart TD
     ApiBp --> TransSvc
     ApiBp --> DictSvc
     ApiBp --> YtSvc
-    ApiBp --> GeniusSvc
 
     SpotifyClient --> Spotify
     LyricsSvc --> LRCLIB
@@ -94,7 +90,6 @@ flowchart TD
     TransSvc --> MyMemory
     DictSvc --> Dictionary
     YtSvc --> YouTube
-    GeniusSvc --> Genius
 
     AuthBp --> DB
     ApiBp --> DB
@@ -166,7 +161,7 @@ sequenceDiagram
 Defined in [../backend/models.py](../backend/models.py):
 
 - `User` - one row per Spotify account (`spotify_id` unique). Owns vocabulary words.
-- `Song` - a track with optional `spotify_track_id` / `genius_id`, plus cached `lyrics` and
+- `Song` - a track with an optional `spotify_track_id`, plus cached `lyrics` and
   timestamped `synced_lyrics` (added in Project 3 for karaoke sync).
 - `Translation` - a song's lyrics translated into a target language. A unique constraint
   (`unique_song_language_translation`) ensures one translation per song per language, so
@@ -221,11 +216,10 @@ erDiagram
 - **LRCLIB** - plain and synced (timestamped) lyrics, fetched and cached by
   `lyrics_service.py`.
 - **MyMemory** - line-by-line and single-word translation via `translation_service.py`.
-  Translations are limited to the first 30 lines per song to stay within API limits.
+  Repeated lines are translated once and single-word lookups are cached to stay within API limits.
 - **Dictionary API** (NEW) - real word definitions via `dictionary_service.py`.
 - **YouTube Data API** (NEW) - alternative music source (search) via `youtube_service.py`,
   played with the YouTube IFrame player on the client.
-- **Genius** - song metadata via `genius_service.py`.
 
 Client-side, the browser **Web Speech API** provides spoken pronunciation of saved words
 (no backend or API key needed).

@@ -17,7 +17,6 @@ class Song(db.Model):
   __tablename__ = "songs"
   id = db.Column(db.Integer, primary_key=True)
   spotify_track_id = db.Column(db.String(120), unique=True, nullable=True)
-  genius_id = db.Column(db.String(120), nullable=True)
   title = db.Column(db.String(255), nullable=False)
   artist = db.Column(db.String(255), nullable=True)
   lyrics = db.Column(db.Text, nullable=True)
