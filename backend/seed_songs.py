@@ -14,6 +14,7 @@ from app import create_app
 from data.catalog_songs import CATALOG
 from models import Song
 from extensions import db
+from services.lyrics_service import get_or_fetch_lyrics
 import spotify_client as sp
 
 
@@ -47,6 +48,18 @@ def _upsert_song(title, artist, language, token):
     song.spotify_track_id = track_id
 
   db.session.commit()
+
+  # Fetch lyrics up front so difficulty is computed now and the Discover filter is useful.
+  if song.difficulty_level is None:
+    try:
+      get_or_fetch_lyrics(
+        song.title, song.artist,
+        spotify_track_id=song.spotify_track_id,
+        cover_url=song.cover_url,
+      )
+    except Exception:
+      pass
+
   return bool(track)
 
 
