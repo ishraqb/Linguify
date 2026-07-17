@@ -5,6 +5,7 @@ from services.lyrics_service import get_or_fetch_lyrics
 from services.genius_service import search_song_metadata
 from services.translation_service import get_or_create_translation, translate_text
 from services.deezer_service import get_preview_url
+from services.language_service import detect_language
 from models import Vocabulary
 from extensions import db
 
@@ -113,6 +114,20 @@ def get_lyrics():
   if not result:
     return jsonify(error="Lyrics not found"), 404
   return jsonify(result)
+
+# GET /api/detect-language - detect the source language of a song's lyrics.
+@api_bp.get("/api/detect-language")
+def detect_song_language():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  title = request.args.get("title", "").strip()
+  artist = request.args.get("artist", "").strip()
+  if not title or not artist:
+    return jsonify(error="Missing title or artist"), 400
+  result = get_or_fetch_lyrics(title=title, artist=artist)
+  if not result:
+    return jsonify(error="Lyrics not found"), 404
+  return jsonify(language=detect_language(result.get("lyrics")))
 
 # GET /api/genius/search - look up song metadata from Genius.
 @api_bp.get("/api/genius/search")

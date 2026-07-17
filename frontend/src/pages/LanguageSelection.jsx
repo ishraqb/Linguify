@@ -1,5 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { detectLanguage } from '../services/api'
+
+// Turns a language code (e.g. "de") into a readable name (e.g. "German")
+function languageLabel(code) {
+  try {
+    return new Intl.DisplayNames(['en'], { type: 'language' }).of(code) || code
+  } catch {
+    return code
+  }
+}
 
 /**
  * Page for choosing the song's source language and the target translation language (language to learn)
@@ -19,6 +29,35 @@ function LanguageSelection() {
 
   const [sourceLanguage, setSourceLanguage] = useState(null)
   const [targetLanguage, setTargetLanguage] = useState(null)
+  const [detecting, setDetecting] = useState(true)
+  const [autoDetected, setAutoDetected] = useState(false)
+
+  // Auto-detect the song's language from its lyrics and pre-select it (user can still override)
+  useEffect(() => {
+    if (!selectedSong) return
+    let active = true
+    detectLanguage(selectedSong.title, selectedSong.artist)
+      .then((code) => {
+        if (!active || !code) return
+        // Use whatever language was detected, even if it's not one of the quick options.
+        const match = languages.find((language) => language.code === code)
+        setSourceLanguage(match || { code, label: languageLabel(code) })
+        setAutoDetected(true)
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setDetecting(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [selectedSong])
+
+  // Show the detected language as a button too, even if it isn't one of the quick options
+  const sourceLanguages =
+    sourceLanguage && !languages.some((language) => language.code === sourceLanguage.code)
+      ? [sourceLanguage, ...languages]
+      : languages
 
   // If someone accesses "/language-selection" with choosing a song it throws an error
   // Prevents page from crashing
@@ -83,8 +122,12 @@ function LanguageSelection() {
         What language is this song in?
       </h2>
 
+      {detecting && (
+        <p className="page-text center-text">Detecting language…</p>
+      )}
+
       <div className="language-grid">
-        {languages.map((language) => (
+        {sourceLanguages.map((language) => (
           <button
             key={`source-${language.code}`}
             className={
@@ -92,7 +135,10 @@ function LanguageSelection() {
                 ? 'language-button selected-language'
                 : 'language-button'
             }
-            onClick={() => setSourceLanguage(language)}
+            onClick={() => {
+              setSourceLanguage(language)
+              setAutoDetected(false)
+            }}
           >
             {language.label}
           </button>
@@ -102,6 +148,7 @@ function LanguageSelection() {
       {sourceLanguage && (
         <p className="selected-text">
           Selected language: {sourceLanguage.label}
+          {autoDetected ? ' (auto-detected)' : ''}
         </p>
       )}
 
