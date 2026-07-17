@@ -56,9 +56,9 @@ def get_preview():
   if "spotify_id" not in session:
     return jsonify(error="Not authenticated"), 401
   title = request.args.get("title", "").strip()
-  arist = requests.args.get("artist", "".strip())
-  if not title or not arist:
-    return jsonify(error="Missing title or arist"), 400
+  artist = request.args.get("artist", "").strip()
+  if not title or not artist:
+    return jsonify(error="Missing title or artist"), 400
   return jsonify(preview_url=get_preview_url(title, artist))
 
 # GET /api/lyrics - fetch (or look up cached) lyrics for a title/artist.

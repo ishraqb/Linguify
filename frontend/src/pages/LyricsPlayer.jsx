@@ -34,6 +34,7 @@ function LyricsPlayer() {
   const [selectedWord, setSelectedWord] = useState(null);
   const [savedWords, setSavedWords] = useState([]);
   const audioRef = useRef(null);
+  const hasLoadedRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [lineTimes, setLineTimes] = useState([]);
@@ -94,7 +95,7 @@ function LyricsPlayer() {
 
         const minutes = parseInt(match[1], 10);
         const seconds = parseInt(match[2], 10);
-        const fraction = match[3] ? parseFloat('0.${match[3]}') : 0;
+        const fraction = match[3] ? parseFloat(`0.${match[3]}`) : 0;
 
         return { time: minutes * 60 + seconds + fraction, text: cleanLyricLine(line) };
       })
@@ -104,6 +105,10 @@ function LyricsPlayer() {
 
   // Loads original lyrics and translated lyrics when page opens, validates and catches any errors
   useEffect(() => {
+    // Guards against React StrictMode running this effect twice in development
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+
     async function loadLyricsAndTranslation() {
       try {
         setIsLoading(true);
@@ -176,7 +181,7 @@ function LyricsPlayer() {
     const currentTime = audio.currentTime;
     let index = 0;
     for (let i = 0; i < lineTimes.length; i++){
-      if (linesTimes[i] <= currentTime) {
+      if (lineTimes[i] <= currentTime) {
         index = i;
       } else {
         break;
