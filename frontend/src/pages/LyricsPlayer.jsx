@@ -1,8 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
 import NowPlaying from "../components/NowPlaying";
-import { getLyrics, getMe, getPreviewUrl, getToken, getTranslation, getWordTranslation, saveWord as saveWordToBackend, startPlayback } from "../services/api";
+import { getLyrics, getMe, getPreviewUrl, getRomanization, getToken, getTranslation, getWordContext, saveWord as saveWordToBackend, startPlayback } from "../services/api";
 import { useEffect, useRef, useState } from "react";
+
+// Languages written in non-Latin scripts, where romanization is worth offering.
+const NON_LATIN_LANGUAGES = new Set([
+  "ja", "zh", "ko", "ru", "uk", "bg", "sr", "el", "ar", "fa", "he", "hi", "th",
+]);
 
 /**
  * Main lesson page for displaying the lyrics of the song, in the selected source & target language
@@ -49,8 +54,27 @@ function LyricsPlayer() {
   const [positionSec, setPositionSec] = useState(0);
   const [durationSec, setDurationSec] = useState(0);
   const [selectedWordTranslation, setSelectedWordTranslation] = useState('');
+  const [selectedContext, setSelectedContext] = useState(null);
   const [loopLine, setLoopLine] = useState(false);
   const [loopIndex, setLoopIndex] = useState(null);
+  const [romanized, setRomanized] = useState([]);
+  const [showRomanization, setShowRomanization] = useState(false);
+
+  // Whether the song's source language uses a non-Latin script.
+  const canRomanize = NON_LATIN_LANGUAGES.has((sourceLanguage.code || "").split("-")[0].toLowerCase());
+
+  // Fetch romanized versions of the displayed lines on first toggle, then show/hide.
+  async function toggleRomanization() {
+    if (!showRomanization && romanized.length === 0) {
+      try {
+        const result = await getRomanization(lyrics.map((line) => line.original), sourceLanguage.code);
+        setRomanized(result || []);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    setShowRomanization((prev) => !prev);
+  }
 
   // Removes time stamp markers from the retrieved synced lyric lines
   function cleanLyricLine(line) {
@@ -375,15 +399,20 @@ function LyricsPlayer() {
   async function handleWordClick(word) {
     setSelectedWord(word);
     setSelectedWordTranslation('Loading...')
+    setSelectedContext(null)
+
+    const line = lyrics[activeLineIndex]?.original || ''
 
     try {
-      const data = await getWordTranslation(
+      const data = await getWordContext(
         word,
+        line,
         sourceLanguage.code,
         targetLanguage.code
       )
 
       setSelectedWordTranslation(data.translation || 'Translation unavailable')
+      setSelectedContext({ line: data.line, contextual: data.contextual })
     } catch (err) {
       console.error(err)
       setSelectedWordTranslation('Translation unavailable')
@@ -394,6 +423,7 @@ function LyricsPlayer() {
   function closeModal() {
     setSelectedWord(null);
     setSelectedWordTranslation('')
+    setSelectedContext(null)
   }
 
   // Saves the selected word to the backend vocabulary list
@@ -521,6 +551,18 @@ function LyricsPlayer() {
         <p className="page-text">No lyrics loaded yet</p>
       )}
 
+      {/* Romanization helps learners read non-Latin scripts (e.g. pinyin, romaji) */}
+      {canRomanize && lyrics.length > 0 && (
+        <div className="practice-controls">
+          <button
+            className={showRomanization ? "practice-button practice-active" : "practice-button"}
+            onClick={toggleRomanization}
+          >
+            {showRomanization ? "Hide romanization" : "Show romanization"}
+          </button>
+        </div>
+      )}
+
       {lyrics.length > 0 && (
       <div className="lyrics-layout">
         <div className="lyrics-list" ref={lyricsListRef}>
@@ -546,6 +588,9 @@ function LyricsPlayer() {
             >
               <p>{line.translation || 'Translation unavailable'}</p>
               <span>{line.original}</span>
+              {showRomanization && romanized[index] && (
+                <span className="romaji">{romanized[index]}</span>
+              )}
             </div>
           ))}
         </div>
@@ -614,7 +659,7 @@ function LyricsPlayer() {
           word={selectedWord}
           wordTranslation={selectedWordTranslation}
           lyricLine={lyrics[activeLineIndex]?.original}
-          translation={lyrics[activeLineIndex]?.translation}
+          contextualMeaning={selectedContext?.contextual}
           onClose={closeModal}
           onSave={saveWord}
         />

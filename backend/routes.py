@@ -2,12 +2,13 @@ import re
 import requests
 from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
-from services.translation_service import get_or_create_translation, get_or_create_word_translation
+from services.translation_service import get_or_create_translation, get_or_create_word_translation, translate_text
 from services.deezer_service import get_preview_url
 from services.language_service import detect_language
 from services.difficulty_service import compute_difficulty
 from services.cloze_service import generate_cloze_questions
 from services.discovery_service import discover_songs, available_languages
+from services.romanization_service import romanize_lines, needs_romanization
 from models import Vocabulary, Song, User
 from extensions import db
 
@@ -217,6 +218,23 @@ def update_preferences():
   session["hide_explicit"] = hide_explicit
   return jsonify(hideExplicit=hide_explicit)
 
+# POST /api/romanize - transliterate non-Latin lyric lines into readable Latin script.
+@api_bp.post("/api/romanize")
+def romanize():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  data = request.get_json() or {}
+  lines = data.get("lines") or []
+  language = (data.get("language") or "").strip()
+  if not isinstance(lines, list):
+    return jsonify(error="lines must be a list"), 400
+  # Keep only strings so the transliterator never receives unexpected types.
+  lines = [line for line in lines if isinstance(line, str)]
+  return jsonify(
+    romanized=romanize_lines(lines, language),
+    needed=needs_romanization(language),
+  )
+
 # GET /api/cloze - build fill-in-the-blank questions from a song's lyrics.
 @api_bp.get("/api/cloze")
 def cloze_quiz():
@@ -276,6 +294,32 @@ def translate_word():
     })
   except requests.RequestException:
     return jsonify(error="Translation API request failed"), 502
+
+# GET /api/word-context - translate a word plus its whole lyric line for casual/slang usage.
+@api_bp.get("/api/word-context")
+def word_context():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+
+  word = request.args.get("word", "").strip()
+  line = request.args.get("line", "").strip()
+  source_language = request.args.get("source_language", "en").strip()
+  target_language = request.args.get("target_language", "").strip()
+
+  if not word or not target_language or not source_language:
+    return jsonify(error="Missing word, source_language, or target_language"), 400
+  try:
+    direct = get_or_create_word_translation(word, source_language, target_language)
+    # Translating the full line shows how the word is actually used in context.
+    contextual = translate_text(line, source_lang=source_language, target_lang=target_language) if line else ""
+  except requests.RequestException:
+    return jsonify(error="Translation API request failed"), 502
+  return jsonify({
+    "word": word,
+    "translation": direct or "Translation unavailable",
+    "line": line,
+    "contextual": contextual or "",
+  })
 
 # POST /api/words - save a vocabulary word for the logged-in user.
 @api_bp.post("/api/words")

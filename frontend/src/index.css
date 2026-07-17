@@ -580,6 +580,20 @@ button {
     cursor: pointer;
 }
 
+.context-translation {
+    margin-top: 6px;
+    font-style: italic;
+    color: #555;
+}
+
+.romaji {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    font-style: italic;
+    color: #888;
+}
+
 .explicit-toggle {
     display: flex;
     align-items: center;
