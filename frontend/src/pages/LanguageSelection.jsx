@@ -1,25 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { detectLanguage, getDifficulty } from '../services/api'
-
-// Turns a language code (e.g. "de") into a readable name (e.g. "German")
-function languageLabel(code) {
-  try {
-    return new Intl.DisplayNames(['en'], { type: 'language' }).of(code) || code
-  } catch {
-    return code
-  }
-}
-
-// The language's name in its own language (e.g. "es" -> "Español"), for nicer cards
-function nativeLanguageName(code) {
-  try {
-    const name = new Intl.DisplayNames([code], { type: 'language' }).of(code)
-    return name ? name.charAt(0).toUpperCase() + name.slice(1) : null
-  } catch {
-    return null
-  }
-}
+import LanguagePicker from '../components/LanguagePicker'
+import { TARGET_LANGUAGES, findLanguage } from '../data/languages'
 
 /**
  * Page for choosing the song's source language and the target translation language (language to learn)
@@ -27,13 +10,6 @@ function nativeLanguageName(code) {
  */
 function LanguageSelection() {
   const location = useLocation()
-  const languages = [
-    {label: 'English', code: 'en'},
-    {label: 'Spanish', code: 'es'},
-    {label: 'French', code: 'fr'},
-    {label: 'Korean', code: 'ko'},
-    {label: 'Japanese', code: 'ja'},
-  ]
 
   const selectedSong = location.state?.song
 
@@ -52,9 +28,8 @@ function LanguageSelection() {
       .then((code) => {
         if (!active) return
         if (code) {
-          // Use whatever language was detected, even if it's not one of the quick options.
-          const match = languages.find((language) => language.code === code)
-          setSourceLanguage(match || { code, label: languageLabel(code) })
+          // Use whatever language was detected, resolving it to a labeled entry.
+          setSourceLanguage(findLanguage(code))
           setAutoDetected(true)
         } else {
           // Detection came back empty, so let the user pick the language.
@@ -86,16 +61,12 @@ function LanguageSelection() {
     }
   }, [selectedSong])
 
-  // Show the detected language as a button too, even if it isn't one of the quick options
+  // Manual source options come from the shared curated list; surface a
+  // detected language that isn't in the list at the front so it's selectable.
   const sourceLanguages =
-    sourceLanguage && !languages.some((language) => language.code === sourceLanguage.code)
-      ? [sourceLanguage, ...languages]
-      : languages
-
-  // Don't offer to translate a song into the language it's already in
-  const targetLanguages = languages.filter(
-    (language) => language.code !== sourceLanguage?.code
-  )
+    sourceLanguage && !TARGET_LANGUAGES.some((language) => language.code === sourceLanguage.code)
+      ? [sourceLanguage, ...TARGET_LANGUAGES]
+      : TARGET_LANGUAGES
 
   // If someone accesses "/language-selection" with choosing a song it throws an error
   // Prevents page from crashing
@@ -212,27 +183,11 @@ function LanguageSelection() {
         Translate the lyrics into
       </h2>
 
-      <div className="target-language-grid">
-        {targetLanguages.map((language) => {
-          const native = nativeLanguageName(language.code)
-          return (
-            <button
-              key={`target-${language.code}`}
-              className={
-                targetLanguage?.code === language.code
-                  ? 'target-card selected-language'
-                  : 'target-card'
-              }
-              onClick={() => setTargetLanguage(language)}
-            >
-              <span className="target-card-label">{language.label}</span>
-              {native && native !== language.label && (
-                <span className="target-card-native">{native}</span>
-              )}
-            </button>
-          )
-        })}
-      </div>
+      <LanguagePicker
+        value={targetLanguage?.code}
+        onChange={setTargetLanguage}
+        exclude={sourceLanguage?.code}
+      />
 
       {sourceLanguage && targetLanguage ? (
         <Link
