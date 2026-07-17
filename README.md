@@ -60,8 +60,9 @@ python app.py                      # runs on port 5000
 ### Songs catalog
 
 The **Songs** tab lets you browse by language and difficulty or search Spotify live.
-Each song stores its language, difficulty, and cover art. Difficulty is filled in the
-first time a song is studied; language and cover art are set when the catalog is seeded.
+Each song stores its language, difficulty, and cover art. The seed script sets language
+and cover art, and fetches lyrics to compute difficulty up front (so the difficulty
+filter works right away). Songs studied outside the catalog get their stats on first play.
 
 To populate a rich, cover-rich catalog across all supported languages, run once:
 

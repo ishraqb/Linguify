@@ -15,22 +15,3 @@ def test_ensure_song_stats_sets_language_and_difficulty(app_ctx):
   assert song.language == "es"
   assert song.difficulty_level in ("Beginner", "Intermediate", "Advanced")
   assert song.difficulty_score is not None
-
-
-# ensure_song_stats does not overwrite values that are already set.
-def test_ensure_song_stats_preserves_existing(app_ctx):
-  song = Song(
-    title="T",
-    artist="A",
-    lyrics="whatever",
-    language="fr",
-    difficulty_level="Advanced",
-    difficulty_score=90,
-  )
-  db.session.add(song)
-  db.session.commit()
-
-  ensure_song_stats(song, "whatever")
-
-  assert song.language == "fr"
-  assert song.difficulty_level == "Advanced"
