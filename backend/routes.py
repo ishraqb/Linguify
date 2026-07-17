@@ -3,9 +3,10 @@ import requests
 from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
 from services.genius_service import search_song_metadata
-from services.translation_service import get_or_create_translation, translate_text
+from services.translation_service import get_or_create_translation, get_or_create_word_translation
 from services.deezer_service import get_preview_url
 from services.language_service import detect_language
+from services.difficulty_service import compute_difficulty
 from models import Vocabulary
 from extensions import db
 
@@ -129,6 +130,24 @@ def detect_song_language():
     return jsonify(error="Lyrics not found"), 404
   return jsonify(language=detect_language(result.get("lyrics")))
 
+# GET /api/difficulty - rate how hard a song's lyrics are from word frequency.
+@api_bp.get("/api/difficulty")
+def song_difficulty():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  title = request.args.get("title", "").strip()
+  artist = request.args.get("artist", "").strip()
+  language = request.args.get("language", "").strip() or None
+  if not title or not artist:
+    return jsonify(error="Missing title or artist"), 400
+  result = get_or_fetch_lyrics(title=title, artist=artist)
+  if not result:
+    return jsonify(error="Lyrics not found"), 404
+  lyrics = result.get("lyrics")
+  # Fall back to detecting the language when the caller doesn't supply one.
+  language = language or detect_language(lyrics) or "en"
+  return jsonify(difficulty=compute_difficulty(lyrics, language))
+
 # GET /api/genius/search - look up song metadata from Genius.
 @api_bp.get("/api/genius/search")
 def genius_search():
@@ -183,7 +202,7 @@ def translate_word():
   if not word or not target_language or not source_language:
     return jsonify(error="Missing target_language, source_language, or word"), 400
   try:
-    translated = translate_text(word, source_lang=source_language, target_lang=target_language)
+    translated = get_or_create_word_translation(word, source_language, target_language)
     return jsonify({
       "word": word,
       "translation": translated or "Translation unavailable"
