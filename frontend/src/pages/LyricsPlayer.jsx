@@ -276,26 +276,29 @@ function LyricsPlayer() {
       </div>
 
         <div className="playback-options">
-        <button
-          className="secondary-button"
-          onClick={togglePreview}
-          disabled={!previewUrl}
-        >
-          {isPlaying ? "Pause Preview" : "Preview Free"}
-          <span>
-            {previewUrl ? "30 sec preview clip" : "No preview available"}
-          </span>
-        </button>
+        {/* Free/open users only see the 30s preview; Premium users only see full song */}
+        {!isPremium && (
+          <button
+            className="secondary-button"
+            onClick={togglePreview}
+            disabled={!previewUrl}
+          >
+            {isPlaying ? "Pause Preview" : "Preview Free"}
+            <span>
+              {previewUrl ? "30 sec preview clip" : "No preview available"}
+            </span>
+          </button>
+        )}
 
-        <button className="secondary-button" disabled={!isPremium}>
-          Full Song Premium
-          <span>
-            {isPremium ? "Play full song with synced lyrics" : "Spotify Premium required"}
-          </span>
-        </button>
+        {isPremium && (
+          <button className="secondary-button">
+            Full Song Premium
+            <span>Play full song with synced lyrics</span>
+          </button>
+        )}
       </div>
 
-      {previewUrl && (
+      {!isPremium && previewUrl && (
         <audio
           ref={audioRef}
           src={previewUrl}
