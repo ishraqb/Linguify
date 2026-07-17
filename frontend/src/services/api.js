@@ -51,6 +51,24 @@ export async function startPlayback(deviceId, trackId) {
     return response.json()
 }
 
+// Browses the stored song catalog, filtered by language, difficulty, and text
+export async function discoverSongs({ language, difficulty, q } = {}) {
+    const params = new URLSearchParams()
+    if (language) params.append('language', language)
+    if (difficulty) params.append('difficulty', difficulty)
+    if (q) params.append('q', q)
+
+    const response = await fetch(`${API_BASE_URL}/api/discover?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load discovery")
+    }
+
+    return response.json()
+}
+
 // Searches Spotify songs by title or artist
 export async function searchSongs(query) {
     const response = await fetch(
@@ -97,6 +115,11 @@ export async function getLyrics(song) {
 
     if (song.album) {
         params.append('album', song.album)
+    }
+
+    const coverUrl = song.coverUrl || song.albumArt
+    if (coverUrl) {
+        params.append('cover_url', coverUrl)
     }
 
     const response = await fetch(`${API_BASE_URL}/api/lyrics?${params}`, {

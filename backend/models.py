@@ -24,6 +24,11 @@ class Song(db.Model):
   created_at = db.Column(db.DateTime, default=utc_now)
   updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
   album = db.Column(db.String(255), nullable=True)
+  # Precomputed discovery metadata so songs can be filtered without re-parsing lyrics.
+  language = db.Column(db.String(20), nullable=True, index=True)
+  difficulty_level = db.Column(db.String(20), nullable=True, index=True)
+  difficulty_score = db.Column(db.Integer, nullable=True)
+  cover_url = db.Column(db.String(500), nullable=True)
 
   translations = db.relationship("Translation", back_populates="song", cascade="all, delete-orphan")
   vocab_words = db.relationship("Vocabulary", back_populates="song")

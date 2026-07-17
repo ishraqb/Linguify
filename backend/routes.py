@@ -7,6 +7,7 @@ from services.deezer_service import get_preview_url
 from services.language_service import detect_language
 from services.difficulty_service import compute_difficulty
 from services.cloze_service import generate_cloze_questions
+from services.discovery_service import discover_songs, available_languages
 from models import Vocabulary, Song
 from extensions import db
 
@@ -103,6 +104,7 @@ def get_lyrics():
   artist = request.args.get("artist", "").strip()
   spotify_track_id = request.args.get("spotify_track_id", "").strip() or None
   album = request.args.get("album", "").strip() or None
+  cover_url = request.args.get("cover_url", "").strip() or None
 
   if not title or not artist:
     return jsonify(error="Missing title or artist"), 400
@@ -111,6 +113,7 @@ def get_lyrics():
     artist=artist,
     spotify_track_id=spotify_track_id,
     album=album,
+    cover_url=cover_url,
   )
   if not result:
     return jsonify(error="Lyrics not found"), 404
@@ -147,6 +150,17 @@ def song_difficulty():
   # Fall back to detecting the language when the caller doesn't supply one.
   language = language or detect_language(lyrics) or "en"
   return jsonify(difficulty=compute_difficulty(lyrics, language))
+
+# GET /api/discover - browse the song catalog filtered by language and difficulty.
+@api_bp.get("/api/discover")
+def discover():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  language = request.args.get("language", "").strip() or None
+  difficulty = request.args.get("difficulty", "").strip() or None
+  query = request.args.get("q", "").strip() or None
+  songs = discover_songs(language=language, difficulty=difficulty, query=query)
+  return jsonify(songs=songs, languages=available_languages())
 
 # GET /api/cloze - build fill-in-the-blank questions from a song's lyrics.
 @api_bp.get("/api/cloze")

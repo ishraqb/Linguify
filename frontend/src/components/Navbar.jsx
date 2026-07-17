@@ -29,6 +29,15 @@ function Navbar() {
         </NavLink>
 
         <NavLink
+          to="/discover"
+          className={({ isActive }) =>
+            isActive ? 'nav-link active-nav-link' : 'nav-link'
+          }
+        >
+          Discover
+        </NavLink>
+
+        <NavLink
           to="/my-words"
           className={({ isActive }) =>
             isActive ? 'nav-link active-nav-link' : 'nav-link'
