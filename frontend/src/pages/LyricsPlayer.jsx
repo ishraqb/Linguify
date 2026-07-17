@@ -40,6 +40,8 @@ function LyricsPlayer() {
   const deviceIdRef = useRef(null);
   const hasStartedRef = useRef(false);
   const playerInitRef = useRef(false);
+  const lyricsListRef = useRef(null);
+  const activeLineRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [lineTimes, setLineTimes] = useState([]);
@@ -193,6 +195,20 @@ function LyricsPlayer() {
     }
     setActiveLineIndex((prev) => (prev === index ? prev : index));
   }, [positionSec, lineTimes]);
+
+  // Smoothly keeps the active lyric centered in the list, like Apple Music
+  useEffect(() => {
+    const container = lyricsListRef.current;
+    const activeLine = activeLineRef.current;
+    if (!container || !activeLine) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const lineRect = activeLine.getBoundingClientRect();
+    const offsetWithin = lineRect.top - containerRect.top + container.scrollTop;
+    const top = offsetWithin - container.clientHeight / 2 + lineRect.height / 2;
+
+    container.scrollTo({ top, behavior: "smooth" });
+  }, [activeLineIndex]);
 
   // Loads the Spotify Web Playback SDK and creates a player for Premium users
   useEffect(() => {
@@ -438,10 +454,11 @@ function LyricsPlayer() {
       )}
 
       <div className="lyrics-layout">
-        <div className="lyrics-list">
+        <div className="lyrics-list" ref={lyricsListRef}>
           {lyrics.map((line, index) => (
             <div
               key={line.id}
+              ref={index === activeLineIndex ? activeLineRef : null}
               className={
                 index === activeLineIndex
                   ? "lyric-line active-lyric"
