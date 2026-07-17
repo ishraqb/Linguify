@@ -6,7 +6,8 @@ from services.translation_service import get_or_create_translation, get_or_creat
 from services.deezer_service import get_preview_url
 from services.language_service import detect_language
 from services.difficulty_service import compute_difficulty
-from models import Vocabulary
+from services.cloze_service import generate_cloze_questions
+from models import Vocabulary, Song
 from extensions import db
 
 import spotify_client as sp
@@ -146,6 +147,21 @@ def song_difficulty():
   # Fall back to detecting the language when the caller doesn't supply one.
   language = language or detect_language(lyrics) or "en"
   return jsonify(difficulty=compute_difficulty(lyrics, language))
+
+# GET /api/cloze - build fill-in-the-blank questions from a song's lyrics.
+@api_bp.get("/api/cloze")
+def cloze_quiz():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  song_id = request.args.get("song_id", type=int)
+  language = request.args.get("language", "en").strip() or "en"
+  if not song_id:
+    return jsonify(error="Missing song_id"), 400
+  song = Song.query.get(song_id)
+  if not song or not song.lyrics:
+    return jsonify(error="Song or lyrics not found"), 404
+  questions = generate_cloze_questions(song.lyrics, language=language)
+  return jsonify(questions=questions)
 
 # GET /api/translate - translate a full song's lyrics into the target language.
 @api_bp.get("/api/translate")
