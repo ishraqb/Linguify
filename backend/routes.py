@@ -9,6 +9,13 @@ from services.difficulty_service import compute_difficulty
 from services.cloze_service import generate_cloze_questions
 from services.discovery_service import discover_songs, available_languages
 from services.romanization_service import romanize_lines, needs_romanization
+from services.progress_service import (
+  get_or_create_progress,
+  record_activity,
+  set_daily_goal,
+  serialize_progress,
+  ALLOWED_ACTIVITIES,
+)
 from models import Vocabulary, Song, User
 from extensions import db
 
@@ -352,6 +359,9 @@ def save_word():
   db.session.add(vocab_word)
   db.session.commit()
 
+  # Saving a word counts toward XP, the daily goal, and the streak.
+  record_activity(session["user_id"], "word")
+
   song_title = None
   if vocab_word.song:
     song_title = vocab_word.song.title
@@ -410,3 +420,39 @@ def delete_word(word_id):
   db.session.delete(word)
   db.session.commit()
   return jsonify(status="deleted", id=word_id)
+
+# GET /api/progress - return the user's gamification stats (XP, level, streak, daily goal).
+@api_bp.get("/api/progress")
+def get_progress():
+  if "user_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  progress = get_or_create_progress(session["user_id"])
+  return jsonify(serialize_progress(progress, session["user_id"]))
+
+# POST /api/progress/activity - record a learning activity and return updated stats.
+@api_bp.post("/api/progress/activity")
+def post_activity():
+  if "user_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  data = request.get_json() or {}
+  activity_type = (data.get("type") or "").strip()
+  # Allow-list the activity type so callers can't invent XP sources.
+  if activity_type not in ALLOWED_ACTIVITIES:
+    return jsonify(error="Invalid activity type"), 400
+  progress = record_activity(session["user_id"], activity_type)
+  return jsonify(serialize_progress(progress, session["user_id"]))
+
+# PUT /api/progress/goal - update the user's daily words goal.
+@api_bp.put("/api/progress/goal")
+def put_goal():
+  if "user_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  data = request.get_json() or {}
+  goal = data.get("dailyGoal")
+  if goal is None:
+    return jsonify(error="Missing dailyGoal"), 400
+  try:
+    progress = set_daily_goal(session["user_id"], goal)
+  except (TypeError, ValueError):
+    return jsonify(error="dailyGoal must be a number"), 400
+  return jsonify(serialize_progress(progress, session["user_id"]))

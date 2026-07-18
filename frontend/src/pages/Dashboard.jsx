@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import SongCard from '../components/SongCard'
 import WordCard from '../components/WordCard'
+import ProgressCard from '../components/ProgressCard'
 import { mockSongs } from '../data/mockSongs'
 import { mockWords } from '../data/mockWords'
-import { getRecentlyPlayedSongs, getSavedWords, getPlaylists, getPlaylistTracks } from '../services/api'
+import { getRecentlyPlayedSongs, getSavedWords, getPlaylists, getPlaylistTracks, getProgress } from '../services/api'
 
 /**
  * Dashboard view for signed in users
@@ -18,6 +19,7 @@ function Dashboard() {
   const [selectedPlaylist, setSelectedPlaylist] = useState(null)
   const [playlistTracks, setPlaylistTracks] = useState([])
   const [loadingTracks, setLoadingTracks] = useState(false)
+  const [progress, setProgress] = useState(null)
 
   // Loads in the recently played songs, playlists, and recent saved words
   useEffect(() => {
@@ -53,9 +55,19 @@ function Dashboard() {
       }
     }
 
+    async function loadProgress() {
+      try {
+        const stats = await getProgress()
+        setProgress(stats)
+      } catch (err) {
+        console.log("Could not load progress")
+      }
+    }
+
     loadRecentlyPlayed()
     loadPlaylists()
     loadRecentWords()
+    loadProgress()
   }, [])
 
   // Opens a playlist and loads its tracks so the user can start a lesson from any of them
@@ -76,6 +88,8 @@ function Dashboard() {
   return (
     <div className="page">
       <Navbar />
+
+      <ProgressCard progress={progress} />
 
       <div className="dashboard-grid">
         <div>
