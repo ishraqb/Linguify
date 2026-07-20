@@ -7,7 +7,7 @@ from services.deezer_service import get_preview_url
 from services.language_service import detect_language
 from services.difficulty_service import compute_difficulty
 from services.cloze_service import generate_cloze_questions
-from services.discovery_service import discover_songs, available_languages
+from services.discovery_service import discover_songs, available_languages, popular_songs
 from services.romanization_service import romanize_lines, needs_romanization
 from services.youtube_service import search_videos, simplify_video
 from services.progress_service import (
@@ -219,6 +219,12 @@ def discover():
     include_explicit=not session.get("hide_explicit"),
   )
   return jsonify(songs=songs, languages=available_languages())
+
+# GET /api/popular - a few catalog songs with cover art for the public landing page.
+# Intentionally public (no auth): returns only non-sensitive catalog fields.
+@api_bp.get("/api/popular")
+def popular():
+  return jsonify(songs=popular_songs())
 
 # GET /api/preferences - return the user's saved preferences.
 @api_bp.get("/api/preferences")

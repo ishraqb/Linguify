@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Box, Container, Flex, Heading, Text, Badge } from '@chakra-ui/react'
+import { getPopularSongs } from '../services/api'
 
 const COVER_COLORS = ['#159a5b', '#3b6ef6', '#f5a623', '#e0245e', '#7c3aed', '#0891b2']
 
@@ -64,7 +65,7 @@ function LyricPreviewCard() {
 function CoverTile({ song, index }) {
     return (
         <Box className="cover-tile" flex={{ base: '0 0 110px', md: '0 0 140px' }} cursor="pointer">
-            <Box position="relative" borderRadius="8px" boxSize={{ base: '110px', md: '140px' }} mb="2" bg={COVER_COLORS[index % COVER_COLORS.length]}>
+            <Box position="relative" borderRadius="8px" boxSize={{ base: '110px', md: '140px' }} mb="2" bg={COVER_COLORS[index % COVER_COLORS.length]} bgImage={song.coverUrl ? `url(${song.coverUrl})` : undefined} bgSize="cover" bgPosition="center">
                 <Flex className="cover-play-btn" position="absolute" bottom="2" right="2" boxSize="36px" borderRadius="999px" bg="#159a5b" color="white" align="center" justify="center">
                     ▶
                 </Flex>
@@ -77,11 +78,23 @@ function CoverTile({ song, index }) {
 
 function Landing() {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+    const [popularSongs, setPopularSongs] = useState(SHELF_SONGS)
+
+    // Pull real catalog songs with cover art; fall back to the static shelf on failure.
+    useEffect(() => {
+        getPopularSongs()
+            .then((songs) => {
+                if (Array.isArray(songs) && songs.length > 0) {
+                    setPopularSongs(songs)
+                }
+            })
+            .catch(() => {})
+    }, [])
 
     return (
         <Box bg="#f3f8f5">
             <Flex align="center" justify="space-between" px={{ base: '4', md: '6' }} py="3">
-                <Text fontSize={{ base: '20px', md: '24px' }} fontWeight="800">🎵 Linguify</Text>
+                <Text fontSize={{ base: '22px', md: '26px' }} fontWeight="900" letterSpacing="-0.03em" color="#159a5b">Linguify</Text>
                 <Text as="a" href="#how-it-works" fontSize={{ base: '14px', md: '16px' }} fontWeight="600" color="#1f1f1f">How it works</Text>
             </Flex>
 
@@ -114,8 +127,8 @@ function Landing() {
                 <Container maxW="1100px" px="5" py="8">
                     <Heading fontSize={{ base: '20px', md: '24px' }} mb="4">Popular right now</Heading>
                     <div className="shelf-row">
-                        {SHELF_SONGS.map((song, i) => (
-                            <CoverTile key={song.id} song={song} index={i} />
+                        {popularSongs.map((song, i) => (
+                            <CoverTile key={song.songId || song.id || i} song={song} index={i} />
                         ))}
                     </div>
                 </Container>

@@ -6,6 +6,19 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
+// Gets a few popular catalog songs with cover art for the public landing page
+export async function getPopularSongs() {
+    const response = await fetch(`${API_BASE_URL}/api/popular`)
+
+    if (!response.ok) {
+        throw new Error("Failed to load popular songs")
+    }
+
+    const data = await response.json()
+
+    return data.songs
+}
+
 // Gets the current logged-in user's info, including their Spotify plan (product)
 export async function getMe() {
     const response = await fetch(`${API_BASE_URL}/api/me`, {

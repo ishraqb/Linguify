@@ -1,4 +1,4 @@
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from models import Song
 from extensions import db
 
@@ -38,6 +38,19 @@ def discover_songs(language=None, difficulty=None, query=None, include_explicit=
     songs = songs.filter(or_(Song.title.ilike(like), Song.artist.ilike(like)))
 
   songs = songs.order_by(Song.created_at.desc()).limit(limit).all()
+  return [_serialize(song) for song in songs]
+
+
+# A small random sample of catalog songs that have cover art, for the public
+# landing page shelf. Only non-sensitive fields are returned (via _serialize).
+def popular_songs(limit=6):
+  songs = (
+    Song.query
+    .filter(Song.language.isnot(None), Song.cover_url.isnot(None))
+    .order_by(func.random())
+    .limit(limit)
+    .all()
+  )
   return [_serialize(song) for song in songs]
 
 
