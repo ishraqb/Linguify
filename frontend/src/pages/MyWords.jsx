@@ -143,15 +143,18 @@ function MyWords() {
     <div className="page">
       <Navbar />
 
-      <div className="section-row">
-        <h2 className="section-title">My Words</h2>
-        <button
-          className="main-button"
-          onClick={startReview}
-          disabled={words.length === 0}
-        >
-          Review ({words.length})
-        </button>
+      <div className="page-header">
+        <span className="hero-badge">Your vocabulary</span>
+        <div className="section-row">
+          <h1 className="page-title">My Words</h1>
+          <button
+            className="main-button"
+            onClick={startReview}
+            disabled={words.length === 0}
+          >
+            Review ({words.length})
+          </button>
+        </div>
       </div>
 
       <input
