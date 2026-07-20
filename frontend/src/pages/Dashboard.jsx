@@ -27,7 +27,7 @@ function Dashboard() {
         if (tracks.length > 0) {
           setRecentlyPlayedSongs(tracks)
         }
-      } catch (err) {
+      } catch {
         console.log("Could not load recently played songs")
       }
     }
@@ -36,7 +36,7 @@ function Dashboard() {
       try {
         const lists = await getPlaylists()
         setPlaylists(lists || [])
-      } catch (err) {
+      } catch {
         console.log("Could not load playlists")
       }
     }
@@ -48,7 +48,7 @@ function Dashboard() {
         if (Array.isArray(savedWords)) {
           setRecentWords(savedWords.slice(0, 2))
         }
-      } catch (err) {
+      } catch {
         console.log("Could not load recent words")
       }
     }
@@ -57,7 +57,7 @@ function Dashboard() {
       try {
         const stats = await getProgress()
         setProgress(stats)
-      } catch (err) {
+      } catch {
         console.log("Could not load progress")
       }
     }
@@ -76,7 +76,7 @@ function Dashboard() {
     try {
       const tracks = await getPlaylistTracks(playlist.id)
       setPlaylistTracks(tracks || [])
-    } catch (err) {
+    } catch {
       console.log("Could not load playlist tracks")
     } finally {
       setLoadingTracks(false)

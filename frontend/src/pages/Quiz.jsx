@@ -27,7 +27,6 @@ function Quiz() {
   // Load quiz questions for the song once the page opens
   useEffect(() => {
     if (!songId) {
-      setIsLoading(false)
       return
     }
     let active = true
