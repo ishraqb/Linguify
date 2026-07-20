@@ -10,6 +10,25 @@ LRCLIB_SEARCH_URL = "https://lrclib.net/api/search"
 # Matches an LRCLIB timestamp like [00:12.34] at the start of a synced line.
 _TIMESTAMP_RE = re.compile(r"\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]")
 
+# Splits a joined artist string ("Bad Bunny, JHAYCO", "Kanye West & Chris Martin").
+_ARTIST_SPLIT_RE = re.compile(r"\s*(?:,|&|;|/|\bfeat\.?\b|\bft\.?\b|\bwith\b|\bx\b)\s*", re.IGNORECASE)
+
+
+# The lead artist, so lyric lookups still work for multi-artist tracks.
+def _primary_artist(artist):
+  if not artist:
+    return artist
+  parts = _ARTIST_SPLIT_RE.split(artist)
+  return parts[0].strip() if parts and parts[0].strip() else artist
+
+
+# Return the first LRCLIB result that actually carries lyrics.
+def _pick_lrclib_result(results):
+  for result in results or []:
+    if result.get("plainLyrics") or result.get("syncedLyrics"):
+      return {"plain": result.get("plainLyrics"), "synced": result.get("syncedLyrics")}
+  return None
+
 
 # Parse LRCLIB synced lyrics into ordered {time (seconds), text} entries.
 def parse_synced_lyrics(synced_lyrics):
@@ -30,20 +49,19 @@ def parse_synced_lyrics(synced_lyrics):
   return parsed
 
 def fetch_lyrics_from_lrclib(title, artist):
-  response = requests.get(
-    LRCLIB_SEARCH_URL,
-    params={"track_name": title, "artist_name": artist},
-    timeout=10
-  )
-  response.raise_for_status()
-  results = response.json() 
-  if not results:
-    return None
-  best_match = results[0]
-  return {
-    "plain": best_match.get("plainLyrics"),
-    "synced": best_match.get("syncedLyrics"),
-  }
+  primary = _primary_artist(artist)
+  # Try the full artist string first, then just the lead artist as a fallback.
+  queries = [{"track_name": title, "artist_name": artist}]
+  if primary and primary != artist:
+    queries.append({"track_name": title, "artist_name": primary})
+
+  for params in queries:
+    response = requests.get(LRCLIB_SEARCH_URL, params=params, timeout=10)
+    response.raise_for_status()
+    picked = _pick_lrclib_result(response.json())
+    if picked:
+      return picked
+  return None
 
 
 # Fallback that aggregates several lyric providers (NetEase, Megalobiz, etc.).

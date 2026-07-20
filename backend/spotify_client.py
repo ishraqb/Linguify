@@ -148,13 +148,19 @@ def get_user_playlists(access_token, limit=50):
   return resp.json()
 
 # Fetch the tracks inside a specific playlist.
+# The Feb 2026 API changes renamed /tracks to /items; try the new path first
+# and fall back to the old one so older accounts keep working.
 def get_playlist_tracks(access_token, playlist_id, limit=50):
-  resp = requests.get(
-    f"{SPOTIFY_API_BASE}/playlists/{playlist_id}/tracks",
-    headers={"Authorization": f"Bearer {access_token}"},
-    params={"limit": limit},
-    timeout=10,
-  )
+  headers = {"Authorization": f"Bearer {access_token}"}
+  for path in ("items", "tracks"):
+    resp = requests.get(
+      f"{SPOTIFY_API_BASE}/playlists/{playlist_id}/{path}",
+      headers=headers,
+      params={"limit": limit},
+      timeout=10,
+    )
+    if resp.status_code == 200:
+      return resp.json()
   resp.raise_for_status()
   return resp.json()
 
@@ -171,7 +177,8 @@ def simplify_playlist(playlist):
     "name": playlist.get("name"),
     "description": playlist.get("description"),
     "coverUrl": cover_url,
-    "trackCount": (playlist.get("tracks") or {}).get("total", 0),
+    # Feb 2026 API deprecated tracks.total in favor of items.total.
+    "trackCount": (playlist.get("items") or playlist.get("tracks") or {}).get("total", 0),
     "owner": (playlist.get("owner") or {}).get("display_name"),
   }
 

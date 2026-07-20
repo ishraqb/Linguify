@@ -90,7 +90,8 @@ def playlist_tracks(playlist_id):
     return jsonify(error="Invalid playlist_id"), 400
   data = _call_spotify(lambda token: sp.get_playlist_tracks(token, playlist_id))
   items = data.get("items", [])
-  tracks = [sp.simplify_track(i.get("track")) for i in items]
+  # Feb 2026 API renamed each entry's "track" field to "item".
+  tracks = [sp.simplify_track(i.get("item") or i.get("track")) for i in items]
   return jsonify(tracks=[t for t in tracks if t])
 
 # GET /api/preview - fetch 30s preview URL from Deezer for a title/artist

@@ -24,23 +24,28 @@ MAX_TRANSLATION_LINES = 120
 
 # Translate one string via DeepL; raises on error so the caller can fall back.
 def _translate_deepl(text, source_lang, target_lang, api_key):
+  results = _translate_deepl_batch([text], source_lang, target_lang, api_key)
+  return results[0] if results else None
+
+
+# Translate many strings in a single DeepL call (up to 50) so full songs stay
+# fast. Returns translations aligned to the input order.
+def _translate_deepl_batch(texts, source_lang, target_lang, api_key):
   target = DEEPL_TARGET_OVERRIDES.get(target_lang, target_lang.upper())
-  params = {"text": text, "target_lang": target}
+  data = [("text", text) for text in texts]
+  data.append(("target_lang", target))
   if source_lang:
-    params["source_lang"] = source_lang.upper()
+    data.append(("source_lang", source_lang.upper()))
   # API key is sent in an auth header and never logged (secrets-in-logs rule).
   response = requests.post(
     DEEPL_URL,
-    data=params,
+    data=data,
     headers={"Authorization": f"DeepL-Auth-Key {api_key}"},
-    timeout=10,
+    timeout=20,
   )
   response.raise_for_status()
-  data = response.json()
-  translations = data.get("translations") or []
-  if not translations:
-    return None
-  return translations[0].get("text")
+  translations = response.json().get("translations") or []
+  return [item.get("text") for item in translations]
 
 
 # Translate one string using the free MyMemory API.
@@ -84,9 +89,23 @@ def translate_lines(lyrics, target_language, source_language="en"):
     ]
 
   # Translate each distinct line only once so repeated choruses don't re-hit the API.
+  unique_lines = list(dict.fromkeys(lines))
   translation_cache = {}
 
-  for line in lines:
+  # Fast path: batch all unique lines through DeepL in a few requests.
+  api_key = os.environ.get("DEEPL_API_KEY")
+  if api_key and source_language in DEEPL_SUPPORTED and target_language in DEEPL_SUPPORTED:
+    try:
+      for start in range(0, len(unique_lines), 50):
+        chunk = unique_lines[start:start + 50]
+        results = _translate_deepl_batch(chunk, source_language, target_language, api_key)
+        for line, translated in zip(chunk, results):
+          translation_cache[line] = translated or "Translation unavailable"
+    except requests.RequestException:
+      translation_cache = {}  # DeepL failed entirely — fall back per line below.
+
+  # Fallback (or DeepL misses): translate any remaining lines one at a time.
+  for line in unique_lines:
     if line in translation_cache:
       continue
     try:
