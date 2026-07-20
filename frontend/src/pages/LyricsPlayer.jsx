@@ -475,8 +475,6 @@ function LyricsPlayer() {
             {sourceLanguage.label} → {targetLanguage.label}
           </p>
         </div>
-
-        <div className="step-box">Step 3/4</div>
       </div>
 
       {/* Free/open users get the 30s preview; Premium users get the full song via the SDK */}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Box, Container, Flex, Heading, Text, Badge } from '@chakra-ui/react'
 import { getPopularSongs } from '../services/api'
 
-const COVER_COLORS = ['#159a5b', '#3b6ef6', '#f5a623', '#e0245e', '#7c3aed', '#0891b2']
+const COVER_COLORS = ['#16a89a', '#3b6ef6', '#f5a623', '#e0245e', '#7c3aed', '#0891b2']
 
 const SHELF_SONGS = [
     { id: 1, title: 'Bailando', artist: 'Enrique Iglesias' },
@@ -16,7 +16,7 @@ function Button({ primary, children, ...rest }) {
     return (
         <Box
             as="button"
-            bg={primary ? '#159a5b' : 'white'}
+            bg={primary ? '#16a89a' : 'white'}
             color={primary ? 'white' : '#1a1d1e'}
             border={primary ? 'none' : '2px solid #1a1d1e'}
             borderRadius="8px"
@@ -24,7 +24,7 @@ function Button({ primary, children, ...rest }) {
             px="4"
             py="2"
             cursor="pointer"
-            _hover={{ background: primary ? '#0e7a47' : '#eeeeee' }}
+            _hover={{ background: primary ? '#0f8b80' : '#eeeeee' }}
             {...rest}
         >
             {children}
@@ -46,7 +46,7 @@ function LyricPreviewCard() {
                 <div className="eq-bars"><span /><span /><span /></div>
             </Flex>
 
-            <Box bg="#e9f7ee" borderRadius="6px" p="3" mb="2">
+            <Box bg="#e4f6f2" borderRadius="6px" p="3" mb="2">
                 <Text fontWeight="700" mb="1">Je ne veux pas travailler</Text>
                 <Text fontSize="13px" color="#5b6169" fontStyle="italic">I don't want to work</Text>
             </Box>
@@ -62,7 +62,7 @@ function CoverTile({ song, index }) {
     return (
         <Box className="cover-tile" flex={{ base: '0 0 110px', md: '0 0 140px' }} cursor="pointer">
             <Box position="relative" borderRadius="8px" boxSize={{ base: '110px', md: '140px' }} mb="2" bg={COVER_COLORS[index % COVER_COLORS.length]} bgImage={song.coverUrl ? `url(${song.coverUrl})` : undefined} bgSize="cover" bgPosition="center">
-                <Flex className="cover-play-btn" position="absolute" bottom="2" right="2" boxSize="36px" borderRadius="999px" bg="#159a5b" color="white" align="center" justify="center">
+                <Flex className="cover-play-btn" position="absolute" bottom="2" right="2" boxSize="36px" borderRadius="999px" bg="#16a89a" color="white" align="center" justify="center">
                     ▶
                 </Flex>
             </Box>
@@ -92,7 +92,7 @@ function Landing() {
             <Flex align="center" justify="space-between" px={{ base: '4', md: '6' }} py="3">
                 <Flex align="center" gap="10px">
                     <img src="/logo-mark.png" alt="Linguify logo" width="48" height="48" style={{ display: 'block', objectFit: 'contain' }} />
-                    <Text fontSize={{ base: '22px', md: '26px' }} fontWeight="900" letterSpacing="-0.03em" color="#159a5b">Linguify</Text>
+                    <Text fontSize={{ base: '22px', md: '26px' }} fontWeight="900" letterSpacing="-0.03em" color="#16a89a">Linguify</Text>
                 </Flex>
                 <Text as="a" href="#how-it-works" fontSize={{ base: '14px', md: '16px' }} fontWeight="600" color="#1f1f1f">How it works</Text>
             </Flex>
@@ -101,7 +101,7 @@ function Landing() {
                 <Container maxW="1100px" px="5" py={{ base: '8', md: '14' }}>
                     <Flex direction={{ base: 'column', md: 'row' }} align="center" gap="8">
                         <Box flex="1">
-                            <Badge bg="#d4f3e0" color="#0f7a38" fontWeight="700" fontSize="13px" px="3" py="1" borderRadius="999px" mb="4">
+                            <Badge bg="#cfeee9" color="#0b7d72" fontWeight="700" fontSize="13px" px="3" py="1" borderRadius="999px" mb="4">
                                 Learn while you listen
                             </Badge>
                             <Heading fontSize={{ base: '32px', md: '44px' }} lineHeight="1.1" letterSpacing="-0.02em" mb="4">
@@ -153,7 +153,7 @@ function Landing() {
                 </Flex>
             </Container>
 
-            <Box bg="#e9f7ee">
+            <Box bg="#e4f6f2">
                 <Container maxW="1100px" px="5" py={{ base: '8', md: '12' }}>
                     <Heading fontSize={{ base: '22px', md: '26px' }} mb="6" textAlign="center">Built to make it stick</Heading>
                     <Flex direction={{ base: 'column', md: 'row' }} gap="6">
