@@ -148,6 +148,14 @@ button {
     margin: 0;
 }
 
+.brand-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: block;
+    object-fit: cover;
+}
+
 .nav-links {
     display: flex;
     gap: 12px;

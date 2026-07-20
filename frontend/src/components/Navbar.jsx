@@ -7,7 +7,10 @@ import { NavLink, Link } from 'react-router-dom'
 function Navbar() {
   return (
     <nav className="top-nav">
-      <h1>Linguify</h1>
+      <Link to="/dashboard" className="brand">
+        <img src="/logo-mark.png" alt="Linguify logo" className="brand-mark" />
+        <h1>Linguify</h1>
+      </Link>
 
       <div className="nav-links">
         <NavLink

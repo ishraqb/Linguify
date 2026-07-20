@@ -94,7 +94,10 @@ function Landing() {
     return (
         <Box bg="#f3f8f5">
             <Flex align="center" justify="space-between" px={{ base: '4', md: '6' }} py="3">
-                <Text fontSize={{ base: '22px', md: '26px' }} fontWeight="900" letterSpacing="-0.03em" color="#159a5b">Linguify</Text>
+                <Flex align="center" gap="10px">
+                    <img src="/logo-mark.png" alt="Linguify logo" width="36" height="36" style={{ borderRadius: '10px', display: 'block' }} />
+                    <Text fontSize={{ base: '22px', md: '26px' }} fontWeight="900" letterSpacing="-0.03em" color="#159a5b">Linguify</Text>
+                </Flex>
                 <Text as="a" href="#how-it-works" fontSize={{ base: '14px', md: '16px' }} fontWeight="600" color="#1f1f1f">How it works</Text>
             </Flex>
 
