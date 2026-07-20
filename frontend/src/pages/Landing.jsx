@@ -63,8 +63,8 @@ function LyricPreviewCard() {
 
 function CoverTile({ song, index }) {
     return (
-        <Box className="cover-tile" flex="0 0 140px" cursor="pointer">
-            <Box position="relative" borderRadius="8px" boxSize="140px" mb="2" bg={COVER_COLORS[index % COVER_COLORS.length]}>
+        <Box className="cover-tile" flex={{ base: '0 0 110px', md: '0 0 140px' }} cursor="pointer">
+            <Box position="relative" borderRadius="8px" boxSize={{ base: '110px', md: '140px' }} mb="2" bg={COVER_COLORS[index % COVER_COLORS.length]}>
                 <Flex className="cover-play-btn" position="absolute" bottom="2" right="2" boxSize="36px" borderRadius="999px" bg="#159a5b" color="white" align="center" justify="center">
                     ▶
                 </Flex>
@@ -80,9 +80,9 @@ function Landing() {
 
     return (
         <Box bg="#f3f8f5">
-            <Flex align="center" justify="space-between" px="4" py="3">
-                <Text fontSize="24px" fontWeight="800">🎵 Linguify</Text>
-                <Text as="a" href="#how-it-works" fontWeight="600" color="#1f1f1f">How it works</Text>
+            <Flex align="center" justify="space-between" px={{ base: '4', md: '6' }} py="3">
+                <Text fontSize={{ base: '20px', md: '24px' }} fontWeight="800">🎵 Linguify</Text>
+                <Text as="a" href="#how-it-works" fontSize={{ base: '14px', md: '16px' }} fontWeight="600" color="#1f1f1f">How it works</Text>
             </Flex>
 
             <Box className="hero-gradient">
@@ -112,7 +112,7 @@ function Landing() {
 
             <Box bg="white" borderTop="1px solid #e1e4e8">
                 <Container maxW="1100px" px="5" py="8">
-                    <Heading fontSize="24px" mb="4">Popular right now</Heading>
+                    <Heading fontSize={{ base: '20px', md: '24px' }} mb="4">Popular right now</Heading>
                     <div className="shelf-row">
                         {SHELF_SONGS.map((song, i) => (
                             <CoverTile key={song.id} song={song} index={i} />
@@ -123,7 +123,7 @@ function Landing() {
 
             <Container maxW="1100px" px="5" py={{ base: '8', md: '12' }} id="how-it-works">
                 <Box textAlign="center" mb="8">
-                    <Heading fontSize="30px" mb="6">How it works</Heading>
+                    <Heading fontSize={{ base: '24px', md: '30px' }} mb="6">How it works</Heading>
                 </Box>
                 <Flex direction={{ base: 'column', md: 'row' }} gap="5">
                     <Box flex="1" bg="white" borderRadius="18px" px="5" py="6" boxShadow="0 8px 24px rgba(31, 41, 51, 0.06)" textAlign="center">
@@ -143,7 +143,7 @@ function Landing() {
 
             <Box bg="#e9f7ee">
                 <Container maxW="1100px" px="5" py={{ base: '8', md: '12' }}>
-                    <Heading fontSize="26px" mb="6" textAlign="center">Built to make it stick</Heading>
+                    <Heading fontSize={{ base: '22px', md: '26px' }} mb="6" textAlign="center">Built to make it stick</Heading>
                     <Flex direction={{ base: 'column', md: 'row' }} gap="6">
                         <Box flex="1" bg="white" borderRadius="12px" p="5" border="2px solid #1f1f1f">
                             <Heading fontSize="18px" mb="2">Streaks &amp; daily goals</Heading>
