@@ -117,10 +117,13 @@ def search_tracks(access_token, query, limit=10):
 
 # Search for a single track by title/artist and return the best simplified match.
 def find_track(access_token, title, artist):
-  query = f"track:{title} artist:{artist}"
-  data = search_tracks(access_token, query, limit=1)
-  items = data.get("tracks", {}).get("items", [])
-  return simplify_track(items[0]) if items else None
+  # Try a strict field query first, then a looser one to catch more matches.
+  for query in (f"track:{title} artist:{artist}", f"{title} {artist}"):
+    data = search_tracks(access_token, query, limit=1)
+    items = data.get("tracks", {}).get("items", [])
+    if items:
+      return simplify_track(items[0])
+  return None
 
 # Fetch the user's recently played tracks.
 def get_recently_played(access_token, limit=20):

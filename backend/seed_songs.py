@@ -52,12 +52,14 @@ def _upsert_song(title, artist, language, token):
   db.session.commit()
 
   # Fetch lyrics up front so difficulty is computed now and the Discover filter is useful.
+  # LRCLIB-only (use_fallback=False) keeps seeding fast; slower providers fill in when studied.
   if song.difficulty_level is None:
     try:
       get_or_fetch_lyrics(
         song.title, song.artist,
         spotify_track_id=song.spotify_track_id,
         cover_url=song.cover_url,
+        use_fallback=False,
       )
     except Exception:
       pass

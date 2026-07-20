@@ -62,17 +62,20 @@ def fetch_lyrics_from_syncedlyrics(title, artist):
 
 
 # Try LRCLIB first (best synced quality), then fall back to other providers.
-def fetch_lyrics(title, artist):
+# use_fallback=False keeps it LRCLIB-only (fast) for bulk seeding.
+def fetch_lyrics(title, artist, use_fallback=True):
   try:
     fetched = fetch_lyrics_from_lrclib(title, artist)
   except requests.RequestException:
     fetched = None
   if fetched and (fetched.get("plain") or fetched.get("synced")):
     return fetched
+  if not use_fallback:
+    return None
   return fetch_lyrics_from_syncedlyrics(title, artist)
 
 
-def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None, cover_url=None):
+def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None, cover_url=None, use_fallback=True):
   song = None
 
   if spotify_track_id:
@@ -91,7 +94,7 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None, cover_
       "synced_lines": parse_synced_lyrics(song.synced_lyrics),
       "cached": True
     }
-  fetched = fetch_lyrics(title, artist)
+  fetched = fetch_lyrics(title, artist, use_fallback=use_fallback)
   if not fetched or not (fetched.get("plain") or fetched.get("synced")):
     return None
   lyrics = fetched.get("plain") or fetched.get("synced")
