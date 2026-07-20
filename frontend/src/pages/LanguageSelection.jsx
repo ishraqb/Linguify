@@ -93,8 +93,6 @@ function LanguageSelection() {
           <Link to="/search" className="secondary-button">
             Back
           </Link>
-
-          <div className="step-box">Step 2/4</div>
         </div>
 
         <h2 className="section-title center-text">No song selected</h2>
@@ -116,12 +114,6 @@ function LanguageSelection() {
         <Link to="/search" className="secondary-button">
           Back
         </Link>
-
-        <div className="step-bar">
-          <div className="step-bar-fill" style={{ width: '50%' }} />
-        </div>
-
-        <div className="step-box">Step 2/4</div>
       </div>
 
       <h2 className="section-title center-text">You chose</h2>

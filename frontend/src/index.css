@@ -653,10 +653,17 @@ button {
 .target-card.selected-language {
     background: #e4f6f2;
     border-color: #16a89a;
+    /* Override the generic .selected-language white text so the label stays readable
+       on the light teal background. */
+    color: #0f6b62;
+}
+
+.target-card.selected-language .target-card-label {
+    color: #0b5d55;
 }
 
 .target-card.selected-language .target-card-native {
-    color: #1a1d1e;
+    color: #12776d;
 }
 
 /* ---------- Language Picker (quick picks + searchable list) ---------- */
@@ -1920,16 +1927,27 @@ button {
         align-items: stretch;
     }
 
+    .top-nav {
+        gap: 10px;
+        text-align: center;
+    }
+
+    .brand {
+        justify-content: center;
+    }
+
     .top-row {
         grid-template-columns: 1fr;
+        gap: 10px;
     }
 
     .nav-links {
         flex-wrap: wrap;
+        justify-content: center;
     }
 
     .nav-link {
-        flex: 1;
+        flex: 1 1 40%;
     }
 
     .search-box {
@@ -1961,6 +1979,104 @@ button {
     .playback-options button:first-child,
     .playback-options button:last-child {
         border-radius: 12px;
+    }
+}
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 480px) {
+    .page {
+        padding: 18px 14px;
+    }
+
+    .page-header {
+        padding: 22px 20px;
+        border-radius: 18px;
+    }
+
+    .page-title {
+        font-size: 26px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        margin-top: 22px;
+    }
+
+    .section-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .section-row .main-button {
+        width: 100%;
+    }
+
+    .top-nav h1 {
+        font-size: 20px;
+    }
+
+    .brand-mark {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Stack multi-button rows so nothing gets cramped */
+    .button-row {
+        flex-direction: column;
+    }
+
+    .quiz-prompt {
+        font-size: 18px;
+    }
+
+    .quiz-card {
+        padding: 20px 16px;
+    }
+
+    .complete-header {
+        padding: 30px 18px;
+    }
+
+    .complete-header h1 {
+        font-size: 26px;
+    }
+
+    .flashcard-face {
+        padding: 26px 18px;
+    }
+
+    .flashcard-face h2 {
+        font-size: 26px;
+    }
+
+    .flashcard-inner {
+        min-height: 320px;
+    }
+
+    .modal-background {
+        padding: 14px;
+    }
+
+    .word-modal {
+        padding: 20px 18px;
+    }
+
+    .word-modal-word {
+        font-size: 26px;
+    }
+
+    .selected-song-box {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .lyrics-list {
+        max-height: 340px;
+    }
+
+    .quiz-score-box {
+        padding: 24px 28px;
     }
 }
 
