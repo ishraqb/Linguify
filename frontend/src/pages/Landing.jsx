@@ -33,7 +33,6 @@ function Button({ primary, children, ...rest }) {
 }
 
 function LyricPreviewCard() {
-    const [saved, setSaved] = useState(false)
     return (
         <Box bg="white" borderRadius="12px" boxShadow="0 10px 28px rgba(20,40,30,0.15)" p="5" maxW="340px" w="100%" border="2px solid #1f1f1f">
             <Flex align="center" justify="space-between" mb="4">
@@ -52,11 +51,8 @@ function LyricPreviewCard() {
                 <Text fontSize="13px" color="#5b6169" fontStyle="italic">I don't want to work</Text>
             </Box>
 
-            <Flex align="center" justify="space-between" mt="4">
+            <Flex align="center" mt="4">
                 <Text fontSize="12px" color="#5b6169" fontWeight="700">3 of 5 lines reviewed</Text>
-                <Button primary={saved} onClick={() => setSaved(!saved)}>
-                    {saved ? '★ Saved' : '☆ Save word'}
-                </Button>
             </Flex>
         </Box>
     )
