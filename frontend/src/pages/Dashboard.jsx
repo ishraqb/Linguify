@@ -87,6 +87,11 @@ function Dashboard() {
     <div className="page">
       <Navbar />
 
+      <div className="page-header">
+        <span className="hero-badge">Welcome back</span>
+        <h1 className="page-title">Pick up where you left off</h1>
+      </div>
+
       <ProgressCard progress={progress} />
 
       <div className="dashboard-grid">
