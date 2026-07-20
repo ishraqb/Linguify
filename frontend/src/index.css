@@ -414,6 +414,21 @@ button {
 
 .step-bar {
     flex: 1;
+    border: none;
+    padding: 0;
+    height: 44px;
+    background: #e6ece9;
+    border-radius: 999px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.step-bar-fill {
+    height: 100%;
+    background: #159a5b;
+    border-radius: 999px;
+    transition: width 0.3s ease;
 }
 
 .difficulty-badge {

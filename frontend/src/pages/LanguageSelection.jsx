@@ -101,7 +101,9 @@ function LanguageSelection() {
           Back
         </Link>
 
-        <div className="step-bar">Step progress bar 2/4</div>
+        <div className="step-bar">
+          <div className="step-bar-fill" style={{ width: '50%' }} />
+        </div>
 
         <div className="step-box">Step 2/4</div>
       </div>
