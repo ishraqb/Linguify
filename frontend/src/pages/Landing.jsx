@@ -72,9 +72,23 @@ function CoverTile({ song, index }) {
     )
 }
 
+const AUTH_ERROR_MESSAGES = {
+    denied: 'Spotify sign-in was cancelled. Try again to continue.',
+    state: 'Your login session expired. Please start the login again.',
+    spotify: "We couldn't reach Spotify to sign you in. Please try again.",
+    server: 'Something went wrong signing you in. Please try again in a moment.',
+}
+
 function Landing() {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
     const [popularSongs, setPopularSongs] = useState(SHELF_SONGS)
+
+    // Surface a friendly message if the OAuth callback bounced back with an error.
+    const [authError, setAuthError] = useState('')
+    useEffect(() => {
+        const reason = new URLSearchParams(window.location.search).get('auth_error')
+        if (reason) setAuthError(AUTH_ERROR_MESSAGES[reason] || AUTH_ERROR_MESSAGES.server)
+    }, [])
 
     // Pull real catalog songs with cover art; fall back to the static shelf on failure.
     useEffect(() => {
@@ -96,6 +110,13 @@ function Landing() {
                 </Flex>
                 <Text as="a" href="#how-it-works" fontSize={{ base: '14px', md: '16px' }} fontWeight="600" color="#1f1f1f">How it works</Text>
             </Flex>
+
+            {authError && (
+                <Box bg="#fdecec" color="#c53838" border="1px solid #f6cccc" borderRadius="10px"
+                    maxW="1100px" mx="auto" mt="2" px="4" py="3" fontWeight="600" fontSize="14px">
+                    {authError}
+                </Box>
+            )}
 
             <Box className="hero-gradient">
                 <Container maxW="1100px" px="5" py={{ base: '8', md: '14' }}>
