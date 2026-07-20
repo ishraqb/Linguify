@@ -33,6 +33,10 @@ button {
 }
 
 .page-header .page-title {
+    margin-bottom: 6px;
+}
+
+.page-header .page-text {
     margin-bottom: 0;
 }
 

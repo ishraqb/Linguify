@@ -129,8 +129,11 @@ function Search() {
     <div className="page">
       <Navbar />
 
-      <h2 className="section-title">Songs</h2>
-      <p className="page-text">Browse by language and difficulty, or search for any song.</p>
+      <div className="page-header">
+        <span className="hero-badge">Find a song</span>
+        <h1 className="page-title">Songs</h1>
+        <p className="page-text">Browse by language and difficulty, or search for any song.</p>
+      </div>
 
       <div className="filter-group">
         <span className="filter-label">Source</span>
