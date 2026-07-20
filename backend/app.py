@@ -13,10 +13,11 @@ def create_app():
     dist_dir = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
     app = Flask(__name__, static_folder=dist_dir, static_url_path="")
     app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-change-me")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-      "DATABASE_URL",
-      "sqlite:///linguify.db"
-    )
+    # Managed Postgres (e.g. Render) hands out "postgres://", but SQLAlchemy needs "postgresql://".
+    database_url = os.environ.get("DATABASE_URL", "sqlite:///linguify.db")
+    if database_url.startswith("postgres://"):
+      database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     app.config.update(
