@@ -1,5 +1,6 @@
 import re
 import requests
+from concurrent.futures import ThreadPoolExecutor
 from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
 from services.translation_service import get_or_create_translation, get_or_create_word_translation, translate_text
@@ -8,10 +9,11 @@ from services.language_service import detect_language
 from services.difficulty_service import compute_difficulty
 from services.cloze_service import generate_cloze_questions
 from services.lemma_service import base_form
+from services.example_service import example_sentence, example_sentences_bulk
 from services.discovery_service import discover_songs, available_languages, popular_songs
 from services.charts_service import international_top
 from services.romanization_service import romanize_lines, needs_romanization
-from services.youtube_service import search_videos, simplify_video
+from services.youtube_service import search_videos, simplify_video, is_configured as youtube_configured
 from services.progress_service import (
   get_or_create_progress,
   record_activity,
@@ -25,6 +27,14 @@ from extensions import db
 import spotify_client as sp
 
 api_bp = Blueprint("api", __name__)
+
+# Strip leading/trailing punctuation from a word so saved vocab is the bare word
+# (e.g. "enteré," -> "enteré") and never carries a comma/period from the lyric.
+_WORD_EDGE_PUNCT = re.compile(r"^[^\w]+|[^\w]+$", re.UNICODE)
+
+
+def _clean_word(word):
+  return _WORD_EDGE_PUNCT.sub("", (word or "").strip())
 
 # Use the stored refresh token to get a fresh access token and update the session.
 def _refresh_session_token():
@@ -118,6 +128,9 @@ def search_youtube():
   query = request.args.get("q", "").strip()
   if not query:
     return jsonify(error="Missing query parameter 'q'"), 400
+  # Fail cleanly (not a 500) when the server has no YouTube API key configured.
+  if not youtube_configured():
+    return jsonify(error="YouTube search is not configured on the server"), 503
   try:
     data = search_videos(query, limit=10)
   except requests.HTTPError:
@@ -290,15 +303,22 @@ def cloze_quiz():
     return jsonify(error="Song or lyrics not found"), 404
   questions = generate_cloze_questions(song.lyrics, language=language)
 
-  # Attach each answer word's meaning so the quiz can explain right/wrong answers.
+  # Enrich each answer word with its meaning + a real example sentence (separate
+  # from the song lyric) so a right/wrong answer becomes a learning moment.
   if target_language and target_language != language:
+    answers = [q["answer"] for q in questions]
+    examples = example_sentences_bulk(answers, language, target_language)
     for question in questions:
+      answer = question["answer"]
       try:
-        question["meaning"] = get_or_create_word_translation(
-          question["answer"], language, target_language
-        )
+        question["meaning"] = get_or_create_word_translation(answer, language, target_language)
       except requests.RequestException:
         question["meaning"] = None
+      question["baseForm"] = base_form(answer, language)
+      example = examples.get(answer)
+      if example:
+        question["example"] = example.get("text")
+        question["exampleTranslation"] = example.get("translation")
   return jsonify(questions=questions)
 
 # GET /api/translate - translate a full song's lyrics into the target language.
@@ -359,10 +379,17 @@ def word_context():
 
   if not word or not target_language or not source_language:
     return jsonify(error="Missing word, source_language, or target_language"), 400
+  word = _clean_word(word)
   try:
+    # The word lookup hits the DB (SQLAlchemy session isn't thread-safe), so it
+    # stays on the request thread; the two pure-network calls run in parallel.
     direct = get_or_create_word_translation(word, source_language, target_language)
-    # Translating the full line shows how the word is actually used in context.
-    contextual = translate_text(line, source_lang=source_language, target_lang=target_language) if line else ""
+    with ThreadPoolExecutor(max_workers=2) as pool:
+      # Translating the full line shows how the word is actually used in context.
+      context_future = pool.submit(translate_text, line, source_language, target_language) if line else None
+      example_future = pool.submit(example_sentence, word, source_language, target_language)
+      contextual = context_future.result() if context_future else ""
+      example = example_future.result()
   except requests.RequestException:
     return jsonify(error="Translation API request failed"), 502
   return jsonify({
@@ -370,6 +397,33 @@ def word_context():
     "translation": direct or "Translation unavailable",
     "line": line,
     "contextual": contextual or "",
+    "baseForm": base_form(word, source_language),
+    "example": example.get("text") if example else None,
+    "exampleTranslation": example.get("translation") if example else None,
+  })
+
+# GET /api/word-detail - full learning detail for a saved word (meaning, base form, example).
+@api_bp.get("/api/word-detail")
+def word_detail():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+
+  word = _clean_word(request.args.get("word", ""))
+  source_language = request.args.get("source_language", "").strip()
+  target_language = request.args.get("target_language", "").strip()
+  if not word or not source_language or not target_language:
+    return jsonify(error="Missing word, source_language, or target_language"), 400
+  try:
+    meaning = get_or_create_word_translation(word, source_language, target_language)
+    example = example_sentence(word, source_language, target_language)
+  except requests.RequestException:
+    return jsonify(error="Translation API request failed"), 502
+  return jsonify({
+    "word": word,
+    "meaning": meaning or "Translation unavailable",
+    "baseForm": base_form(word, source_language),
+    "example": example.get("text") if example else None,
+    "exampleTranslation": example.get("translation") if example else None,
   })
 
 # POST /api/words - save a vocabulary word for the logged-in user.
@@ -380,7 +434,7 @@ def save_word():
 
   data = request.get_json() or {}
 
-  word = data.get("word", "").strip()
+  word = _clean_word(data.get("word", ""))
   translation = data.get("translation", "").strip()
   target_language = data.get("target_language", "").strip()
   song_id = data.get("song_id")
@@ -442,20 +496,32 @@ def get_words():
 # (for pronunciation) and its base/dictionary form when we can derive them.
 def _serialize_vocab(item):
   source_language = item.song.language if item.song else None
+  # Clean any punctuation stored on older saves so the list shows the bare word.
+  clean = _clean_word(item.word)
   return {
     "id": item.id,
-    "word": item.word,
+    "word": clean,
     "translation": item.translation,
     "definition": item.translation,
     "targetLanguage": item.target_language,
     "sourceLanguage": source_language,
-    "baseForm": base_form(item.word, source_language),
+    "baseForm": base_form(clean, source_language),
     "exampleSentence": item.example_sentence,
     "pronunciation": item.pronunciation,
     "songTitle": item.song.title if item.song else "",
     "dateAdded": item.created_at.strftime("%Y-%m-%d"),
   }
   
+# DELETE /api/words - remove all of the logged-in user's saved words.
+@api_bp.delete("/api/words")
+def delete_all_words():
+  if "user_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  # Ownership filter (user_id) scopes the bulk delete to the caller's own words.
+  deleted = Vocabulary.query.filter_by(user_id=session["user_id"]).delete()
+  db.session.commit()
+  return jsonify(status="deleted", count=deleted)
+
 # DELETE /api/words/<id> - remove one of the user's saved words.
 @api_bp.delete("/api/words/<int:word_id>")
 def delete_word(word_id):

@@ -41,6 +41,8 @@ function LyricsPlayer() {
   const audioRef = useRef(null);
   const hasLoadedRef = useRef(false);
   const playerRef = useRef(null);
+  const ytPlayerRef = useRef(null);
+  const ytContainerRef = useRef(null);
   const deviceIdRef = useRef(null);
   const hasStartedRef = useRef(false);
   const playerInitRef = useRef(false);
@@ -64,9 +66,17 @@ function LyricsPlayer() {
   // Whether the song's source language uses a non-Latin script.
   const canRomanize = NON_LATIN_LANGUAGES.has((sourceLanguage.code || "").split("-")[0].toLowerCase());
 
-  // Full-song playback needs Premium AND a Spotify track ID for the Web Playback
-  // SDK. Many catalog songs have no Spotify ID, so we fall back to the 30s preview.
-  const fullSong = isPremium && Boolean(selectedSong.id);
+  // YouTube songs (chosen from the YouTube source) play the full track for
+  // everyone via the embedded player — no Spotify account or Premium needed.
+  const youtubeId = selectedSong.source === "youtube" ? selectedSong.youtubeId : null;
+  const youtubeMode = Boolean(youtubeId);
+
+  // Full-song playback via the Spotify SDK needs Premium AND a Spotify track ID.
+  // Many catalog songs have no Spotify ID, so those fall back to the 30s preview.
+  const fullSong = !youtubeMode && isPremium && Boolean(selectedSong.id);
+
+  // Whether we can seek/loop the playback source (full song or YouTube).
+  const canSeek = fullSong || youtubeMode;
 
   // Fetch romanized versions of the displayed lines on first toggle, then show/hide.
   async function toggleRomanization() {
@@ -214,7 +224,11 @@ function LyricsPlayer() {
 
   // Seeks the active source to a given time in seconds
   function handleSeek(seconds) {
-    if (fullSong) {
+    if (youtubeMode) {
+      if (ytPlayerRef.current && ytPlayerRef.current.seekTo) {
+        ytPlayerRef.current.seekTo(seconds, true);
+      }
+    } else if (fullSong) {
       if (playerRef.current) {
         playerRef.current.seek(Math.floor(seconds * 1000));
       }
@@ -224,9 +238,9 @@ function LyricsPlayer() {
     setPositionSec(seconds);
   }
 
-  // Jumps playback to a line's start when the full song is playing (so nav/loop stay in sync)
+  // Jumps playback to a line's start when a seekable source is playing (so nav/loop stay in sync)
   function seekToLine(index) {
-    if (fullSong && lineTimes[index] != null) {
+    if (canSeek && lineTimes[index] != null) {
       handleSeek(lineTimes[index]);
     }
   }
@@ -290,7 +304,7 @@ function LyricsPlayer() {
 
   // Loops the locked line for shadowing: seek back to its start once playback reaches the end
   useEffect(() => {
-    if (!loopLine || !fullSong || lineTimes.length === 0 || loopIndex == null) return;
+    if (!loopLine || !canSeek || lineTimes.length === 0 || loopIndex == null) return;
 
     const start = lineTimes[loopIndex];
     const end =
@@ -302,7 +316,7 @@ function LyricsPlayer() {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       handleSeek(start);
     }
-  }, [positionSec, loopLine, fullSong, loopIndex, lineTimes, durationSec]);
+  }, [positionSec, loopLine, canSeek, loopIndex, lineTimes, durationSec]);
 
   // Smoothly keeps the active lyric centered in the list, like Apple Music
   useEffect(() => {
@@ -365,6 +379,82 @@ function LyricsPlayer() {
     };
   }, [fullSong]);
 
+  // Loads the YouTube IFrame Player API and creates a player for YouTube songs.
+  // This gives everyone full-song playback (with the video) without Spotify.
+  useEffect(() => {
+    if (!youtubeMode) return;
+    let cancelled = false;
+
+    function createPlayer() {
+      if (cancelled || !ytContainerRef.current || ytPlayerRef.current) return;
+      // Let YouTube build into a child node React doesn't manage, so its DOM
+      // surgery (replacing the element with an iframe) never fights React.
+      const mount = document.createElement("div");
+      ytContainerRef.current.appendChild(mount);
+      ytPlayerRef.current = new window.YT.Player(mount, {
+        videoId: youtubeId,
+        playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+        events: {
+          onReady: (event) => {
+            setPlayerReady(true);
+            setDurationSec(event.target.getDuration() || 0);
+          },
+          onStateChange: (event) => {
+            const playing = event.data === window.YT.PlayerState.PLAYING;
+            setIsPlaying(playing);
+            if (playing) setDurationSec(event.target.getDuration() || 0);
+          },
+        },
+      });
+    }
+
+    if (window.YT && window.YT.Player) {
+      createPlayer();
+    } else {
+      // The API calls this global once loaded; chain any existing handler.
+      const previous = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (previous) previous();
+        createPlayer();
+      };
+      if (!document.getElementById("yt-iframe-api")) {
+        const script = document.createElement("script");
+        script.id = "yt-iframe-api";
+        script.src = "https://www.youtube.com/iframe_api";
+        document.body.appendChild(script);
+      }
+    }
+
+    return () => {
+      cancelled = true;
+      try {
+        if (ytPlayerRef.current && ytPlayerRef.current.destroy) {
+          ytPlayerRef.current.destroy();
+        }
+      } catch {
+        // Player may not be fully initialized yet; ignore teardown errors.
+      }
+      ytPlayerRef.current = null;
+      if (ytContainerRef.current) ytContainerRef.current.innerHTML = "";
+    };
+  }, [youtubeMode, youtubeId]);
+
+  // Polls the YouTube player's time so lyric highlighting/looping stay in sync
+  useEffect(() => {
+    if (!youtubeMode || !isPlaying) return;
+
+    const intervalId = setInterval(() => {
+      const player = ytPlayerRef.current;
+      if (player && player.getCurrentTime) {
+        setPositionSec(player.getCurrentTime());
+        const duration = player.getDuration();
+        if (duration) setDurationSec(duration);
+      }
+    }, 250);
+
+    return () => clearInterval(intervalId);
+  }, [youtubeMode, isPlaying]);
+
   // Keeps the position advancing smoothly while the full song plays (SDK only emits on changes)
   useEffect(() => {
     if (!fullSong || !isPlaying) return;
@@ -393,8 +483,19 @@ function LyricsPlayer() {
     }
   }
 
-  // Plays/pauses the active source: full song (Premium) or 30s preview (free)
+  // Plays/pauses the active source: YouTube, full song (Premium), or 30s preview
   async function togglePlayback() {
+    if (youtubeMode) {
+      const player = ytPlayerRef.current;
+      if (!player) return;
+      if (isPlaying) {
+        player.pauseVideo();
+      } else {
+        player.playVideo();
+      }
+      return;
+    }
+
     if (!fullSong) {
       togglePreview();
       return;
@@ -434,7 +535,13 @@ function LyricsPlayer() {
       )
 
       setSelectedWordTranslation(data.translation || 'Translation unavailable')
-      setSelectedContext({ line: data.line, contextual: data.contextual })
+      setSelectedContext({
+        line: data.line,
+        contextual: data.contextual,
+        baseForm: data.baseForm,
+        example: data.example,
+        exampleTranslation: data.exampleTranslation,
+      })
     } catch (err) {
       console.error(err)
       setSelectedWordTranslation('Translation unavailable')
@@ -497,7 +604,14 @@ function LyricsPlayer() {
         </div>
       </div>
 
-      {/* Free/open users get the 30s preview; Premium users get the full song via the SDK */}
+      {/* YouTube songs play the full track (with video) for everyone */}
+      {youtubeMode && (
+        <div className="youtube-stage">
+          <div className="youtube-frame" ref={ytContainerRef} />
+        </div>
+      )}
+
+      {/* YouTube: full song for all; else Premium gets the SDK, free gets 30s preview */}
       <NowPlaying
         coverUrl={coverUrl}
         title={selectedSong.title}
@@ -507,18 +621,22 @@ function LyricsPlayer() {
         durationSec={durationSec}
         onToggle={togglePlayback}
         onSeek={handleSeek}
-        disabled={fullSong ? !playerReady : !previewUrl}
+        disabled={canSeek ? !playerReady : !previewUrl}
         note={
-          fullSong
+          youtubeMode
             ? playerReady
-              ? "Full song"
-              : "Connecting to Spotify..."
-            : "30-second preview"
+              ? "Full song · YouTube"
+              : "Loading video..."
+            : fullSong
+              ? playerReady
+                ? "Full song"
+                : "Connecting to Spotify..."
+              : "30-second preview"
         }
       />
 
-      {/* Shadowing tool: loop the active line (full song / Premium only) */}
-      {fullSong && lineTimes.length > 0 && (
+      {/* Shadowing tool: loop the active line (any full/seekable source) */}
+      {canSeek && lineTimes.length > 0 && (
         <>
           <div className="practice-controls">
             <button
@@ -535,7 +653,7 @@ function LyricsPlayer() {
         </>
       )}
 
-      {!fullSong && previewUrl && (
+      {!fullSong && !youtubeMode && previewUrl && (
         <audio
           ref={audioRef}
           src={previewUrl}
@@ -678,6 +796,10 @@ function LyricsPlayer() {
         <WordSaveModal
           word={selectedWord}
           wordTranslation={selectedWordTranslation}
+          targetLabel={targetLanguage?.label}
+          baseForm={selectedContext?.baseForm}
+          exampleSentence={selectedContext?.example}
+          exampleTranslation={selectedContext?.exampleTranslation}
           lyricLine={lyrics[activeLineIndex]?.original}
           contextualMeaning={selectedContext?.contextual}
           onClose={closeModal}

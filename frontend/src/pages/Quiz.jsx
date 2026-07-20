@@ -178,7 +178,13 @@ function Quiz() {
                       Answer: <strong>{q.answer}</strong>
                       {q.meaning ? <span className="review-meaning"> — {q.meaning}</span> : null}
                     </p>
-                    {q.line && <p className="review-context">“{q.line}”</p>}
+                    {q.line && <p className="review-context">In the song: “{q.line}”</p>}
+                    {q.example && (
+                      <p className="review-context">
+                        Example: “{q.example}”
+                        {q.exampleTranslation ? ` — ${q.exampleTranslation}` : ''}
+                      </p>
+                    )}
                   </div>
                 </div>
               )
@@ -253,7 +259,18 @@ function Quiz() {
               <strong>{question.answer}</strong>
               {question.meaning ? <span className="explanation-meaning"> — {question.meaning}</span> : null}
             </p>
-            {question.line && <p className="explanation-context">“{question.line}”</p>}
+            {question.baseForm && (
+              <p className="explanation-base">Base form: {question.baseForm}</p>
+            )}
+            {question.line && (
+              <p className="explanation-context">In the song: “{question.line}”</p>
+            )}
+            {question.example && (
+              <p className="explanation-example">
+                Example: “{question.example}”
+                {question.exampleTranslation ? ` — ${question.exampleTranslation}` : ''}
+              </p>
+            )}
             <button className="main-button wide-button" onClick={handleNext}>
               {currentIndex + 1 < questions.length ? 'Next question' : 'See results'}
             </button>

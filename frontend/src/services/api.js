@@ -468,3 +468,35 @@ export async function deleteSavedWord(wordId) {
 
     return response.json()
 }
+
+// Deletes every saved word for the logged-in user
+export async function deleteAllSavedWords() {
+    const response = await fetch(`${API_BASE_URL}/api/words`, {
+        method: 'DELETE',
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to remove all saved words")
+    }
+
+    return response.json()
+}
+
+// Gets full learning detail for a word: meaning, base form, and an example sentence
+export async function getWordDetail(word, sourceLanguage, targetLanguage) {
+    const params = new URLSearchParams({
+        word,
+        source_language: sourceLanguage || '',
+        target_language: targetLanguage || '',
+    })
+    const response = await fetch(`${API_BASE_URL}/api/word-detail?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load word detail")
+    }
+
+    return response.json()
+}

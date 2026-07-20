@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from models import Song, Translation, WordTranslation
 from extensions import db
 from services.language_service import detect_language
+from services.lemma_service import base_form
 
 MYMEMORY_URL = "https://api.mymemory.translated.net/get"
 # DeepL free tier endpoint; the key comes from the DEEPL_API_KEY env var.
@@ -155,6 +156,26 @@ def is_cacheable_translation(translated_lines, target_language):
   return True
 
 
+# A translation "failed" when it's empty or just echoes the original word back
+# (common for conjugated words on MyMemory, e.g. "enteré" -> "enteré").
+def _translation_failed(translated, original):
+  return not translated or translated.strip().lower() == original.strip().lower()
+
+
+# Best-effort meaning of a single word: try it as written, then fall back to its
+# base/dictionary form (e.g. "enteré" -> "enterar" -> "to find out") when the
+# direct translation just echoes the word back.
+def _best_word_translation(word, source_language, target_language):
+  translated = translate_text(word, source_lang=source_language, target_lang=target_language)
+  if _translation_failed(translated, word):
+    lemma = base_form(word, source_language)
+    if lemma:
+      lemma_translation = translate_text(lemma, source_lang=source_language, target_lang=target_language)
+      if not _translation_failed(lemma_translation, lemma):
+        return lemma_translation
+  return translated
+
+
 # Look up a single word's translation, caching the result so repeat taps skip the API.
 def get_or_create_word_translation(word, source_language, target_language):
   normalized = word.strip().lower()
@@ -164,24 +185,23 @@ def get_or_create_word_translation(word, source_language, target_language):
     source_language=source_language,
     target_language=target_language,
   ).first()
-  if cached:
+  # Reuse only good cached entries; recompute ones that just echo the word.
+  if cached and not _translation_failed(cached.translation, normalized):
     return cached.translation
 
-  translated = translate_text(
-    word,
-    source_lang=source_language,
-    target_lang=target_language,
-  )
+  translated = _best_word_translation(word, source_language, target_language)
   if not translated:
-    return None
+    return cached.translation if cached else None
 
-  entry = WordTranslation(
-    word=normalized,
-    source_language=source_language,
-    target_language=target_language,
-    translation=translated,
-  )
-  db.session.add(entry)
+  if cached:
+    cached.translation = translated
+  else:
+    db.session.add(WordTranslation(
+      word=normalized,
+      source_language=source_language,
+      target_language=target_language,
+      translation=translated,
+    ))
   db.session.commit()
   return translated
 

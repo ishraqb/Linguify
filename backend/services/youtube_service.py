@@ -5,7 +5,11 @@ import requests
 YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
 
 def _api_key():
-  return os.environ["YOUTUBE_API_KEY"]
+  return os.environ.get("YOUTUBE_API_KEY")
+
+# Whether a YouTube API key is configured (search is unavailable without one).
+def is_configured():
+  return bool(_api_key())
 
 def search_videos(query, limit=10):
   resp = requests.get(

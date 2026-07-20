@@ -455,6 +455,20 @@ button {
     align-items: center;
 }
 
+.song-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.song-card-actions .main-button,
+.song-card-actions .secondary-button {
+    white-space: nowrap;
+    padding: 8px 14px;
+    text-align: center;
+}
+
 .song-cover {
     border-radius: 12px;
     min-height: 90px;
@@ -1448,6 +1462,27 @@ button {
     font-weight: 500;
 }
 
+.word-modal-meaning-label {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #9aa39d;
+}
+
+.word-modal-base {
+    margin: 0 0 14px;
+    font-size: 15px;
+    color: #2a2f2c;
+}
+
+.word-modal-base .word-modal-label {
+    display: inline;
+    margin-right: 6px;
+}
+
 .word-modal-label {
     display: block;
     font-size: 12px;
@@ -1456,6 +1491,10 @@ button {
     text-transform: uppercase;
     color: #7a837d;
     margin-bottom: 6px;
+}
+
+.word-modal-line {
+    margin-bottom: 14px;
 }
 
 .word-modal-original {
@@ -1601,9 +1640,22 @@ button {
 }
 
 .explanation-context {
+    margin: 6px 0 4px;
+    font-style: italic;
+    color: #7a837d;
+}
+
+.explanation-base {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: #5b6169;
+}
+
+.explanation-example {
     margin: 6px 0 16px;
     font-style: italic;
     color: #7a837d;
+    font-size: 14px;
 }
 
 .quiz-result-row {
@@ -1884,6 +1936,59 @@ button {
 .word-remove-button:hover {
     background: #f9dede;
 }
+
+.word-card-clickable {
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.word-card-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(20, 40, 30, 0.12);
+}
+
+.word-card-selected {
+    border-color: #16a89a;
+    box-shadow: 0 0 0 2px rgba(22, 168, 154, 0.35);
+}
+
+.word-card-check {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    accent-color: #16a89a;
+    cursor: pointer;
+}
+
+/* My Words toolbar: search + bulk remove side by side */
+.mywords-toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.mywords-toolbar .search-input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.danger-button {
+    flex-shrink: 0;
+    border: 1px solid #f1d0d0;
+    border-radius: 12px;
+    background: #fdecec;
+    color: #c53838;
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.danger-button:hover:not(:disabled) { background: #f9dede; }
+
+.danger-button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ---------- Responsive ---------- */
 
@@ -2195,6 +2300,69 @@ button {
 .flashcard-front .flashcard-hint { color: #7a837d; }
 
 .flashcard-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+
+/* Embedded YouTube lesson player (full song for everyone) */
+.youtube-stage {
+  max-width: 620px;
+  margin: 0 auto 12px;
+}
+
+.youtube-frame {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 12px 32px rgba(20, 40, 30, 0.16);
+}
+
+.youtube-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* The back holds more detail than the front, so let it scroll and top-align. */
+.flashcard-back {
+  justify-content: flex-start;
+  overflow-y: auto;
+  padding-top: 26px;
+}
+
+.flashcard-back h2 { font-size: 26px; }
+
+.flashcard-block {
+  margin-top: 14px;
+  text-align: center;
+  width: 100%;
+}
+
+.flashcard-example-translation {
+  margin: 4px 0 0;
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* Flashcard popup (tapping a word in My Words) */
+.flashcard-popup {
+  position: relative;
+  width: min(440px, 92vw);
+  max-height: 88vh;
+}
+
+.flashcard-popup .flashcard-flip { width: 100%; }
+
+.flashcard-popup-close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  z-index: 2;
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(20, 40, 30, 0.18);
+}
 
 @keyframes heroFlow {
     0% { background-position: 0% 50%; }

@@ -1,18 +1,21 @@
+import Icon from './Icon'
+
 /**
- * Reusable card for displaying a YouTube search result
- * Clicking (or pressing Enter/Space) selects the video to play
+ * Reusable card for a YouTube search result.
+ * Clicking the card (or Enter/Space) starts a lesson from the video; a small
+ * Preview button plays it inline without leaving the page.
  */
-function YouTubeCard({ title, channelTitle, thumbnailUrl, onSelect }) {
+function YouTubeCard({ title, channelTitle, thumbnailUrl, onStart, onPreview }) {
     return (
         <div
-            className="song-card"
-            onClick={onSelect}
+            className="song-card word-card-clickable"
+            onClick={onStart}
             role="button"
             tabIndex={0}
             onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault()
-                    onSelect()
+                    onStart()
                 }
             }}
         >
@@ -20,13 +23,36 @@ function YouTubeCard({ title, channelTitle, thumbnailUrl, onSelect }) {
                 {thumbnailUrl ? (
                     <img src={thumbnailUrl} alt={`${title} thumbnail`} className="song-cover-img" />
                 ) : (
-                    'Cover'
+                    <div className="song-cover-fallback"><Icon name="music" size={26} /></div>
                 )}
             </div>
 
             <div className="song-info">
                 <h3>{title}</h3>
                 <p>{channelTitle}</p>
+            </div>
+
+            <div className="song-card-actions">
+                {onPreview && (
+                    <button
+                        className="secondary-button"
+                        onClick={(event) => {
+                            event.stopPropagation()
+                            onPreview()
+                        }}
+                    >
+                        Preview
+                    </button>
+                )}
+                <button
+                    className="main-button"
+                    onClick={(event) => {
+                        event.stopPropagation()
+                        onStart()
+                    }}
+                >
+                    Start lesson
+                </button>
             </div>
         </div>
     )

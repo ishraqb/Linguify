@@ -11,3 +11,6 @@ instance/
 
 # OS
 .DS_Store
+
+# Presentation mockups (not part of the app)
+mockups/

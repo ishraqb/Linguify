@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import SongCard from '../components/SongCard'
 import YouTubeCard from '../components/YouTubeCard'
@@ -8,12 +9,36 @@ import { TARGET_LANGUAGES, findLanguage } from '../data/languages'
 
 const DIFFICULTY_LEVELS = ['Beginner', 'Intermediate', 'Advanced']
 
+// Turns a noisy YouTube title ("Artist - Song (Official Video)") into a clean
+// { title, artist } so lyrics lookup (by title + artist) has the best chance.
+function youtubeToSong(video) {
+  const noise = /\s*[([][^)\]]*?(official|video|audio|lyric|lyrics|visualizer|hd|4k|mv|m\/v|performance|live)[^)\]]*?[)\]]/gi
+  let title = (video.title || '').replace(noise, '').trim()
+  let artist = (video.channelTitle || '').replace(/\s*-\s*topic$/i, '').trim()
+
+  // Most music titles are "Artist - Song"; split on the first dash if present.
+  if (title.includes(' - ')) {
+    const [first, ...rest] = title.split(' - ')
+    artist = first.trim()
+    title = rest.join(' - ').trim()
+  }
+
+  return {
+    title: title || video.title,
+    artist,
+    coverUrl: video.thumbnailUrl,
+    source: 'youtube',
+    youtubeId: video.id,
+  }
+}
+
 /**
  * Unified Songs page: browse the catalog by language and difficulty, or type a
  * query to search Spotify live. An empty search box shows the filtered catalog.
  * Can also switch to searching YouTube directly instead of Spotify.
  */
 function Search() {
+  const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [languageFilter, setLanguageFilter] = useState('')
   const [difficultyFilter, setDifficultyFilter] = useState(null)
@@ -220,6 +245,10 @@ function Search() {
 
       {source === 'youtube' && (
         <>
+          <p className="page-text">
+            No Spotify needed — pick any video to start a full lesson with synced lyrics and the whole song.
+          </p>
+
           {selectedVideo && (
             <div style={{ marginBottom: '24px' }}>
               <YouTubePlayer videoId={selectedVideo.id} title={selectedVideo.title} />
@@ -240,7 +269,8 @@ function Search() {
                 title={video.title}
                 channelTitle={video.channelTitle}
                 thumbnailUrl={video.thumbnailUrl}
-                onSelect={() => setSelectedVideo(video)}
+                onStart={() => navigate('/language-selection', { state: { song: youtubeToSong(video) } })}
+                onPreview={() => setSelectedVideo(video)}
               />
             ))}
 

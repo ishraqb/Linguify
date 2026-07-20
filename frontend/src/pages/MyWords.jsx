@@ -1,46 +1,25 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import WordCard from '../components/WordCard'
+import Flashcard from '../components/Flashcard'
 import Navbar from '../components/Navbar'
-import Icon from '../components/Icon'
-import { getSavedWords, deleteSavedWord } from '../services/api'
 
-// Speaks a word aloud using the browser's built-in speech synthesis (no backend needed).
-function speakWord(text, languageCode) {
-  if (!text || typeof window === 'undefined' || !window.speechSynthesis) return
-  const utterance = new SpeechSynthesisUtterance(text)
-  if (languageCode) utterance.lang = languageCode
-  utterance.rate = 0.9
-  window.speechSynthesis.cancel()
-  window.speechSynthesis.speak(utterance)
-}
-
-/** 
- * Page for displaying and managing the user's saved words
- * Allows for searching, removing saved words, and reviewing words in flashcard mode
+/**
+ * Page for displaying and managing the user's saved words.
+ * Supports searching, single/bulk removal, tapping a word to pop up its
+ * flashcard, and a full sequential flashcard review.
  */
+import { getSavedWords, deleteSavedWord, deleteAllSavedWords } from '../services/api'
+
 function MyWords() {
   const [searchTerm, setSearchTerm] = useState('')
   const [words, setWords] = useState([])
   const [error, setError] = useState('')
   const [reviewMode, setReviewMode] = useState(false)
   const [reviewIndex, setReviewIndex] = useState(0)
-  const [showAnswer, setShowAnswer] = useState(false)
-  
-  // Deletes a saved word from the backend and removes it from the local state
-  async function handleDeleteWord(wordId) {
-    try {
-      setError('')
-      await deleteSavedWord(wordId)
-
-      setWords((currentWords) =>
-        currentWords.filter((item) => item.id !== wordId)
-    )
-    } catch (err) {
-      console.error(err)
-      setError("Could not delete saved word")
-    }
-  }
+  const [popupCard, setPopupCard] = useState(null)
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState([])
 
   // Load user's saved words from the backend when the page opens
   useEffect(() => {
@@ -48,64 +27,97 @@ function MyWords() {
       try {
         setError('')
         const savedWords = await getSavedWords()
-
         if (Array.isArray(savedWords)) {
           setWords(savedWords)
         }
       } catch (err) {
         console.error(err)
-        setError("Could not load saved words")
+        setError('Could not load saved words')
       }
     }
-
     loadWords()
   }, [])
+
+  // Deletes a single saved word from the backend and local state
+  async function handleDeleteWord(wordId) {
+    try {
+      setError('')
+      await deleteSavedWord(wordId)
+      setWords((current) => current.filter((item) => item.id !== wordId))
+    } catch (err) {
+      console.error(err)
+      setError('Could not delete saved word')
+    }
+  }
+
+  // Removes every saved word after a confirmation
+  async function handleRemoveAll() {
+    if (words.length === 0) return
+    if (!window.confirm('Remove all saved words? This cannot be undone.')) return
+    try {
+      setError('')
+      await deleteAllSavedWords()
+      setWords([])
+      exitSelect()
+    } catch (err) {
+      console.error(err)
+      setError('Could not remove all words')
+    }
+  }
+
+  // Removes just the multi-selected words
+  async function handleRemoveSelected() {
+    if (selectedIds.length === 0) return
+    try {
+      setError('')
+      await Promise.all(selectedIds.map((id) => deleteSavedWord(id)))
+      setWords((current) => current.filter((item) => !selectedIds.includes(item.id)))
+      exitSelect()
+    } catch (err) {
+      console.error(err)
+      setError('Could not remove selected words')
+    }
+  }
+
+  // Toggles one word in/out of the multi-select set
+  function toggleSelect(id) {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((x) => x !== id) : [...current, id]
+    )
+  }
+
+  function exitSelect() {
+    setSelectMode(false)
+    setSelectedIds([])
+  }
 
   // Filters saved words based on the given search input
   const filteredWords = words.filter((item) =>
     item.word.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  // Starts a flashcard review from the first saved word
   function startReview() {
     if (words.length === 0) return
     setReviewMode(true)
     setReviewIndex(0)
-    setShowAnswer(false)
   }
 
-  // Exists the flashcard review mode
-  function exitReview() {
-    setReviewMode(false)
-    setShowAnswer(false)
-  }
-
-  // Goes to the next card in flashcard review
   function goToNextCard() {
-    if (reviewIndex < words.length - 1) {
-      setReviewIndex(reviewIndex + 1)
-      setShowAnswer(false)
-    }
+    if (reviewIndex < words.length - 1) setReviewIndex(reviewIndex + 1)
   }
 
-  // Goes to prevous card in flashcard review
   function goToPreviousCard() {
-    if (reviewIndex > 0) {
-      setReviewIndex(reviewIndex - 1)
-      setShowAnswer(false)
-    }
+    if (reviewIndex > 0) setReviewIndex(reviewIndex - 1)
   }
 
+  // Full sequential flashcard review
   if (reviewMode) {
-    const card = words[reviewIndex]
-    const meaning = card.translation || card.definition
-
     return (
       <div className="page">
         <Navbar />
 
         <div className="top-row">
-          <button className="secondary-button" onClick={exitReview}>
+          <button className="secondary-button" onClick={() => setReviewMode(false)}>
             Exit review
           </button>
           <div className="count-pill">
@@ -114,51 +126,7 @@ function MyWords() {
         </div>
 
         <div className="flashcard-area">
-          <div
-            className={showAnswer ? 'flashcard-flip flipped' : 'flashcard-flip'}
-            onClick={() => setShowAnswer(!showAnswer)}
-          >
-            <div className="flashcard-inner">
-              {/* Front: the word + pronunciation */}
-              <div className="flashcard-face flashcard-front">
-                <span className="flashcard-eyebrow">Word</span>
-                <h2>{card.word}</h2>
-                <button
-                  className="pronounce-button"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    speakWord(card.word, card.sourceLanguage)
-                  }}
-                  aria-label={`Pronounce ${card.word}`}
-                >
-                  <Icon name="volume" size={20} /> Pronounce
-                </button>
-                <p className="flashcard-hint">Tap card to flip</p>
-              </div>
-
-              {/* Back: meaning, base form, example, source song */}
-              <div className="flashcard-face flashcard-back">
-                <span className="flashcard-eyebrow">Meaning</span>
-                <h2>{meaning}</h2>
-
-                {card.baseForm && (
-                  <p className="flashcard-detail">
-                    <span className="flashcard-detail-label">Base form</span> {card.baseForm}
-                  </p>
-                )}
-
-                {card.exampleSentence && (
-                  <p className="flashcard-example">“{card.exampleSentence}”</p>
-                )}
-
-                {card.songTitle && (
-                  <p className="flashcard-source">from {card.songTitle}</p>
-                )}
-
-                <p className="flashcard-hint">Tap card to flip back</p>
-              </div>
-            </div>
-          </div>
+          <Flashcard card={words[reviewIndex]} />
 
           <div className="flashcard-controls">
             <button
@@ -189,27 +157,61 @@ function MyWords() {
         <span className="hero-badge">Your vocabulary</span>
         <div className="section-row">
           <h1 className="page-title">My Words</h1>
-          <button
-            className="main-button"
-            onClick={startReview}
-            disabled={words.length === 0}
-          >
-            Review ({words.length})
-          </button>
+          <div className="button-row">
+            {selectMode ? (
+              <button className="secondary-button" onClick={exitSelect}>
+                Cancel
+              </button>
+            ) : (
+              <button
+                className="secondary-button"
+                onClick={() => setSelectMode(true)}
+                disabled={words.length === 0}
+              >
+                Select
+              </button>
+            )}
+            <button
+              className="main-button"
+              onClick={startReview}
+              disabled={words.length === 0}
+            >
+              Review ({words.length})
+            </button>
+          </div>
         </div>
       </div>
 
-      <input
-        className="search-input"
-        type="text"
-        placeholder="Search saved words"
-        value={searchTerm}
-        onChange={(event) => setSearchTerm(event.target.value)}
-      />
+      <div className="mywords-toolbar">
+        <input
+          className="search-input"
+          type="text"
+          placeholder="Search saved words"
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.target.value)}
+        />
+        {selectMode ? (
+          <button
+            className="danger-button"
+            onClick={handleRemoveSelected}
+            disabled={selectedIds.length === 0}
+          >
+            Remove selected ({selectedIds.length})
+          </button>
+        ) : (
+          <button
+            className="danger-button"
+            onClick={handleRemoveAll}
+            disabled={words.length === 0}
+          >
+            Remove all
+          </button>
+        )}
+      </div>
 
       {error && <p className="page-text">{error}</p>}
 
-      {filteredWords.map((item) =>
+      {filteredWords.map((item) => (
         <WordCard
           key={item.id}
           word={item.word}
@@ -217,11 +219,15 @@ function MyWords() {
           songTitle={item.songTitle}
           dateAdded={item.dateAdded}
           onRemove={() => handleDeleteWord(item.id)}
+          onClick={() => setPopupCard(item)}
+          selectable={selectMode}
+          selected={selectedIds.includes(item.id)}
+          onToggleSelect={() => toggleSelect(item.id)}
         />
-      )}
+      ))}
 
-      {filteredWords.length === 0 && (
-        words.length === 0 ? (
+      {filteredWords.length === 0 &&
+        (words.length === 0 ? (
           <div className="empty-state">
             <img src="/logo-mark.png" alt="" className="empty-mascot" />
             <h3>No saved words yet</h3>
@@ -230,7 +236,22 @@ function MyWords() {
           </div>
         ) : (
           <p className="page-text">No words match your search.</p>
-        )
+        ))}
+
+      {/* Tapping a word pops up its flashcard */}
+      {popupCard && (
+        <div className="modal-background" onClick={() => setPopupCard(null)}>
+          <div className="flashcard-popup" onClick={(event) => event.stopPropagation()}>
+            <button
+              className="close-button flashcard-popup-close"
+              onClick={() => setPopupCard(null)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <Flashcard card={popupCard} />
+          </div>
+        </div>
       )}
     </div>
   )
