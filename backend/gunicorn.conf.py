@@ -1,4 +1,22 @@
 # Gunicorn settings, auto-loaded when running `gunicorn app:app` from backend/.
+
+# Memory: the NLP libs are heavy (wordfreq ~60MB, and simplemma loads ~100MB+
+# per language on demand), so a single process on the Spanish->English path sits
+# around ~250MB. Render's free tier is 512MB, so we must NOT run multiple
+# workers (each would load its own copy and blow the limit). Use one process
+# with a few threads instead: threads share the loaded lib data, but still let
+# health checks and user requests run concurrently.
+workers = 1
+threads = 4
+worker_class = "gthread"
+
+# The worker slowly accumulates memory as it touches more languages (each
+# simplemma/wordfreq language loads and is never freed). Recycle the worker
+# after a batch of requests so that memory is reclaimed before it hits the
+# 512MB cap and Render OOM-restarts us mid-request.
+max_requests = 400
+max_requests_jitter = 50
+
 # The first (uncached) full-song translation can take longer than gunicorn's
 # default 30s, so allow more time before a worker is killed. Later loads are
 # instant because translations are cached in the database.
