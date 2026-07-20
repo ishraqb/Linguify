@@ -149,11 +149,10 @@ button {
 }
 
 .brand-mark {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 38px;
+    height: 38px;
     display: block;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .nav-links {
