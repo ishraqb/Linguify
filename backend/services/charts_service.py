@@ -1,4 +1,5 @@
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import requests
 
@@ -22,7 +23,10 @@ _COUNTRIES = [
 
 # Cache the mixed chart in-memory so the public landing page stays fast.
 _CACHE = {"songs": [], "ts": 0.0}
-_TTL_SECONDS = 60 * 60 * 24  # refresh at most once a day
+_TTL_SECONDS = 60 * 60 * 24  # keep a good result for a day
+# If a refresh comes back empty (Apple slow/unreachable), don't retry on every
+# request — wait a few minutes so we never hammer it and stall the worker.
+_FAIL_TTL_SECONDS = 60 * 5
 
 
 # Apple returns 100x100 thumbnails; ask for a larger crop for crisp covers.
@@ -31,9 +35,10 @@ def _upscale(art_url):
 
 
 # Fetch the top songs for a single storefront and flatten to our shelf shape.
+# Short timeout so one slow storefront can't stall the whole request/worker.
 def _fetch_country(country, count):
     url = _RSS_URL.format(country=country, limit=count)
-    response = requests.get(url, timeout=10)
+    response = requests.get(url, timeout=5)
     response.raise_for_status()
     results = response.json().get("feed", {}).get("results", [])
 
@@ -52,18 +57,28 @@ def _fetch_country(country, count):
     return songs
 
 
+# Fetch one storefront, swallowing any error so a single failure returns [].
+def _safe_fetch(country_count):
+    country, count = country_count
+    try:
+        return _fetch_country(country, count)
+    except requests.RequestException:
+        return []
+
+
 # A mixed, deduped list of current international top songs for the landing shelf.
 def international_top(limit=12):
     now = time.time()
-    if _CACHE["songs"] and now - _CACHE["ts"] < _TTL_SECONDS:
+    # Serve the cache while fresh. A previously empty result is only considered
+    # fresh for a short window so we retry soon without storming Apple.
+    ttl = _TTL_SECONDS if _CACHE["songs"] else _FAIL_TTL_SECONDS
+    if _CACHE["ts"] and now - _CACHE["ts"] < ttl:
         return _CACHE["songs"][:limit]
 
-    per_country = []
-    for country, count in _COUNTRIES:
-        try:
-            per_country.append(_fetch_country(country, count))
-        except requests.RequestException:
-            per_country.append([])
+    # Fetch all storefronts in parallel so the whole call takes ~one request,
+    # not the sum of them (which previously blew past the worker timeout).
+    with ThreadPoolExecutor(max_workers=len(_COUNTRIES)) as pool:
+        per_country = list(pool.map(_safe_fetch, _COUNTRIES))
 
     # Round-robin across storefronts so the shelf feels global, not US-heavy.
     mixed = []
@@ -79,7 +94,8 @@ def international_top(limit=12):
                     mixed.append(song)
         position += 1
 
-    if mixed:
-        _CACHE["songs"] = mixed
-        _CACHE["ts"] = now
+    # Always record the attempt time so an empty result also gets cached and
+    # doesn't retry on every single request (see _FAIL_TTL_SECONDS above).
+    _CACHE["songs"] = mixed
+    _CACHE["ts"] = now
     return mixed[:limit]

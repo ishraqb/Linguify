@@ -245,9 +245,14 @@ def discover():
 # Falls back to a random catalog sample if the charts source is unavailable.
 @api_bp.get("/api/popular")
 def popular():
-  songs = international_top()
-  if not songs:
-    songs = popular_songs()
+  # Defensive: the landing page polls this, so it must never raise (a crash here
+  # can take a worker down with it). Fall back to the catalog, then to empty.
+  try:
+    songs = international_top()
+    if not songs:
+      songs = popular_songs()
+  except Exception:
+    songs = []
   return jsonify(songs=songs)
 
 # GET /api/preferences - return the user's saved preferences.
