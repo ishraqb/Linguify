@@ -4,8 +4,6 @@ import Navbar from '../components/Navbar'
 import SongCard from '../components/SongCard'
 import WordCard from '../components/WordCard'
 import ProgressCard from '../components/ProgressCard'
-import { mockSongs } from '../data/mockSongs'
-import { mockWords } from '../data/mockWords'
 import { getRecentlyPlayedSongs, getSavedWords, getPlaylists, getPlaylistTracks, getProgress } from '../services/api'
 
 /**
@@ -13,8 +11,8 @@ import { getRecentlyPlayedSongs, getSavedWords, getPlaylists, getPlaylistTracks,
  * Displays their recently played songs, their Spotify playlists, and recently saved words
  */
 function Dashboard() {
-  const [recentlyPlayedSongs, setRecentlyPlayedSongs] = useState(mockSongs.slice(0, 3))
-  const [recentWords, setRecentWords] = useState(mockWords.slice(0,2))
+  const [recentlyPlayedSongs, setRecentlyPlayedSongs] = useState([])
+  const [recentWords, setRecentWords] = useState([])
   const [playlists, setPlaylists] = useState([])
   const [selectedPlaylist, setSelectedPlaylist] = useState(null)
   const [playlistTracks, setPlaylistTracks] = useState([])
@@ -30,7 +28,7 @@ function Dashboard() {
           setRecentlyPlayedSongs(tracks)
         }
       } catch (err) {
-        console.log("Using mock recently played songs for now")
+        console.log("Could not load recently played songs")
       }
     }
 
@@ -47,11 +45,11 @@ function Dashboard() {
       try {
         const savedWords = await getSavedWords()
 
-        if (savedWords.length > 0) {
+        if (Array.isArray(savedWords)) {
           setRecentWords(savedWords.slice(0, 2))
         }
       } catch (err) {
-        console.log("Using mock recent words")
+        console.log("Could not load recent words")
       }
     }
 
