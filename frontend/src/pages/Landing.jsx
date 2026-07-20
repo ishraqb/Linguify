@@ -84,11 +84,12 @@ function Landing() {
     const [popularSongs, setPopularSongs] = useState(SHELF_SONGS)
 
     // Surface a friendly message if the OAuth callback bounced back with an error.
-    const [authError, setAuthError] = useState('')
-    useEffect(() => {
+    // Read the query param once at init (lazy initializer) instead of in an
+    // effect, so we don't trigger an extra render right after mount.
+    const [authError] = useState(() => {
         const reason = new URLSearchParams(window.location.search).get('auth_error')
-        if (reason) setAuthError(AUTH_ERROR_MESSAGES[reason] || AUTH_ERROR_MESSAGES.server)
-    }, [])
+        return reason ? (AUTH_ERROR_MESSAGES[reason] || AUTH_ERROR_MESSAGES.server) : ''
+    })
 
     // Pull real catalog songs with cover art; fall back to the static shelf on failure.
     useEffect(() => {

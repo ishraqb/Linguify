@@ -24,9 +24,17 @@ function Flashcard({ card }) {
   const [flipped, setFlipped] = useState(false)
   const [detail, setDetail] = useState(null)
 
-  useEffect(() => {
+  // Reset flip + detail when the card changes. Doing this during render (the
+  // React-recommended "adjust state on prop change" pattern) avoids the
+  // cascading re-render that a setState-in-effect would cause.
+  const [shownCard, setShownCard] = useState(card.id)
+  if (shownCard !== card.id) {
+    setShownCard(card.id)
     setFlipped(false)
     setDetail(null)
+  }
+
+  useEffect(() => {
     let active = true
     getWordDetail(card.word, card.sourceLanguage, card.targetLanguage)
       .then((data) => { if (active) setDetail(data) })
