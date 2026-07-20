@@ -346,10 +346,13 @@ export async function getDifficulty(title, artist) {
 }
 
 // Gets fill-in-the-blank (cloze) quiz questions built from a song's lyrics
-export async function getCloze(songId, language) {
+export async function getCloze(songId, language, targetLanguage) {
     const params = new URLSearchParams({ song_id: songId })
     if (language) {
         params.append('language', language)
+    }
+    if (targetLanguage) {
+        params.append('target_language', targetLanguage)
     }
 
     const response = await fetch(`${API_BASE_URL}/api/cloze?${params}`, {

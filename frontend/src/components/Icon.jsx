@@ -54,6 +54,14 @@ const PATHS = {
   check: (
     <path d="M4 12.5l5 5 11-11" />
   ),
+  // Speaker with sound waves (pronounce)
+  volume: (
+    <>
+      <path d="M4 9v6h4l5 4V5L8 9z" />
+      <path d="M16.5 8.5a5 5 0 0 1 0 7" />
+      <path d="M19 6a8 8 0 0 1 0 12" />
+    </>
+  ),
 }
 
 function Icon({ name, size = 22, className = '', strokeWidth = 1.8, fill = false }) {

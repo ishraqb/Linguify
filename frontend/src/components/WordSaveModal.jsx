@@ -1,32 +1,38 @@
-/** 
- * Pop up modal that appears after user taps a word in the lyrics
- * Shows the word translation and lyric line, and provides the option to save to My Words or exit out (using cancel or x)
+import Icon from "./Icon"
+
+/**
+ * Pop up modal that appears after user taps a word in the lyrics.
+ * Shows the word, its translation, and the lyric line it came from, with the
+ * option to save it to My Words or dismiss.
  */
 function WordSaveModal({ word, wordTranslation, lyricLine, contextualMeaning, onClose, onSave }) {
+    const hasTranslation =
+        wordTranslation &&
+        wordTranslation !== "Loading..." &&
+        wordTranslation !== "Translation unavailable"
+
     return (
-        <div className="modal-background">
-            <div className="word-modal">
-                <button className="close-button" onClick={onClose}>
-                    X
-                </button>
-
-                <h2>New Word</h2>
-
-                <div className="modal-section">
-                    <h3>Word</h3>
-                    <p>{word}</p>
+        <div className="modal-background" onClick={onClose}>
+            <div className="word-modal" onClick={(event) => event.stopPropagation()}>
+                <div className="word-modal-head">
+                    <span className="word-modal-eyebrow">New word</span>
+                    <button className="close-button" onClick={onClose} aria-label="Close">
+                        ×
+                    </button>
                 </div>
 
-                <div className="modal-section">
-                    <h3>Translation</h3>
-                    <p>{wordTranslation || "Translation unavailable"}</p>
+                <div className="word-modal-hero">
+                    <h2 className="word-modal-word">{word}</h2>
+                    <p className={hasTranslation ? "word-modal-translation" : "word-modal-translation muted"}>
+                        {hasTranslation ? wordTranslation : (wordTranslation || "Translation unavailable")}
+                    </p>
                 </div>
 
-                <div className="modal-section">
-                    <h3>In this line</h3>
-                    <p>{lyricLine || "No lyric line available"}</p>
+                <div className="word-modal-line">
+                    <span className="word-modal-label">In this line</span>
+                    <p className="word-modal-original">{lyricLine || "No lyric line available"}</p>
                     {contextualMeaning && (
-                        <p className="context-translation">{contextualMeaning}</p>
+                        <p className="word-modal-context">{contextualMeaning}</p>
                     )}
                 </div>
 
@@ -35,7 +41,7 @@ function WordSaveModal({ word, wordTranslation, lyricLine, contextualMeaning, on
                         Cancel
                     </button>
                     <button className="main-button" onClick={onSave}>
-                        Save to My Words
+                        <Icon name="star" size={16} fill /> Save to My Words
                     </button>
                 </div>
             </div>

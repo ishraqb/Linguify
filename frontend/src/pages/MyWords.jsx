@@ -2,7 +2,18 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import WordCard from '../components/WordCard'
 import Navbar from '../components/Navbar'
+import Icon from '../components/Icon'
 import { getSavedWords, deleteSavedWord } from '../services/api'
+
+// Speaks a word aloud using the browser's built-in speech synthesis (no backend needed).
+function speakWord(text, languageCode) {
+  if (!text || typeof window === 'undefined' || !window.speechSynthesis) return
+  const utterance = new SpeechSynthesisUtterance(text)
+  if (languageCode) utterance.lang = languageCode
+  utterance.rate = 0.9
+  window.speechSynthesis.cancel()
+  window.speechSynthesis.speak(utterance)
+}
 
 /** 
  * Page for displaying and managing the user's saved words
@@ -87,6 +98,7 @@ function MyWords() {
 
   if (reviewMode) {
     const card = words[reviewIndex]
+    const meaning = card.translation || card.definition
 
     return (
       <div className="page">
@@ -102,21 +114,50 @@ function MyWords() {
         </div>
 
         <div className="flashcard-area">
-          <div className="flashcard" onClick={() => setShowAnswer(!showAnswer)}>
-            {showAnswer ? (
-              <div>
-                <h2>{card.translation || card.definition}</h2>
-                {card.songTitle && (
-                  <p className="page-text">from {card.songTitle}</p>
-                )}
+          <div
+            className={showAnswer ? 'flashcard-flip flipped' : 'flashcard-flip'}
+            onClick={() => setShowAnswer(!showAnswer)}
+          >
+            <div className="flashcard-inner">
+              {/* Front: the word + pronunciation */}
+              <div className="flashcard-face flashcard-front">
+                <span className="flashcard-eyebrow">Word</span>
+                <h2>{card.word}</h2>
+                <button
+                  className="pronounce-button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    speakWord(card.word, card.sourceLanguage)
+                  }}
+                  aria-label={`Pronounce ${card.word}`}
+                >
+                  <Icon name="volume" size={20} /> Pronounce
+                </button>
+                <p className="flashcard-hint">Tap card to flip</p>
               </div>
-            ) : (
-              <h2>{card.word}</h2>
-            )}
 
-            <p className="flashcard-hint">
-              {showAnswer ? 'Tap to hide' : 'Tap to reveal translation'}
-            </p>
+              {/* Back: meaning, base form, example, source song */}
+              <div className="flashcard-face flashcard-back">
+                <span className="flashcard-eyebrow">Meaning</span>
+                <h2>{meaning}</h2>
+
+                {card.baseForm && (
+                  <p className="flashcard-detail">
+                    <span className="flashcard-detail-label">Base form</span> {card.baseForm}
+                  </p>
+                )}
+
+                {card.exampleSentence && (
+                  <p className="flashcard-example">“{card.exampleSentence}”</p>
+                )}
+
+                {card.songTitle && (
+                  <p className="flashcard-source">from {card.songTitle}</p>
+                )}
+
+                <p className="flashcard-hint">Tap card to flip back</p>
+              </div>
+            </div>
           </div>
 
           <div className="flashcard-controls">

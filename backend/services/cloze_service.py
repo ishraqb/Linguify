@@ -57,5 +57,7 @@ def generate_cloze_questions(lyrics, language="en", count=5, rng=None):
       "prompt": _blank_line(line, answer),
       "answer": answer,
       "options": options,
+      # Full line kept so the quiz can show the answer in context as an explanation.
+      "line": line,
     })
   return questions

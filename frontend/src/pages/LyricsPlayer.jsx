@@ -64,6 +64,10 @@ function LyricsPlayer() {
   // Whether the song's source language uses a non-Latin script.
   const canRomanize = NON_LATIN_LANGUAGES.has((sourceLanguage.code || "").split("-")[0].toLowerCase());
 
+  // Full-song playback needs Premium AND a Spotify track ID for the Web Playback
+  // SDK. Many catalog songs have no Spotify ID, so we fall back to the 30s preview.
+  const fullSong = isPremium && Boolean(selectedSong.id);
+
   // Fetch romanized versions of the displayed lines on first toggle, then show/hide.
   async function toggleRomanization() {
     if (!showRomanization && romanized.length === 0) {
@@ -75,6 +79,14 @@ function LyricsPlayer() {
       }
     }
     setShowRomanization((prev) => !prev);
+  }
+
+  // Strips leading/trailing punctuation from a tappable word (keeps inner
+  // apostrophes/hyphens) so taps and lookups use the clean word, e.g. "Baby," -> "Baby".
+  function stripWordPunctuation(word) {
+    return word
+      .replace(/^[^\p{L}\p{N}]+/u, "")
+      .replace(/[^\p{L}\p{N}]+$/u, "");
   }
 
   // Removes time stamp markers from the retrieved synced lyric lines
@@ -114,7 +126,10 @@ function LyricsPlayer() {
           id: index + 1,
           original: original || "",
           translation: translation || "",
-          words: (original || "").split(" ").filter(Boolean),
+          words: (original || "")
+            .split(/\s+/)
+            .map(stripWordPunctuation)
+            .filter(Boolean),
         }
       })
       .filter((line) => !shouldSkipLine(line.original))
@@ -199,7 +214,7 @@ function LyricsPlayer() {
 
   // Seeks the active source to a given time in seconds
   function handleSeek(seconds) {
-    if (isPremium) {
+    if (fullSong) {
       if (playerRef.current) {
         playerRef.current.seek(Math.floor(seconds * 1000));
       }
@@ -211,7 +226,7 @@ function LyricsPlayer() {
 
   // Jumps playback to a line's start when the full song is playing (so nav/loop stay in sync)
   function seekToLine(index) {
-    if (isPremium && lineTimes[index] != null) {
+    if (fullSong && lineTimes[index] != null) {
       handleSeek(lineTimes[index]);
     }
   }
@@ -275,7 +290,7 @@ function LyricsPlayer() {
 
   // Loops the locked line for shadowing: seek back to its start once playback reaches the end
   useEffect(() => {
-    if (!loopLine || !isPremium || lineTimes.length === 0 || loopIndex == null) return;
+    if (!loopLine || !fullSong || lineTimes.length === 0 || loopIndex == null) return;
 
     const start = lineTimes[loopIndex];
     const end =
@@ -287,7 +302,7 @@ function LyricsPlayer() {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       handleSeek(start);
     }
-  }, [positionSec, loopLine, isPremium, loopIndex, lineTimes, durationSec]);
+  }, [positionSec, loopLine, fullSong, loopIndex, lineTimes, durationSec]);
 
   // Smoothly keeps the active lyric centered in the list, like Apple Music
   useEffect(() => {
@@ -305,7 +320,7 @@ function LyricsPlayer() {
 
   // Loads the Spotify Web Playback SDK and creates a player for Premium users
   useEffect(() => {
-    if (!isPremium || playerInitRef.current) return;
+    if (!fullSong || playerInitRef.current) return;
     playerInitRef.current = true;
 
     function initPlayer() {
@@ -348,11 +363,11 @@ function LyricsPlayer() {
         playerRef.current.disconnect();
       }
     };
-  }, [isPremium]);
+  }, [fullSong]);
 
   // Keeps the position advancing smoothly while the full song plays (SDK only emits on changes)
   useEffect(() => {
-    if (!isPremium || !isPlaying) return;
+    if (!fullSong || !isPlaying) return;
 
     const intervalId = setInterval(async () => {
       const player = playerRef.current;
@@ -365,7 +380,7 @@ function LyricsPlayer() {
     }, 250);
 
     return () => clearInterval(intervalId);
-  }, [isPremium, isPlaying]);
+  }, [fullSong, isPlaying]);
 
   // Plays/pauses the 30s preview clip for free users
   function togglePreview() {
@@ -380,7 +395,7 @@ function LyricsPlayer() {
 
   // Plays/pauses the active source: full song (Premium) or 30s preview (free)
   async function togglePlayback() {
-    if (!isPremium) {
+    if (!fullSong) {
       togglePreview();
       return;
     }
@@ -492,9 +507,9 @@ function LyricsPlayer() {
         durationSec={durationSec}
         onToggle={togglePlayback}
         onSeek={handleSeek}
-        disabled={isPremium ? !playerReady || !selectedSong.id : !previewUrl}
+        disabled={fullSong ? !playerReady : !previewUrl}
         note={
-          isPremium
+          fullSong
             ? playerReady
               ? "Full song"
               : "Connecting to Spotify..."
@@ -503,7 +518,7 @@ function LyricsPlayer() {
       />
 
       {/* Shadowing tool: loop the active line (full song / Premium only) */}
-      {isPremium && lineTimes.length > 0 && (
+      {fullSong && lineTimes.length > 0 && (
         <>
           <div className="practice-controls">
             <button
@@ -520,7 +535,7 @@ function LyricsPlayer() {
         </>
       )}
 
-      {!isPremium && previewUrl && (
+      {!fullSong && previewUrl && (
         <audio
           ref={audioRef}
           src={previewUrl}

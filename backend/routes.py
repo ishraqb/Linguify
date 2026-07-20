@@ -7,6 +7,7 @@ from services.deezer_service import get_preview_url, get_track_media
 from services.language_service import detect_language
 from services.difficulty_service import compute_difficulty
 from services.cloze_service import generate_cloze_questions
+from services.lemma_service import base_form
 from services.discovery_service import discover_songs, available_languages, popular_songs
 from services.charts_service import international_top
 from services.romanization_service import romanize_lines, needs_romanization
@@ -281,12 +282,23 @@ def cloze_quiz():
     return jsonify(error="Not authenticated"), 401
   song_id = request.args.get("song_id", type=int)
   language = request.args.get("language", "en").strip() or "en"
+  target_language = request.args.get("target_language", "").strip() or None
   if not song_id:
     return jsonify(error="Missing song_id"), 400
   song = Song.query.get(song_id)
   if not song or not song.lyrics:
     return jsonify(error="Song or lyrics not found"), 404
   questions = generate_cloze_questions(song.lyrics, language=language)
+
+  # Attach each answer word's meaning so the quiz can explain right/wrong answers.
+  if target_language and target_language != language:
+    for question in questions:
+      try:
+        question["meaning"] = get_or_create_word_translation(
+          question["answer"], language, target_language
+        )
+      except requests.RequestException:
+        question["meaning"] = None
   return jsonify(questions=questions)
 
 # GET /api/translate - translate a full song's lyrics into the target language.
@@ -423,20 +435,26 @@ def get_words():
     .all()
   )
 
-  return jsonify(words=[
-    {
-      "id": item.id,
-      "word": item.word,
-      "translation": item.translation,
-      "definition": item.translation,
-      "targetLanguage": item.target_language,
-      "exampleSentence": item.example_sentence,
-      "pronunciation": item.pronunciation,
-      "songTitle": item.song.title if item.song else "",
-      "dateAdded": item.created_at.strftime("%Y-%m-%d"),
-    }
-    for item in vocab_words
-  ])
+  return jsonify(words=[_serialize_vocab(item) for item in vocab_words])
+
+
+# Shape a saved word for the client, enriching it with the source language
+# (for pronunciation) and its base/dictionary form when we can derive them.
+def _serialize_vocab(item):
+  source_language = item.song.language if item.song else None
+  return {
+    "id": item.id,
+    "word": item.word,
+    "translation": item.translation,
+    "definition": item.translation,
+    "targetLanguage": item.target_language,
+    "sourceLanguage": source_language,
+    "baseForm": base_form(item.word, source_language),
+    "exampleSentence": item.example_sentence,
+    "pronunciation": item.pronunciation,
+    "songTitle": item.song.title if item.song else "",
+    "dateAdded": item.created_at.strftime("%Y-%m-%d"),
+  }
   
 # DELETE /api/words/<id> - remove one of the user's saved words.
 @api_bp.delete("/api/words/<int:word_id>")

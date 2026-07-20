@@ -1371,36 +1371,97 @@ button {
 
 .word-modal {
     width: 100%;
-    max-width: 520px;
+    max-width: 460px;
     border: 1px solid #e6ebe8;
-    border-radius: 14px;
+    border-radius: 20px;
     background: white;
-    padding: 28px;
+    padding: 22px 24px 24px;
     position: relative;
+    box-shadow: 0 24px 60px rgba(20, 40, 30, 0.22);
+}
+
+.word-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.word-modal-eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #16a89a;
 }
 
 .close-button {
-    position: absolute;
-    right: 12px;
-    top: 12px;
-    border: 1px solid #e6ebe8;
-    background: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background: #f0f4f2;
+    color: #5b6169;
+    font-size: 20px;
+    line-height: 1;
     cursor: pointer;
+    transition: background 0.15s ease;
 }
 
-.modal-section {
+.close-button:hover {
+    background: #e2ebe6;
+}
+
+.word-modal-hero {
+    text-align: center;
+    padding: 14px 0 18px;
+    border-bottom: 1px solid #eef2f0;
     margin-bottom: 16px;
 }
 
-.modal-section h3 {
+.word-modal-word {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+    color: #12312e;
+}
+
+.word-modal-translation {
+    margin: 6px 0 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #16a89a;
+}
+
+.word-modal-translation.muted {
+    color: #9aa39d;
+    font-weight: 500;
+}
+
+.word-modal-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #7a837d;
     margin-bottom: 6px;
 }
 
-.modal-section p {
-    border: 1px solid #e6ebe8;
-    border-radius: 10px;
-    padding: 10px;
+.word-modal-original {
     margin: 0;
+    font-size: 16px;
+    color: #2a2f2c;
+}
+
+.word-modal-context {
+    margin: 8px 0 0;
+    font-size: 14px;
+    font-style: italic;
+    color: #5b6169;
 }
 
 .button-row {
@@ -1412,28 +1473,52 @@ button {
 .button-row a,
 .button-row button {
     flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 /* ---------- Cloze Quiz ---------- */
 
-.quiz-prompt {
+.quiz-card {
     border: 1px solid #e6ebe8;
-    border-radius: 14px;
+    border-radius: 20px;
     background: white;
-    padding: 28px 24px;
+    padding: 26px 24px;
+    max-width: 640px;
+    margin: 0 auto;
+    box-shadow: 0 10px 28px rgba(20, 40, 30, 0.08);
+}
+
+.quiz-progress {
+    max-width: 640px;
+    margin: 0 auto 18px;
+    height: 8px;
+    border-radius: 999px;
+    background: #e4ede9;
+    overflow: hidden;
+}
+
+.quiz-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #16a89a, #1cc0af);
+    transition: width 0.3s ease;
+}
+
+.quiz-prompt {
     font-size: 22px;
     line-height: 1.5;
     text-align: center;
-    max-width: 640px;
-    margin: 0 auto 20px;
+    margin: 0 0 20px;
+    color: #16302c;
 }
 
 .quiz-options {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
-    max-width: 640px;
-    margin: 0 auto;
 }
 
 .quiz-option {
@@ -1444,10 +1529,12 @@ button {
     font-size: 17px;
     font-weight: bold;
     cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
 }
 
 .quiz-option:hover:not(:disabled) {
     background: #f4f7f5;
+    transform: translateY(-1px);
 }
 
 .quiz-option:disabled {
@@ -1466,26 +1553,152 @@ button {
     border-color: #d64545;
 }
 
-.quiz-feedback {
-    max-width: 640px;
-    margin: 20px auto 0;
+.quiz-explanation {
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: 14px;
     text-align: center;
+}
+
+.explanation-correct {
+    background: #e6f8f3;
+    border: 1px solid #bfe9df;
+}
+
+.explanation-wrong {
+    background: #fdecec;
+    border: 1px solid #f6cccc;
+}
+
+.explanation-head {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.explanation-correct .explanation-head { color: #0f8b80; }
+.explanation-wrong .explanation-head { color: #c53838; }
+
+.explanation-answer {
+    margin: 0;
+    font-size: 18px;
+    color: #16302c;
+}
+
+.explanation-meaning {
+    color: #5b6169;
+    font-weight: 500;
+}
+
+.explanation-context {
+    margin: 6px 0 16px;
+    font-style: italic;
+    color: #7a837d;
+}
+
+.quiz-result-row {
+    display: flex;
+    justify-content: center;
 }
 
 .quiz-score-box {
     border: 1px solid #e6ebe8;
-    border-radius: 14px;
+    border-radius: 18px;
     background: white;
-    padding: 32px;
+    padding: 28px 40px;
     text-align: center;
-    max-width: 400px;
     margin: 0 auto 20px;
+    box-shadow: 0 10px 28px rgba(20, 40, 30, 0.08);
 }
 
 .quiz-score-value {
+    display: block;
     font-size: 48px;
-    font-weight: bold;
+    font-weight: 800;
     color: #16a89a;
+    line-height: 1;
+}
+
+.quiz-score-label {
+    display: block;
+    margin-top: 6px;
+    font-size: 14px;
+    color: #7a837d;
+}
+
+.quiz-result-actions {
+    max-width: 640px;
+    margin: 0 auto 24px;
+}
+
+.quiz-review {
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.review-card {
+    border: 1px solid #e6ebe8;
+    border-left-width: 4px;
+    border-radius: 12px;
+    background: white;
+    padding: 16px 18px;
+}
+
+.review-correct { border-left-color: #16a89a; }
+.review-wrong { border-left-color: #d64545; }
+
+.review-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.review-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.review-correct .review-badge { color: #0f8b80; }
+.review-wrong .review-badge { color: #c53838; }
+
+.review-number {
+    font-size: 12px;
+    font-weight: 700;
+    color: #9aa39d;
+}
+
+.review-prompt {
+    margin: 0 0 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #16302c;
+}
+
+.review-line {
+    margin: 2px 0;
+    font-size: 15px;
+    color: #2a2f2c;
+}
+
+.review-meaning { color: #5b6169; font-weight: 500; }
+
+.review-context {
+    margin: 8px 0 0;
+    font-style: italic;
+    color: #7a837d;
+    font-size: 14px;
 }
 
 /* ---------- Lesson Complete Page ---------- */
@@ -1606,9 +1819,63 @@ button {
 }
 
 .word-card {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     align-items: center;
+    gap: 16px;
+}
+
+.word-card-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.word-card-main h3 {
+    margin: 0 0 2px;
+    font-size: 19px;
+    color: #12312e;
+}
+
+.word-card-translation {
+    margin: 0;
+    color: #16a89a;
+    font-weight: 600;
+}
+
+.word-card-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.word-card-song {
+    font-size: 14px;
+    font-weight: 600;
+    color: #5b6169;
+}
+
+.word-card-date {
+    font-size: 12px;
+    color: #9aa39d;
+}
+
+.word-remove-button {
+    flex-shrink: 0;
+    border: 1px solid #f1d0d0;
+    border-radius: 10px;
+    background: #fdecec;
+    color: #c53838;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.word-remove-button:hover {
+    background: #f9dede;
 }
 
 /* ---------- Responsive ---------- */
@@ -1624,9 +1891,17 @@ button {
     }
 
     .song-card,
-    .word-card,
     .word-row {
         grid-template-columns: 1fr;
+    }
+
+    .word-card {
+        flex-wrap: wrap;
+    }
+
+    .word-card-meta {
+        align-items: flex-start;
+        text-align: left;
     }
 
     .language-grid,
@@ -1691,13 +1966,118 @@ button {
 
 .section-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .flashcard-area { max-width: 560px; margin: 24px auto; }
-.flashcard {
-  min-height: 240px; border: 1px solid #e6ebe8; border-radius: 12px;
-  background: white; padding: 32px; display: flex; flex-direction: column;
-  justify-content: center; align-items: center; text-align: center; cursor: pointer;
+
+/* Quizlet-style 3D flip card */
+.flashcard-flip {
+  perspective: 1400px;
+  cursor: pointer;
 }
-.flashcard h2 { font-size: 32px; margin: 0 0 8px; }
-.flashcard-hint { color: #7a837d; margin-top: 16px; font-size: 14px; }
+
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.flashcard-flip.flipped .flashcard-inner {
+  transform: rotateY(180deg);
+}
+
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(20, 40, 30, 0.12);
+}
+
+.flashcard-front {
+  background: linear-gradient(135deg, #ffffff 0%, #eafaf5 100%);
+  border: 1px solid #d6ece5;
+}
+
+.flashcard-back {
+  background: linear-gradient(135deg, #16a89a 0%, #0f8b80 100%);
+  color: #ffffff;
+  transform: rotateY(180deg);
+}
+
+.flashcard-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+.flashcard-front .flashcard-eyebrow { color: #16a89a; }
+
+.flashcard-face h2 { font-size: 32px; margin: 0 0 8px; }
+
+.pronounce-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  border: 1px solid #cdeae3;
+  background: #ffffff;
+  color: #0f8b80;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.pronounce-button:hover { background: #e6f8f3; transform: translateY(-1px); }
+
+.flashcard-detail {
+  margin: 4px 0 0;
+  font-size: 15px;
+  opacity: 0.95;
+}
+
+.flashcard-detail-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  opacity: 0.8;
+  margin-right: 4px;
+}
+
+.flashcard-example {
+  margin: 14px 0 0;
+  font-style: italic;
+  font-size: 15px;
+  opacity: 0.95;
+  max-width: 90%;
+}
+
+.flashcard-source {
+  margin: 10px 0 0;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.flashcard-hint {
+  margin-top: 16px;
+  font-size: 13px;
+  opacity: 0.65;
+}
+
+.flashcard-front .flashcard-hint { color: #7a837d; }
+
 .flashcard-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
 
 @keyframes heroFlow {
