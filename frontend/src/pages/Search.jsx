@@ -33,7 +33,7 @@ function Search() {
     setHideExplicit(next)
     try {
       await updatePreferences({ hideExplicit: next })
-    } catch (err) {
+    } catch {
       // Roll back the toggle if the save failed.
       setHideExplicit(!next)
     }
@@ -62,7 +62,7 @@ function Search() {
           setIsSearching(false)
           setSongs(data.songs || [])
         }
-      } catch (err) {
+      } catch {
         if (active) setError('Could not load songs. Make sure you are logged in with Spotify.')
       } finally {
         if (active) setIsLoading(false)

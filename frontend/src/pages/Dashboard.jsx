@@ -29,7 +29,7 @@ function Dashboard() {
         if (tracks.length > 0) {
           setRecentlyPlayedSongs(tracks)
         }
-      } catch (err) {
+      } catch {
         console.log("Using mock recently played songs for now")
       }
     }
@@ -38,7 +38,7 @@ function Dashboard() {
       try {
         const lists = await getPlaylists()
         setPlaylists(lists || [])
-      } catch (err) {
+      } catch {
         console.log("Could not load playlists")
       }
     }
@@ -50,7 +50,7 @@ function Dashboard() {
         if (savedWords.length > 0) {
           setRecentWords(savedWords.slice(0, 2))
         }
-      } catch (err) {
+      } catch {
         console.log("Using mock recent words")
       }
     }
@@ -59,7 +59,7 @@ function Dashboard() {
       try {
         const stats = await getProgress()
         setProgress(stats)
-      } catch (err) {
+      } catch {
         console.log("Could not load progress")
       }
     }
@@ -78,7 +78,7 @@ function Dashboard() {
     try {
       const tracks = await getPlaylistTracks(playlist.id)
       setPlaylistTracks(tracks || [])
-    } catch (err) {
+    } catch {
       console.log("Could not load playlist tracks")
     } finally {
       setLoadingTracks(false)

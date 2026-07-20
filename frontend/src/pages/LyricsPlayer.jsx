@@ -192,6 +192,18 @@ function LyricsPlayer() {
     loadLyricsAndTranslation();
   }, []);
 
+  // Seeks the active source to a given time in seconds
+  function handleSeek(seconds) {
+    if (isPremium) {
+      if (playerRef.current) {
+        playerRef.current.seek(Math.floor(seconds * 1000));
+      }
+    } else if (audioRef.current) {
+      audioRef.current.currentTime = seconds;
+    }
+    setPositionSec(seconds);
+  }
+
   // Jumps playback to a line's start when the full song is playing (so nav/loop stay in sync)
   function seekToLine(index) {
     if (isPremium && lineTimes[index] != null) {
@@ -252,6 +264,7 @@ function LyricsPlayer() {
         break;
       }
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveLineIndex((prev) => (prev === index ? prev : index));
   }, [positionSec, lineTimes, loopLine]);
 
@@ -266,6 +279,7 @@ function LyricsPlayer() {
         : durationSec || start + 8;
 
     if (positionSec >= end - 0.15 || positionSec < start - 0.5) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       handleSeek(start);
     }
   }, [positionSec, loopLine, isPremium, loopIndex, lineTimes, durationSec]);
@@ -381,18 +395,6 @@ function LyricsPlayer() {
     } else {
       player.togglePlay();
     }
-  }
-
-  // Seeks the active source to a given time in seconds
-  function handleSeek(seconds) {
-    if (isPremium) {
-      if (playerRef.current) {
-        playerRef.current.seek(Math.floor(seconds * 1000));
-      }
-    } else if (audioRef.current) {
-      audioRef.current.currentTime = seconds;
-    }
-    setPositionSec(seconds);
   }
 
   // Loads the WordSaveModal when a word gets clicked
