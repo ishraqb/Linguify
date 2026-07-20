@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import WordCard from '../components/WordCard'
 import Navbar from '../components/Navbar'
-import { mockWords } from '../data/mockWords'
 import { getSavedWords, deleteSavedWord } from '../services/api'
 
 /** 
@@ -10,7 +9,7 @@ import { getSavedWords, deleteSavedWord } from '../services/api'
  */
 function MyWords() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [words, setWords] = useState(mockWords)
+  const [words, setWords] = useState([])
   const [error, setError] = useState('')
   const [reviewMode, setReviewMode] = useState(false)
   const [reviewIndex, setReviewIndex] = useState(0)
@@ -43,7 +42,7 @@ function MyWords() {
         }
       } catch (err) {
         console.error(err)
-        setError("Using demo saved words for now")
+        setError("Could not load saved words")
       }
     }
 

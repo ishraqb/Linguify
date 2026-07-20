@@ -9,9 +9,12 @@ class User(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   spotify_id = db.Column(db.String(120), unique=True, nullable=False)
   display_name = db.Column(db.String(120))
+  # When true, explicit tracks are hidden from search and discovery for this user.
+  hide_explicit = db.Column(db.Boolean, default=False, nullable=False)
   created_at = db.Column(db.DateTime, default=utc_now)
 
   vocab_words = db.relationship("Vocabulary", back_populates="user", cascade="all, delete-orphan")
+  progress = db.relationship("UserProgress", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
 class Song(db.Model):
   __tablename__ = "songs"
@@ -24,6 +27,12 @@ class Song(db.Model):
   created_at = db.Column(db.DateTime, default=utc_now)
   updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
   album = db.Column(db.String(255), nullable=True)
+  # Precomputed discovery metadata so songs can be filtered without re-parsing lyrics.
+  language = db.Column(db.String(20), nullable=True, index=True)
+  difficulty_level = db.Column(db.String(20), nullable=True, index=True)
+  difficulty_score = db.Column(db.Integer, nullable=True)
+  cover_url = db.Column(db.String(500), nullable=True)
+  explicit = db.Column(db.Boolean, nullable=True)
 
   translations = db.relationship("Translation", back_populates="song", cascade="all, delete-orphan")
   vocab_words = db.relationship("Vocabulary", back_populates="song")
@@ -73,3 +82,19 @@ class Vocabulary(db.Model):
 
     user = db.relationship("User", back_populates="vocab_words")
     song = db.relationship("Song", back_populates="vocab_words")
+
+class UserProgress(db.Model):
+    __tablename__ = "user_progress"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
+    total_xp = db.Column(db.Integer, default=0, nullable=False)
+    current_streak = db.Column(db.Integer, default=0, nullable=False)
+    longest_streak = db.Column(db.Integer, default=0, nullable=False)
+    last_activity_date = db.Column(db.Date, nullable=True)
+    # Words-per-day target and how many count toward today's goal.
+    daily_goal = db.Column(db.Integer, default=5, nullable=False)
+    daily_count = db.Column(db.Integer, default=0, nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now)
+
+    user = db.relationship("User", back_populates="progress")

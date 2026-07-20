@@ -2,7 +2,7 @@
  * Pop up modal that appears after user taps a word in the lyrics
  * Shows the word translation and lyric line, and provides the option to save to My Words or exit out (using cancel or x)
  */
-function WordSaveModal({ word, wordTranslation, lyricLine, translation, onClose, onSave }) {
+function WordSaveModal({ word, wordTranslation, lyricLine, contextualMeaning, onClose, onSave }) {
     return (
         <div className="modal-background">
             <div className="word-modal">
@@ -22,20 +22,13 @@ function WordSaveModal({ word, wordTranslation, lyricLine, translation, onClose,
                     <p>{wordTranslation || "Translation unavailable"}</p>
                 </div>
 
-                {/* <div className="modal-section">
-                    <h3>Definition</h3>
-                    <p>Coming soon</p>
-                </div> */}
-
                 <div className="modal-section">
-                    <h3>From Lyrics</h3>
+                    <h3>In this line</h3>
                     <p>{lyricLine || "No lyric line available"}</p>
+                    {contextualMeaning && (
+                        <p className="context-translation">{contextualMeaning}</p>
+                    )}
                 </div>
-
-                {/* <div className="modal-section">
-                    <h3>Example Sentence</h3>
-                    <p>Coming soon</p>
-                </div> */}
 
                 <div className="button-row">
                     <button className="secondary-button" onClick={onClose}>

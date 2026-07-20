@@ -57,6 +57,33 @@ python app.py                      # runs on port 5000
 
 > Never commit your real `.env`. Only `.env.example` (with placeholders) is tracked.
 
+### Songs catalog
+
+The **Songs** tab lets you browse by language and difficulty or search Spotify live.
+Each song stores its language, difficulty, and cover art. The seed script sets language
+and cover art, and fetches lyrics to compute difficulty up front (so the difficulty
+filter works right away). Songs studied outside the catalog get their stats on first play.
+
+To populate a rich, cover-rich catalog across all supported languages, run once:
+
+```bash
+python seed_songs.py
+```
+
+This reads the curated per-language lists in `data/catalog_songs.py`, looks each song up
+on Spotify (using your `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`) to attach cover art
+and a track ID, and also backfills covers for any existing songs missing them.
+
+> Spotify's own editorial playlists (Top 50, etc.) are no longer accessible via the API
+> for development apps, so the catalog is built from curated song lists + Spotify search.
+
+> If you have an existing `linguify.db` from before this feature, delete it once so the
+> new song columns are created (`python app.py` rebuilds it on startup).
+
+Lyrics come from **LRCLIB** first, then fall back to the **`syncedlyrics`** providers
+(NetEase, Megalobiz, and others) for broader coverage. When no source has lyrics, the
+lesson shows a clear "couldn't find lyrics" message instead of demo lyrics.
+
 ## Frontend Setup
 
 ```bash

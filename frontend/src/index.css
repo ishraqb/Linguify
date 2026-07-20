@@ -549,6 +549,227 @@ button {
     color: #777;
 }
 
+/* ---------- Discover filters ---------- */
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0;
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    font-weight: bold;
+    min-width: 72px;
+}
+
+.filter-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-select {
+    border: 2px solid #1f1f1f;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 15px;
+    font-weight: bold;
+    background: white;
+    cursor: pointer;
+}
+
+.context-translation {
+    margin-top: 6px;
+    font-style: italic;
+    color: #555;
+}
+
+.romaji {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    font-style: italic;
+    color: #888;
+}
+
+.explicit-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.explicit-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-left: 8px;
+    border-radius: 4px;
+    background: #888;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+/* ---------- Progress / gamification ---------- */
+.progress-card {
+    border: 2px solid #1f1f1f;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    background: white;
+    box-shadow: 0 4px 0 #1f1f1f;
+}
+
+.progress-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.progress-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.progress-stat-value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.progress-stat-label {
+    font-size: 13px;
+    color: #666;
+}
+
+.progress-bar-section {
+    margin-top: 12px;
+}
+
+.progress-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.progress-bar {
+    height: 12px;
+    border-radius: 6px;
+    background: #ededed;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: #58cc02;
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.progress-bar-fill.goal {
+    background: #1cb0f6;
+}
+
+/* ---------- Playlists ---------- */
+.playlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
+}
+
+.playlist-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px;
+    border: 2px solid #1f1f1f;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    text-align: left;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.playlist-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 #1f1f1f;
+}
+
+.playlist-cover {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    background: #ededed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-weight: bold;
+    color: #888;
+}
+
+.playlist-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.playlist-name {
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.playlist-count {
+    font-size: 13px;
+    color: #666;
+}
+
+.playlist-heading {
+    margin: 12px 0;
+}
+
+@media (max-width: 600px) {
+    .playlist-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+.filter-pill {
+    border: 2px solid #1f1f1f;
+    border-radius: 999px;
+    background: white;
+    padding: 6px 14px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.filter-pill:hover {
+    background: #eeeeee;
+}
+
+.filter-pill-active {
+    background: #1db954;
+    color: white;
+    border-color: #1db954;
+}
+
+.filter-pill-active:hover {
+    background: #169c46;
+}
+
 .selected-song-box {
     display: flex;
     justify-content: center;
@@ -1202,3 +1423,53 @@ button {
 .flashcard h2 { font-size: 32px; margin: 0 0 8px; }
 .flashcard-hint { color: #777; margin-top: 16px; font-size: 14px; }
 .flashcard-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+
+@keyframes heroFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.hero-gradient {
+    background: linear-gradient(120deg, #9beac2, #7cc9ff, #d6ffe8, #9beac2);
+    background-size: 300% 300%;
+    animation: heroFlow 14s ease infinite;
+}
+
+@keyframes eqBar {
+    0%, 100% { height: 4px; }
+    50% { height: 15px; }
+}
+
+.eq-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 16px;
+}
+
+.eq-bars span {
+    width: 3px;
+    background: #159a5b;
+    display: block;
+    animation: eqBar 0.9s ease-in-out infinite;
+}
+
+.eq-bars span:nth-child(2) { animation-delay: 0.2s; }
+.eq-bars span:nth-child(3) { animation-delay: 0.4s; }
+
+.shelf-row {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.cover-play-btn {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.cover-tile:hover .cover-play-btn {
+    opacity: 1;
+}

@@ -2,12 +2,22 @@ import re
 import requests
 from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
-from services.translation_service import get_or_create_translation, get_or_create_word_translation
+from services.translation_service import get_or_create_translation, get_or_create_word_translation, translate_text
 from services.deezer_service import get_preview_url
 from services.language_service import detect_language
 from services.difficulty_service import compute_difficulty
 from services.cloze_service import generate_cloze_questions
-from models import Vocabulary, Song
+from services.discovery_service import discover_songs, available_languages
+from services.romanization_service import romanize_lines, needs_romanization
+from services.youtube_service import search_videos, simplify_video
+from services.progress_service import (
+  get_or_create_progress,
+  record_activity,
+  set_daily_goal,
+  serialize_progress,
+  ALLOWED_ACTIVITIES,
+)
+from models import Vocabulary, Song, User
 from extensions import db
 
 import spotify_client as sp
@@ -32,6 +42,12 @@ def _call_spotify(make_request):
       return make_request(_refresh_session_token())
     raise
 
+# Drop explicit tracks from a simplified-track list when the user has opted out.
+def _filter_explicit(tracks):
+  if not session.get("hide_explicit"):
+    return tracks
+  return [t for t in tracks if t and not t.get("explicit")]
+
 # GET /api/search - search Spotify tracks for the query string 'q'.
 @api_bp.get("/api/search")
 def search():
@@ -42,7 +58,7 @@ def search():
     return jsonify(error="Missing query parameter 'q'"), 400
   data = _call_spotify(lambda token: sp.search_tracks(token, query))
   items = data.get("tracks", {}).get("items", [])
-  return jsonify(tracks=[sp.simplify_track(t) for t in items])
+  return jsonify(tracks=_filter_explicit([sp.simplify_track(t) for t in items]))
 
 # GET /api/recently-played - return the user's recently played tracks.
 @api_bp.get("/api/recently-played")
@@ -51,7 +67,30 @@ def recently_played():
     return jsonify(error="Not authenticated"), 401
   data = _call_spotify(sp.get_recently_played)
   items = data.get("items", [])
-  return jsonify(tracks=[sp.simplify_track(i.get("track")) for i in items])
+  tracks = [sp.simplify_track(i.get("track")) for i in items]
+  return jsonify(tracks=_filter_explicit([t for t in tracks if t]))
+
+# GET /api/playlists - return the user's own Spotify playlists.
+@api_bp.get("/api/playlists")
+def playlists():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  data = _call_spotify(sp.get_user_playlists)
+  items = data.get("items", [])
+  return jsonify(playlists=[sp.simplify_playlist(p) for p in items if p])
+
+# GET /api/playlists/<playlist_id>/tracks - return the tracks in one of the user's playlists.
+@api_bp.get("/api/playlists/<playlist_id>/tracks")
+def playlist_tracks(playlist_id):
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  # Allow only Spotify's base62 IDs so user input can't be injected into the outbound URL (SSRF/path-traversal guard).
+  if not re.fullmatch(r"[A-Za-z0-9]+", playlist_id):
+    return jsonify(error="Invalid playlist_id"), 400
+  data = _call_spotify(lambda token: sp.get_playlist_tracks(token, playlist_id))
+  items = data.get("items", [])
+  tracks = [sp.simplify_track(i.get("track")) for i in items]
+  return jsonify(tracks=[t for t in tracks if t])
 
 # GET /api/preview - fetch 30s preview URL from Deezer for a title/artist
 @api_bp.get("/api/preview")
@@ -63,6 +102,21 @@ def get_preview():
   if not title or not artist:
     return jsonify(error="Missing title or artist"), 400
   return jsonify(preview_url=get_preview_url(title, artist))
+
+# GET /api/youtube/search - search YouTube videos for the query string 'q'.
+@api_bp.get("/api/youtube/search")
+def search_youtube():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  query = request.args.get("q", "").strip()
+  if not query:
+    return jsonify(error="Missing query parameter 'q'"), 400
+  try:
+    data = search_videos(query, limit=10)
+  except requests.HTTPError:
+    return jsonify(error="YouTube search failed"), 502
+  items = data.get("items", [])
+  return jsonify(videos=[simplify_video(item) for item in items])
 
 # GET /api/token - return the current Spotify access token for the Web Playback SDK.
 @api_bp.get("/api/token")
@@ -103,6 +157,7 @@ def get_lyrics():
   artist = request.args.get("artist", "").strip()
   spotify_track_id = request.args.get("spotify_track_id", "").strip() or None
   album = request.args.get("album", "").strip() or None
+  cover_url = request.args.get("cover_url", "").strip() or None
 
   if not title or not artist:
     return jsonify(error="Missing title or artist"), 400
@@ -111,6 +166,7 @@ def get_lyrics():
     artist=artist,
     spotify_track_id=spotify_track_id,
     album=album,
+    cover_url=cover_url,
   )
   if not result:
     return jsonify(error="Lyrics not found"), 404
@@ -147,6 +203,60 @@ def song_difficulty():
   # Fall back to detecting the language when the caller doesn't supply one.
   language = language or detect_language(lyrics) or "en"
   return jsonify(difficulty=compute_difficulty(lyrics, language))
+
+# GET /api/discover - browse the song catalog filtered by language and difficulty.
+@api_bp.get("/api/discover")
+def discover():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  language = request.args.get("language", "").strip() or None
+  difficulty = request.args.get("difficulty", "").strip() or None
+  query = request.args.get("q", "").strip() or None
+  songs = discover_songs(
+    language=language,
+    difficulty=difficulty,
+    query=query,
+    include_explicit=not session.get("hide_explicit"),
+  )
+  return jsonify(songs=songs, languages=available_languages())
+
+# GET /api/preferences - return the user's saved preferences.
+@api_bp.get("/api/preferences")
+def get_preferences():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  return jsonify(hideExplicit=bool(session.get("hide_explicit")))
+
+# PUT /api/preferences - update the user's preferences (currently the explicit filter).
+@api_bp.put("/api/preferences")
+def update_preferences():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  data = request.get_json() or {}
+  hide_explicit = bool(data.get("hideExplicit"))
+  user = db.session.get(User, session.get("user_id"))
+  if user:
+    user.hide_explicit = hide_explicit
+    db.session.commit()
+  session["hide_explicit"] = hide_explicit
+  return jsonify(hideExplicit=hide_explicit)
+
+# POST /api/romanize - transliterate non-Latin lyric lines into readable Latin script.
+@api_bp.post("/api/romanize")
+def romanize():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  data = request.get_json() or {}
+  lines = data.get("lines") or []
+  language = (data.get("language") or "").strip()
+  if not isinstance(lines, list):
+    return jsonify(error="lines must be a list"), 400
+  # Keep only strings so the transliterator never receives unexpected types.
+  lines = [line for line in lines if isinstance(line, str)]
+  return jsonify(
+    romanized=romanize_lines(lines, language),
+    needed=needs_romanization(language),
+  )
 
 # GET /api/cloze - build fill-in-the-blank questions from a song's lyrics.
 @api_bp.get("/api/cloze")
@@ -208,6 +318,32 @@ def translate_word():
   except requests.RequestException:
     return jsonify(error="Translation API request failed"), 502
 
+# GET /api/word-context - translate a word plus its whole lyric line for casual/slang usage.
+@api_bp.get("/api/word-context")
+def word_context():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+
+  word = request.args.get("word", "").strip()
+  line = request.args.get("line", "").strip()
+  source_language = request.args.get("source_language", "en").strip()
+  target_language = request.args.get("target_language", "").strip()
+
+  if not word or not target_language or not source_language:
+    return jsonify(error="Missing word, source_language, or target_language"), 400
+  try:
+    direct = get_or_create_word_translation(word, source_language, target_language)
+    # Translating the full line shows how the word is actually used in context.
+    contextual = translate_text(line, source_lang=source_language, target_lang=target_language) if line else ""
+  except requests.RequestException:
+    return jsonify(error="Translation API request failed"), 502
+  return jsonify({
+    "word": word,
+    "translation": direct or "Translation unavailable",
+    "line": line,
+    "contextual": contextual or "",
+  })
+
 # POST /api/words - save a vocabulary word for the logged-in user.
 @api_bp.post("/api/words")
 def save_word():
@@ -238,6 +374,9 @@ def save_word():
 
   db.session.add(vocab_word)
   db.session.commit()
+
+  # Saving a word counts toward XP, the daily goal, and the streak.
+  record_activity(session["user_id"], "word")
 
   song_title = None
   if vocab_word.song:
@@ -297,3 +436,39 @@ def delete_word(word_id):
   db.session.delete(word)
   db.session.commit()
   return jsonify(status="deleted", id=word_id)
+
+# GET /api/progress - return the user's gamification stats (XP, level, streak, daily goal).
+@api_bp.get("/api/progress")
+def get_progress():
+  if "user_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  progress = get_or_create_progress(session["user_id"])
+  return jsonify(serialize_progress(progress, session["user_id"]))
+
+# POST /api/progress/activity - record a learning activity and return updated stats.
+@api_bp.post("/api/progress/activity")
+def post_activity():
+  if "user_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  data = request.get_json() or {}
+  activity_type = (data.get("type") or "").strip()
+  # Allow-list the activity type so callers can't invent XP sources.
+  if activity_type not in ALLOWED_ACTIVITIES:
+    return jsonify(error="Invalid activity type"), 400
+  progress = record_activity(session["user_id"], activity_type)
+  return jsonify(serialize_progress(progress, session["user_id"]))
+
+# PUT /api/progress/goal - update the user's daily words goal.
+@api_bp.put("/api/progress/goal")
+def put_goal():
+  if "user_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  data = request.get_json() or {}
+  goal = data.get("dailyGoal")
+  if goal is None:
+    return jsonify(error="Missing dailyGoal"), 400
+  try:
+    progress = set_daily_goal(session["user_id"], goal)
+  except (TypeError, ValueError):
+    return jsonify(error="dailyGoal must be a number"), 400
+  return jsonify(serialize_progress(progress, session["user_id"]))

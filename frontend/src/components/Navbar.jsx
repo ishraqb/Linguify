@@ -25,7 +25,7 @@ function Navbar() {
             isActive ? 'nav-link active-nav-link' : 'nav-link'
           }
         >
-          Search
+          Songs
         </NavLink>
 
         <NavLink

@@ -1,7 +1,9 @@
 import re
 import requests
+import syncedlyrics
 from models import Song
 from extensions import db
+from services.song_stats_service import ensure_song_stats
 
 LRCLIB_SEARCH_URL = "https://lrclib.net/api/search"
 
@@ -44,7 +46,36 @@ def fetch_lyrics_from_lrclib(title, artist):
   }
 
 
-def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
+# Fallback that aggregates several lyric providers (NetEase, Megalobiz, etc.).
+def fetch_lyrics_from_syncedlyrics(title, artist):
+  try:
+    result = syncedlyrics.search(f"{title} {artist}")
+  except Exception:
+    return None
+  if not result:
+    return None
+  # A result with [mm:ss] tags is synced; otherwise treat it as plain lyrics.
+  if _TIMESTAMP_RE.search(result):
+    plain = "\n".join(line["text"] for line in parse_synced_lyrics(result) if line["text"])
+    return {"plain": plain or None, "synced": result}
+  return {"plain": result, "synced": None}
+
+
+# Try LRCLIB first (best synced quality), then fall back to other providers.
+# use_fallback=False keeps it LRCLIB-only (fast) for bulk seeding.
+def fetch_lyrics(title, artist, use_fallback=True):
+  try:
+    fetched = fetch_lyrics_from_lrclib(title, artist)
+  except requests.RequestException:
+    fetched = None
+  if fetched and (fetched.get("plain") or fetched.get("synced")):
+    return fetched
+  if not use_fallback:
+    return None
+  return fetch_lyrics_from_syncedlyrics(title, artist)
+
+
+def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None, cover_url=None, use_fallback=True):
   song = None
 
   if spotify_track_id:
@@ -52,6 +83,8 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
   if not song:
     song = Song.query.filter_by(title=title, artist=artist).first()
   if song and song.lyrics:
+    # Backfill discovery stats for songs stored before this feature existed.
+    ensure_song_stats(song, song.lyrics)
     return {
       "song_id": song.id,
       "title": song.title,
@@ -61,11 +94,11 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
       "synced_lines": parse_synced_lyrics(song.synced_lyrics),
       "cached": True
     }
-  fetched = fetch_lyrics_from_lrclib(title, artist)
-  if not fetched or not (fetched["plain"] or fetched["synced"]):
+  fetched = fetch_lyrics(title, artist, use_fallback=use_fallback)
+  if not fetched or not (fetched.get("plain") or fetched.get("synced")):
     return None
-  lyrics = fetched["plain"] or fetched["synced"]
-  synced = fetched["synced"]
+  lyrics = fetched.get("plain") or fetched.get("synced")
+  synced = fetched.get("synced")
   if not song:
     song = Song(
       spotify_track_id=spotify_track_id,
@@ -73,7 +106,8 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
       artist=artist,
       album=album,
       lyrics=lyrics,
-      synced_lyrics=synced
+      synced_lyrics=synced,
+      cover_url=cover_url,
     )
     db.session.add(song)
   else:
@@ -83,7 +117,11 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None):
       song.spotify_track_id = spotify_track_id
     if album and not song.album:
       song.album = album
+    if cover_url and not song.cover_url:
+      song.cover_url = cover_url
   db.session.commit()
+  # Compute language + difficulty once so the song shows up in Discovery.
+  ensure_song_stats(song, lyrics)
   return {
     "song_id": song.id,
     "title": song.title,

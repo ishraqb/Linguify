@@ -51,6 +51,24 @@ export async function startPlayback(deviceId, trackId) {
     return response.json()
 }
 
+// Browses the stored song catalog, filtered by language, difficulty, and text
+export async function discoverSongs({ language, difficulty, q } = {}) {
+    const params = new URLSearchParams()
+    if (language) params.append('language', language)
+    if (difficulty) params.append('difficulty', difficulty)
+    if (q) params.append('q', q)
+
+    const response = await fetch(`${API_BASE_URL}/api/discover?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load discovery")
+    }
+
+    return response.json()
+}
+
 // Searches Spotify songs by title or artist
 export async function searchSongs(query) {
     const response = await fetch(
@@ -69,6 +87,24 @@ export async function searchSongs(query) {
     return data.tracks
 }
 
+// Searches YouTube videos by title or artist
+export async function searchYoutube(query) {
+    const response = await fetch(
+        `${API_BASE_URL}/api/youtube/search?q=${encodeURIComponent(query)}`,
+        {
+            credentials: 'include',
+        }
+    )
+
+    if (!response.ok) {
+        throw new Error("Failed to search YouTube")
+    }
+
+    const data = await response.json()
+
+    return data.videos
+}
+
 // Gets the recently played songs in users Spotify
 export async function getRecentlyPlayedSongs() {
     const response = await fetch(`${API_BASE_URL}/api/recently-played`, {
@@ -81,6 +117,114 @@ export async function getRecentlyPlayedSongs() {
 
     const data = await response.json()
 
+    return data.tracks
+}
+
+// Gets the user's saved preferences (e.g. hiding explicit tracks)
+export async function getPreferences() {
+    const response = await fetch(`${API_BASE_URL}/api/preferences`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load preferences")
+    }
+
+    return response.json()
+}
+
+// Updates the user's preferences and returns the saved values
+export async function updatePreferences(prefs) {
+    const response = await fetch(`${API_BASE_URL}/api/preferences`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(prefs),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to update preferences")
+    }
+
+    return response.json()
+}
+
+// Gets the user's gamification stats (XP, level, streak, daily goal)
+export async function getProgress() {
+    const response = await fetch(`${API_BASE_URL}/api/progress`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load progress")
+    }
+
+    return response.json()
+}
+
+// Records a learning activity ('word', 'song', or 'quiz') and returns updated stats
+export async function recordActivity(type) {
+    const response = await fetch(`${API_BASE_URL}/api/progress/activity`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ type }),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to record activity")
+    }
+
+    return response.json()
+}
+
+// Updates the user's daily words goal and returns updated stats
+export async function updateDailyGoal(dailyGoal) {
+    const response = await fetch(`${API_BASE_URL}/api/progress/goal`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ dailyGoal }),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to update daily goal")
+    }
+
+    return response.json()
+}
+
+// Gets the current user's own Spotify playlists
+export async function getPlaylists() {
+    const response = await fetch(`${API_BASE_URL}/api/playlists`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load playlists")
+    }
+
+    const data = await response.json()
+    return data.playlists
+}
+
+// Gets the tracks inside one of the user's playlists
+export async function getPlaylistTracks(playlistId) {
+    const response = await fetch(`${API_BASE_URL}/api/playlists/${playlistId}/tracks`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load playlist tracks")
+    }
+
+    const data = await response.json()
     return data.tracks
 }
 
@@ -99,6 +243,11 @@ export async function getLyrics(song) {
         params.append('album', song.album)
     }
 
+    const coverUrl = song.coverUrl || song.albumArt
+    if (coverUrl) {
+        params.append('cover_url', coverUrl)
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/lyrics?${params}`, {
         credentials: 'include',
     })
@@ -108,6 +257,25 @@ export async function getLyrics(song) {
     }
 
     return response.json()
+}
+
+// Romanizes non-Latin lyric lines into readable Latin script, aligned by index
+export async function getRomanization(lines, language) {
+    const response = await fetch(`${API_BASE_URL}/api/romanize`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ lines, language }),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to romanize lyrics")
+    }
+
+    const data = await response.json()
+    return data.romanized
 }
 
 // Gets a 30s Deezer preview URL for a song
@@ -241,6 +409,25 @@ export async function getWordTranslation(word, sourceLanguage, targetLanguage) {
 
     if (!response.ok) {
         throw new Error("Failed to translate word")
+    }
+
+    return response.json()
+}
+
+// Gets a word's direct translation plus its lyric line translated for context
+export async function getWordContext(word, line, sourceLanguage, targetLanguage) {
+    const params = new URLSearchParams({
+        word,
+        line: line || '',
+        source_language: sourceLanguage,
+        target_language: targetLanguage,
+    })
+    const response = await fetch(`${API_BASE_URL}/api/word-context?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load word context")
     }
 
     return response.json()
