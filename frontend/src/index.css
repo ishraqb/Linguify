@@ -31,15 +31,95 @@ button {
 }
 
 .page-header {
-    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(120deg, #12a294 0%, #18b6a6 52%, #46d3c2 100%);
+    border-radius: 22px;
+    padding: 30px 32px;
+    margin-bottom: 28px;
+    color: white;
+    box-shadow: 0 16px 36px rgba(22, 168, 154, 0.28);
+}
+
+/* Playful orange glow in the corner for warmth. */
+.page-header::after {
+    content: "";
+    position: absolute;
+    right: -50px;
+    top: -60px;
+    width: 190px;
+    height: 190px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245, 144, 30, 0.55), rgba(245, 144, 30, 0));
+}
+
+.page-header > * {
+    position: relative;
+    z-index: 1;
 }
 
 .page-header .page-title {
+    color: white;
     margin-bottom: 6px;
 }
 
 .page-header .page-text {
+    color: rgba(255, 255, 255, 0.92);
     margin-bottom: 0;
+}
+
+.page-header .hero-badge {
+    background: rgba(255, 255, 255, 0.22);
+    color: white;
+}
+
+/* White CTA reads clearly on the teal gradient header. */
+.page-header .main-button {
+    background: white;
+    color: #0f8b80;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+}
+
+.page-header .main-button:hover {
+    background: #f2fffb;
+    color: #0f8b80;
+}
+
+.count-pill {
+    background: #16a89a;
+    color: white;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 999px;
+    justify-self: end;
+}
+
+.empty-state {
+    text-align: center;
+    background: white;
+    border: 1px solid #e8ecea;
+    border-radius: 20px;
+    padding: 44px 24px;
+    box-shadow: 0 10px 30px rgba(20, 40, 30, 0.06);
+}
+
+.empty-mascot {
+    width: 84px;
+    height: 84px;
+    object-fit: contain;
+    margin-bottom: 12px;
+}
+
+.empty-state h3 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    color: #12312e;
+}
+
+.empty-state p {
+    margin: 0 auto 18px;
+    max-width: 380px;
+    color: #5b6169;
 }
 
 .page-title {
@@ -403,6 +483,18 @@ button {
     height: 100%;
     object-fit: cover;
     border-radius: 12px;
+}
+
+.song-cover-fallback {
+    width: 100%;
+    height: 100%;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 34px;
 }
 
 
@@ -1380,35 +1472,70 @@ button {
 /* ---------- Lesson Complete Page ---------- */
 
 .complete-header {
-    border: 1px solid #e6ebe8;
-    border-radius: 12px;
-    background: white;
-    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(120deg, #12a294 0%, #1cc0af 55%, #f5a623 130%);
+    border-radius: 24px;
+    padding: 44px 28px;
     text-align: center;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
+    color: white;
+    box-shadow: 0 16px 38px rgba(22, 168, 154, 0.3);
+}
+
+.complete-header h1 {
+    margin: 0 0 8px;
+    font-size: 34px;
+}
+
+.complete-header p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.complete-emoji {
+    font-size: 54px;
+    line-height: 1;
+    margin-bottom: 10px;
 }
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
     margin-bottom: 18px;
 }
 
 .stat-card {
-    border-radius: 0;
     text-align: center;
+    border-radius: 18px;
+    padding: 22px 16px;
+    margin-bottom: 0;
 }
 
-.stat-card:first-child {
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
+.stat-card .stat-icon {
+    display: block;
+    font-size: 30px;
+    margin-bottom: 8px;
 }
 
-.stat-card:last-child {
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
+.stat-card h3 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    color: #5b6169;
 }
+
+.stat-card p {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #12312e;
+}
+
+.stat-card:nth-child(1) { background: #e4f6f2; border-color: #c9ece4; }
+.stat-card:nth-child(2) { background: #fff1de; border-color: #ffe0b8; }
+.stat-card:nth-child(3) { background: #eef0ff; border-color: #d9d9ff; }
+.stat-card:nth-child(4) { background: #ffe7ed; border-color: #ffccd6; }
 
 .new-words-box {
     border: 1px solid #e6ebe8;

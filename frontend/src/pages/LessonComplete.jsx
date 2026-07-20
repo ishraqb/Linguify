@@ -48,25 +48,29 @@ function LessonComplete() {
       <Navbar/>
 
       <div className="complete-header">
-        <h1>Song Finished</h1>
+        <div className="complete-emoji">🎉</div>
+        <h1>Song Finished!</h1>
         <p>
-          You completed a lesson for {selectedSong.title} by {' '}
+          You completed a lesson for <strong>{selectedSong.title}</strong> by {' '}
           {selectedSong.artist}
         </p>
       </div>
 
       <div className="stats-grid">
         <div className="stat-card">
+          <span className="stat-icon">📖</span>
           <h3>Lines Reviewed</h3>
           <p>{linesReviewed}</p>
         </div>
 
         <div className="stat-card">
+          <span className="stat-icon">⭐</span>
           <h3>Words Saved</h3>
           <p>{savedWords.length}</p>
         </div>
 
         <div className="stat-card">
+          <span className="stat-icon">🌍</span>
           <h3>Language</h3>
           <p>
             {sourceLanguage.label} → {targetLanguage.label}
@@ -75,6 +79,7 @@ function LessonComplete() {
 
         {hasQuizResult && (
           <div className="stat-card">
+            <span className="stat-icon">🎯</span>
             <h3>Quiz Score</h3>
             <p>
               {quizScore}/{quizTotal}

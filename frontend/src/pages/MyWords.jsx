@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import WordCard from '../components/WordCard'
 import Navbar from '../components/Navbar'
 import { getSavedWords, deleteSavedWord } from '../services/api'
@@ -95,7 +96,7 @@ function MyWords() {
           <button className="secondary-button" onClick={exitReview}>
             Exit review
           </button>
-          <div className="step-box">
+          <div className="count-pill">
             {reviewIndex + 1} / {words.length}
           </div>
         </div>
@@ -179,7 +180,16 @@ function MyWords() {
       )}
 
       {filteredWords.length === 0 && (
-        <p className="page-text">No saved words found</p>
+        words.length === 0 ? (
+          <div className="empty-state">
+            <img src="/logo-mark.png" alt="" className="empty-mascot" />
+            <h3>No saved words yet</h3>
+            <p>Tap words while you study a song to save them here, then review them as flashcards.</p>
+            <Link to="/search" className="main-button">Find a song</Link>
+          </div>
+        ) : (
+          <p className="page-text">No words match your search.</p>
+        )
       )}
     </div>
   )

@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar'
 import SongCard from '../components/SongCard'
 import YouTubeCard from '../components/YouTubeCard'
 import YouTubePlayer from '../components/YouTubePlayer'
-import { searchSongs, discoverSongs, getPreferences, updatePreferences, searchYoutube } from '../services/api'
+import { searchSongs, discoverSongs, searchYoutube } from '../services/api'
 import { TARGET_LANGUAGES, findLanguage } from '../data/languages'
 
 const DIFFICULTY_LEVELS = ['Beginner', 'Intermediate', 'Advanced']
@@ -21,32 +21,12 @@ function Search() {
   const [isSearching, setIsSearching] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [hideExplicit, setHideExplicit] = useState(false)
 
   const [source, setSource] = useState('spotify')
   const [youtubeVideos, setYoutubeVideos] = useState([])
   const [isYoutubeLoading, setIsYoutubeLoading] = useState(false)
   const [youtubeError, setYoutubeError] = useState('')
   const [selectedVideo, setSelectedVideo] = useState(null)
-
-  // Load the saved explicit-filter preference once on mount.
-  useEffect(() => {
-    getPreferences()
-      .then((prefs) => setHideExplicit(!!prefs.hideExplicit))
-      .catch(() => {})
-  }, [])
-
-  // Persist the explicit-filter preference; results refetch via the dependency below.
-  async function toggleHideExplicit() {
-    const next = !hideExplicit
-    setHideExplicit(next)
-    try {
-      await updatePreferences({ hideExplicit: next })
-    } catch {
-      // Roll back the toggle if the save failed.
-      setHideExplicit(!next)
-    }
-  }
 
   // Typing searches Spotify; an empty box browses the catalog with the filters.
   useEffect(() => {
@@ -84,7 +64,7 @@ function Search() {
       active = false
       clearTimeout(timer)
     }
-  }, [source, query, languageFilter, difficultyFilter, hideExplicit])
+  }, [source, query, languageFilter, difficultyFilter])
 
   // Typing searches YouTube directly; there's no catalog/browse equivalent for it.
   useEffect(() => {
@@ -203,13 +183,6 @@ function Search() {
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="filter-group">
-            <label className="explicit-toggle">
-              <input type="checkbox" checked={hideExplicit} onChange={toggleHideExplicit} />
-              Hide explicit songs
-            </label>
           </div>
 
           {isSearching && (
