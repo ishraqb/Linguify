@@ -6,9 +6,10 @@
 
 body {
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background: #f3f8f5;
     color: #1a1d1e;
+    -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -78,35 +79,41 @@ button {
 .secondary-button,
 .language-button,
 .word-button {
-    border: 2px solid #1f1f1f;
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-weight: bold;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 11px 18px;
+    font-weight: 700;
     cursor: pointer;
     display: inline-block;
     text-align: center;
+    transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.06s ease;
 }
 
 .main-button {
     background: #159a5b;
     color: white;
-    border-color: #159a5b;
+    box-shadow: 0 6px 16px rgba(21, 154, 91, 0.28);
 }
 
-.secondary-button {
+.secondary-button,
+.language-button,
+.word-button {
     background: white;
-    color: #1f1f1f;
+    color: #1a1d1e;
+    border-color: #dbe2de;
+    box-shadow: 0 2px 8px rgba(20, 40, 30, 0.05);
 }
 
 .main-button:hover {
     background: #0e7a47;
     color: white;
+    transform: translateY(-1px);
 }
 
 .secondary-button:hover,
 .language-button:hover,
 .word-button:hover {
-    background: #eeeeee;
+    background: #f4f7f5;
 }
 
 .wide-button {
@@ -148,25 +155,24 @@ button {
 }
 
 .nav-link {
-    border: 2px solid #1f1f1f;
-    padding: 8px 12px;
-    border-radius: 6px;
-    background: white;
-    color: #1f1f1f;
+    border: 1px solid transparent;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: transparent;
+    color: #46504b;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 700;
     text-align: center;
 }
 
 .nav-link:hover {
-    background: #eaeaea;
-    color: #1f1f1f;
+    background: #eef3f0;
+    color: #1a1d1e;
 }
 
 .active-nav-link {
     background: #159a5b;
     color: white;
-    border-color: #159a5b;
 }
 
 .active-nav-link:hover {
@@ -324,12 +330,18 @@ button {
 .word-card,
 .stat-card,
 .info-card {
-    border: 1px solid #e1e4e8;
-    border-radius: 14px;
-    padding: 16px;
+    border: 1px solid #e8ecea;
+    border-radius: 16px;
+    padding: 18px;
     background: white;
-    margin-bottom: 16px;
-    box-shadow: 0 6px 20px rgba(31, 41, 51, 0.05);
+    margin-bottom: 14px;
+    box-shadow: 0 8px 24px rgba(20, 40, 30, 0.05);
+    transition: box-shadow 0.15s ease, transform 0.06s ease;
+}
+
+.song-card:hover {
+    box-shadow: 0 12px 30px rgba(20, 40, 30, 0.1);
+    transform: translateY(-1px);
 }
 
 .song-card {
@@ -340,14 +352,15 @@ button {
 }
 
 .song-cover {
-    border: 2px solid #1f1f1f;
-    border-radius: 6px;
+    border-radius: 12px;
     min-height: 90px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: #555;
+    color: #9aa39d;
+    font-size: 13px;
+    background: #eef3f0;
     overflow: hidden;
 }
 
@@ -365,7 +378,7 @@ button {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: 12px;
 }
 
 
@@ -375,6 +388,18 @@ button {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 28px;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.card-grid .song-card,
+.card-grid .word-card {
+    margin-bottom: 0;
 }
 
 /* ---------- Search ---------- */
@@ -387,10 +412,19 @@ button {
 
 .search-input {
     flex: 1;
-    border: 3px solid #1f1f1f;
-    border-radius: 8px;
-    padding: 12px;
+    border: 1px solid #d7ddda;
+    border-radius: 12px;
+    padding: 14px 16px;
     font-size: 16px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(20, 40, 30, 0.04);
+    outline: none;
+}
+
+.search-input:focus,
+.language-search:focus {
+    border-color: #159a5b;
+    box-shadow: 0 0 0 3px rgba(21, 154, 91, 0.15);
 }
 
 /* ---------- Language Selection ---------- */
@@ -405,7 +439,7 @@ button {
 
 .step-bar,
 .step-box {
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     background: white;
     border-radius: 6px;
     padding: 10px 16px;
@@ -481,7 +515,7 @@ button {
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 10px;
     background: white;
     padding: 18px 12px;
@@ -521,7 +555,7 @@ button {
 .language-search {
     width: 100%;
     box-sizing: border-box;
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 8px;
     padding: 12px;
     font-size: 16px;
@@ -609,7 +643,7 @@ button {
 }
 
 .filter-select {
-    border: 2px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 8px;
     padding: 8px 12px;
     font-size: 15px;
@@ -657,36 +691,45 @@ button {
 
 /* ---------- Progress / gamification ---------- */
 .progress-card {
-    border: 2px solid #1f1f1f;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 24px;
-    background: white;
-    box-shadow: 0 4px 0 #1f1f1f;
+    border: 1px solid #dcefe4;
+    border-radius: 20px;
+    padding: 24px 26px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #eafaf0 0%, #ffffff 72%);
+    box-shadow: 0 10px 28px rgba(20, 40, 30, 0.07);
 }
 
 .progress-stats {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .progress-stat {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
+    border-right: 1px solid #dbe8e0;
+}
+
+.progress-stat:last-child {
+    border-right: none;
 }
 
 .progress-stat-value {
-    font-size: 24px;
-    font-weight: bold;
+    font-size: 26px;
+    font-weight: 800;
+    color: #1a1d1e;
 }
 
 .progress-stat-label {
-    font-size: 13px;
-    color: #666;
+    font-size: 12px;
+    color: #5b6169;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .progress-bar-section {
@@ -732,7 +775,7 @@ button {
     align-items: flex-start;
     gap: 6px;
     padding: 12px;
-    border: 2px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 12px;
     background: white;
     cursor: pointer;
@@ -742,7 +785,7 @@ button {
 
 .playlist-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 0 #1f1f1f;
+    box-shadow: 0 10px 28px rgba(20, 40, 30, 0.08);
 }
 
 .playlist-cover {
@@ -785,7 +828,7 @@ button {
 }
 
 .filter-pill {
-    border: 2px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 999px;
     background: white;
     padding: 6px 14px;
@@ -813,7 +856,7 @@ button {
     justify-content: center;
     align-items: center;
     gap: 24px;
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 8px;
     background: white;
     padding: 20px;
@@ -895,7 +938,7 @@ button {
 }
 
 .song-duration-bar {
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 999px;
     background: white;
     padding: 6px;
@@ -906,7 +949,7 @@ button {
 /* ---------- Now Playing Player ---------- */
 
 .now-playing {
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 12px;
     background: white;
     padding: 14px 18px;
@@ -926,7 +969,7 @@ button {
     height: 56px;
     border-radius: 8px;
     object-fit: cover;
-    border: 2px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
 }
 
 .now-playing-art-placeholder {
@@ -1021,7 +1064,7 @@ button {
 }
 
 .saved-count-box {
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 8px;
     background: white;
     padding: 10px 14px;
@@ -1038,7 +1081,7 @@ button {
 }
 
 .saved-word-pill {
-    border: 2px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 999px;
     background: #e9f7ee;
     padding: 6px 12px;
@@ -1054,7 +1097,7 @@ button {
 
 .lyrics-list,
 .word-panel {
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 8px;
     background: white;
     padding: 16px;
@@ -1063,7 +1106,7 @@ button {
 }
 
 .lyric-line {
-    border: 2px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 8px;
     padding: 14px;
     margin-bottom: 12px;
@@ -1124,7 +1167,7 @@ button {
 }
 
 .practice-button {
-    border: 2px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 8px;
     padding: 8px 14px;
     font-weight: bold;
@@ -1165,7 +1208,7 @@ button {
 }
 
 .lesson-controls p {
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 8px;
     background: white;
     padding: 10px;
@@ -1190,7 +1233,7 @@ button {
 .word-modal {
     width: 100%;
     max-width: 520px;
-    border: 4px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 10px;
     background: white;
     padding: 28px;
@@ -1201,7 +1244,7 @@ button {
     position: absolute;
     right: 12px;
     top: 12px;
-    border: 2px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     background: white;
     cursor: pointer;
 }
@@ -1215,7 +1258,7 @@ button {
 }
 
 .modal-section p {
-    border: 2px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 6px;
     padding: 10px;
     margin: 0;
@@ -1235,7 +1278,7 @@ button {
 /* ---------- Cloze Quiz ---------- */
 
 .quiz-prompt {
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 10px;
     background: white;
     padding: 28px 24px;
@@ -1255,7 +1298,7 @@ button {
 }
 
 .quiz-option {
-    border: 2px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 8px;
     background: white;
     padding: 16px;
@@ -1291,7 +1334,7 @@ button {
 }
 
 .quiz-score-box {
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 10px;
     background: white;
     padding: 32px;
@@ -1309,7 +1352,7 @@ button {
 /* ---------- Lesson Complete Page ---------- */
 
 .complete-header {
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 8px;
     background: white;
     padding: 28px;
@@ -1340,7 +1383,7 @@ button {
 }
 
 .new-words-box {
-    border: 3px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 8px;
     background: white;
     padding: 18px;
@@ -1360,13 +1403,13 @@ button {
 
 .word-row-header {
     font-weight: bold;
-    border-bottom: 2px solid #1f1f1f;
+    border-bottom: 1px solid #e6ebe8;
 }
 
 /* ---------- My Words Page ---------- */
 
 .word-count {
-    border: 2px solid #1f1f1f;
+    border: 1px solid #e6ebe8;
     border-radius: 6px;
     background: white;
     padding: 8px 12px;
@@ -1384,6 +1427,7 @@ button {
 
     .landing-content,
     .dashboard-grid,
+    .card-grid,
     .lyrics-layout,
     .stats-grid {
         grid-template-columns: 1fr;
@@ -1454,7 +1498,7 @@ button {
 .section-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .flashcard-area { max-width: 560px; margin: 24px auto; }
 .flashcard {
-  min-height: 240px; border: 3px solid #1f1f1f; border-radius: 12px;
+  min-height: 240px; border: 1px solid #e6ebe8; border-radius: 12px;
   background: white; padding: 32px; display: flex; flex-direction: column;
   justify-content: center; align-items: center; text-align: center; cursor: pointer;
 }

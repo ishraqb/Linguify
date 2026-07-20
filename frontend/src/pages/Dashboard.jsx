@@ -94,11 +94,17 @@ function Dashboard() {
 
       <ProgressCard progress={progress} />
 
-      <div className="dashboard-grid">
-        <div>
-          <h2 className="section-title">Recently Played</h2>
+      <Link to="/search" className="main-button wide-button">
+        Begin New Song Lesson
+      </Link>
 
-          {recentlyPlayedSongs.map((song) => (
+      <h2 className="section-title">Recently Played</h2>
+
+      {recentlyPlayedSongs.length === 0 ? (
+        <p className="page-text">Nothing here yet — play a song on Spotify and it will show up.</p>
+      ) : (
+        <div className="card-grid">
+          {recentlyPlayedSongs.slice(0, 6).map((song) => (
             <SongCard
               key={song.id}
               id={song.id}
@@ -111,29 +117,7 @@ function Dashboard() {
             />
           ))}
         </div>
-
-        <div>
-          <Link to="/search" className="main-button wide-button">
-            Begin New Song Lesson
-          </Link>
-
-          <h2 className="section-title">Recent Words</h2>
-
-          {recentWords.map((item) => (
-            <WordCard
-              key={item.id}
-              word={item.word}
-              translation={item.translation || item.definition}
-              songTitle={item.songTitle}
-              dateAdded={item.dateAdded}
-            />
-          ))}
-
-          {recentWords.length === 0 && (
-            <p className = "page-text">No saved words yet</p>
-          )}
-        </div>
-      </div>
+      )}
 
       <h2 className="section-title">Your Playlists</h2>
 
@@ -185,6 +169,24 @@ function Dashboard() {
               <div className="playlist-name">{playlist.name}</div>
               <div className="playlist-count">{playlist.trackCount} songs</div>
             </button>
+          ))}
+        </div>
+      )}
+
+      <h2 className="section-title">Recent Words</h2>
+
+      {recentWords.length === 0 ? (
+        <p className="page-text">No saved words yet</p>
+      ) : (
+        <div className="card-grid">
+          {recentWords.map((item) => (
+            <WordCard
+              key={item.id}
+              word={item.word}
+              translation={item.translation || item.definition}
+              songTitle={item.songTitle}
+              dateAdded={item.dateAdded}
+            />
           ))}
         </div>
       )}
