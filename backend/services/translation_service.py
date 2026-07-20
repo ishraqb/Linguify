@@ -1,5 +1,6 @@
 import os
 import requests
+from concurrent.futures import ThreadPoolExecutor
 from models import Song, Translation, WordTranslation
 from extensions import db
 from services.language_service import detect_language
@@ -20,6 +21,11 @@ DEEPL_TARGET_OVERRIDES = {"en": "EN-US", "pt": "PT-PT"}
 
 # Cap kept high enough to cover full songs; repeated lines are only translated once.
 MAX_TRANSLATION_LINES = 120
+
+# How many MyMemory line requests to run at once. Line-by-line would take ~1s
+# each (a full song can be 40+ lines), which blows past request timeouts; a
+# small pool keeps the total to a few seconds without hammering the free API.
+_MYMEMORY_WORKERS = 8
 
 
 # Translate one string via DeepL; raises on error so the caller can fall back.
@@ -104,10 +110,11 @@ def translate_lines(lyrics, target_language, source_language="en"):
     except requests.RequestException:
       translation_cache = {}  # DeepL failed entirely — fall back per line below.
 
-  # Fallback (or DeepL misses): translate any remaining lines one at a time.
-  for line in unique_lines:
-    if line in translation_cache:
-      continue
+  # Fallback (or DeepL misses): translate any remaining lines. Run them through
+  # a small thread pool so a full song finishes in seconds instead of ~1s/line.
+  remaining = [line for line in unique_lines if line not in translation_cache]
+
+  def _translate_one(line):
     try:
       translated = translate_text(
         line,
@@ -115,8 +122,14 @@ def translate_lines(lyrics, target_language, source_language="en"):
         target_lang=target_language,
       )
     except requests.RequestException:
-      translated = "Translation unavailable"
-    translation_cache[line] = translated or "Translation unavailable"
+      translated = None
+    return line, translated or "Translation unavailable"
+
+  if remaining:
+    workers = min(_MYMEMORY_WORKERS, len(remaining))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+      for line, translated in pool.map(_translate_one, remaining):
+        translation_cache[line] = translated
 
   return [
     {"original": line, "translation": translation_cache[line]}

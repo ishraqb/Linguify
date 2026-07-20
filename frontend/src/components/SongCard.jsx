@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import Icon from './Icon'
 
 // Vibrant gradients used for cover placeholders when a song has no album art.
 const COVER_GRADIENTS = [
@@ -31,7 +32,7 @@ function SongCard({ id, title, artist, language, album, coverUrl, previewUrl, di
                     <img src={coverUrl} alt={`${title} cover`} className="song-cover-img" />
                 ) : (
                     <div className="song-cover-fallback" style={{ background: pickGradient(`${title}${artist}`) }}>
-                        ♪
+                        <Icon name="music" size={30} strokeWidth={1.6} />
                     </div>
                 )}
             </div>

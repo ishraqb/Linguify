@@ -3,7 +3,7 @@ import requests
 from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
 from services.translation_service import get_or_create_translation, get_or_create_word_translation, translate_text
-from services.deezer_service import get_preview_url
+from services.deezer_service import get_preview_url, get_track_media
 from services.language_service import detect_language
 from services.difficulty_service import compute_difficulty
 from services.cloze_service import generate_cloze_questions
@@ -94,7 +94,7 @@ def playlist_tracks(playlist_id):
   tracks = [sp.simplify_track(i.get("item") or i.get("track")) for i in items]
   return jsonify(tracks=[t for t in tracks if t])
 
-# GET /api/preview - fetch 30s preview URL from Deezer for a title/artist
+# GET /api/preview - fetch 30s preview URL + album cover from Deezer for a title/artist
 @api_bp.get("/api/preview")
 def get_preview():
   if "spotify_id" not in session:
@@ -103,7 +103,11 @@ def get_preview():
   artist = request.args.get("artist", "").strip()
   if not title or not artist:
     return jsonify(error="Missing title or artist"), 400
-  return jsonify(preview_url=get_preview_url(title, artist))
+  try:
+    media = get_track_media(title, artist)
+  except requests.RequestException:
+    media = {"preview_url": None, "cover_url": None}
+  return jsonify(preview_url=media.get("preview_url"), cover_url=media.get("cover_url"))
 
 # GET /api/youtube/search - search YouTube videos for the query string 'q'.
 @api_bp.get("/api/youtube/search")

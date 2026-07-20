@@ -291,8 +291,8 @@ export async function getRomanization(lines, language) {
     return data.romanized
 }
 
-// Gets a 30s Deezer preview URL for a song
-export async function getPreviewUrl(title, artist){
+// Gets a 30s Deezer preview URL and album cover for a song
+export async function getPreview(title, artist){
   const params = new URLSearchParams({ title, artist })
 
   const response = await fetch(`${API_BASE_URL}/api/preview?${params}`, {
@@ -304,7 +304,13 @@ export async function getPreviewUrl(title, artist){
   }
 
   const data = await response.json()
-  return data.preview_url
+  return { previewUrl: data.preview_url, coverUrl: data.cover_url }
+}
+
+// Backwards-compatible helper that returns just the preview URL
+export async function getPreviewUrl(title, artist){
+  const { previewUrl } = await getPreview(title, artist)
+  return previewUrl
 }
 
 // Detects the source language of a song from its lyrics

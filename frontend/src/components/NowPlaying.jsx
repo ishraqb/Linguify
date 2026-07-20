@@ -1,3 +1,5 @@
+import Icon from "./Icon";
+
 // Formats a number of seconds into m:ss for the player timestamps
 function formatTime(seconds) {
   if (!seconds || Number.isNaN(seconds)) return "0:00";
@@ -39,7 +41,7 @@ function NowPlaying({
           {coverUrl ? (
             <img src={coverUrl} alt={title} />
           ) : (
-            <div className="now-playing-art-placeholder">♪</div>
+            <div className="now-playing-art-placeholder"><Icon name="music" size={26} strokeWidth={1.6} /></div>
           )}
         </div>
 

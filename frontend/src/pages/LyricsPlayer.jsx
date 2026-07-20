@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
 import NowPlaying from "../components/NowPlaying";
-import { getLyrics, getMe, getPreviewUrl, getRomanization, getToken, getTranslation, getWordContext, saveWord as saveWordToBackend, startPlayback } from "../services/api";
+import { getLyrics, getMe, getPreview, getRomanization, getToken, getTranslation, getWordContext, saveWord as saveWordToBackend, startPlayback } from "../services/api";
 import { useEffect, useRef, useState } from "react";
 
 // Languages written in non-Latin scripts, where romanization is worth offering.
@@ -48,6 +48,7 @@ function LyricsPlayer() {
   const activeLineRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [coverUrl, setCoverUrl] = useState(selectedSong?.coverUrl || selectedSong?.albumArt || null);
   const [lineTimes, setLineTimes] = useState([]);
   const [isPremium, setIsPremium] = useState(false);
   const [playerReady, setPlayerReady] = useState(false);
@@ -167,8 +168,12 @@ function LyricsPlayer() {
         setActiveLineIndex(0);
 
         try{
-          const preview = await getPreviewUrl(selectedSong.title, selectedSong.artist);
-          setPreviewUrl(preview);
+          const media = await getPreview(selectedSong.title, selectedSong.artist);
+          setPreviewUrl(media.previewUrl);
+          // Fall back to Deezer's album art when the catalog song has no cover.
+          if (media.coverUrl && !selectedSong.coverUrl && !selectedSong.albumArt) {
+            setCoverUrl(media.coverUrl);
+          }
         } catch (previewErr) {
           console.error(previewErr);
         }
@@ -479,7 +484,7 @@ function LyricsPlayer() {
 
       {/* Free/open users get the 30s preview; Premium users get the full song via the SDK */}
       <NowPlaying
-        coverUrl={selectedSong.coverUrl || selectedSong.albumArt}
+        coverUrl={coverUrl}
         title={selectedSong.title}
         artist={selectedSong.artist}
         isPlaying={isPlaying}

@@ -1,3 +1,5 @@
+import Icon from './Icon'
+
 /**
  * Gamified stats card for the dashboard.
  * Shows the day streak, level + XP bar, words learned, and daily goal progress.
@@ -16,7 +18,9 @@ function ProgressCard({ progress }) {
     <div className="progress-card">
       <div className="progress-stats">
         <div className="progress-stat">
-          <span className="progress-stat-value">🔥 {progress.streak}</span>
+          <span className="progress-stat-value">
+            <Icon name="flame" size={20} fill className="streak-icon" /> {progress.streak}
+          </span>
           <span className="progress-stat-label">Day streak</span>
         </div>
         <div className="progress-stat">
@@ -41,7 +45,9 @@ function ProgressCard({ progress }) {
 
       <div className="progress-bar-section">
         <div className="progress-bar-label">
-          <span>Daily goal {progress.dailyGoalMet ? '✅' : ''}</span>
+          <span className="goal-label">
+            Daily goal {progress.dailyGoalMet && <Icon name="check" size={16} className="goal-check" />}
+          </span>
           <span>{progress.wordsToday}/{progress.dailyGoal} words</span>
         </div>
         <div className="progress-bar">

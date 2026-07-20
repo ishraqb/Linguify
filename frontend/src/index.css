@@ -494,7 +494,8 @@ button {
     justify-content: center;
     border-radius: 12px;
     color: rgba(255, 255, 255, 0.92);
-    font-size: 34px;
+    /* Default gradient for callers that don't pass an inline background. */
+    background: linear-gradient(135deg, #16a89a, #0f8b80);
 }
 
 
@@ -840,9 +841,27 @@ button {
 }
 
 .progress-stat-value {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     font-size: 26px;
     font-weight: 800;
     color: #1a1d1e;
+}
+
+.streak-icon {
+    color: #f5901e;
+}
+
+.goal-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.goal-check {
+    color: #16a89a;
 }
 
 .progress-stat-label {
@@ -1096,8 +1115,8 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
     background: #e4f6f2;
+    color: #16a89a;
 }
 
 .now-playing-info {
@@ -1494,9 +1513,15 @@ button {
 }
 
 .complete-emoji {
-    font-size: 54px;
-    line-height: 1;
-    margin-bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.18);
 }
 
 .stats-grid {
@@ -1514,9 +1539,14 @@ button {
 }
 
 .stat-card .stat-icon {
-    display: block;
-    font-size: 30px;
-    margin-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.6);
 }
 
 .stat-card h3 {
@@ -1536,6 +1566,11 @@ button {
 .stat-card:nth-child(2) { background: #fff1de; border-color: #ffe0b8; }
 .stat-card:nth-child(3) { background: #eef0ff; border-color: #d9d9ff; }
 .stat-card:nth-child(4) { background: #ffe7ed; border-color: #ffccd6; }
+
+.stat-card:nth-child(1) .stat-icon { color: #0f8b80; }
+.stat-card:nth-child(2) .stat-icon { color: #e07d10; }
+.stat-card:nth-child(3) .stat-icon { color: #5a54d6; }
+.stat-card:nth-child(4) .stat-icon { color: #d83a5e; }
 
 .new-words-box {
     border: 1px solid #e6ebe8;

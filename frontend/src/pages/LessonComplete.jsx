@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import Icon from '../components/Icon'
 import { recordActivity } from '../services/api'
 
 /**
@@ -48,7 +49,7 @@ function LessonComplete() {
       <Navbar/>
 
       <div className="complete-header">
-        <div className="complete-emoji">🎉</div>
+        <div className="complete-emoji"><Icon name="trophy" size={40} strokeWidth={1.6} /></div>
         <h1>Song Finished!</h1>
         <p>
           You completed a lesson for <strong>{selectedSong.title}</strong> by {' '}
@@ -58,19 +59,19 @@ function LessonComplete() {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <span className="stat-icon">📖</span>
+          <span className="stat-icon"><Icon name="book" size={24} /></span>
           <h3>Lines Reviewed</h3>
           <p>{linesReviewed}</p>
         </div>
 
         <div className="stat-card">
-          <span className="stat-icon">⭐</span>
+          <span className="stat-icon"><Icon name="star" size={24} fill /></span>
           <h3>Words Saved</h3>
           <p>{savedWords.length}</p>
         </div>
 
         <div className="stat-card">
-          <span className="stat-icon">🌍</span>
+          <span className="stat-icon"><Icon name="globe" size={24} /></span>
           <h3>Language</h3>
           <p>
             {sourceLanguage.label} → {targetLanguage.label}
@@ -79,7 +80,7 @@ function LessonComplete() {
 
         {hasQuizResult && (
           <div className="stat-card">
-            <span className="stat-icon">🎯</span>
+            <span className="stat-icon"><Icon name="target" size={24} /></span>
             <h3>Quiz Score</h3>
             <p>
               {quizScore}/{quizTotal}

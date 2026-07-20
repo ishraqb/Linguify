@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { detectLanguage, getDifficulty } from '../services/api'
+import { detectLanguage, getDifficulty, getPreview } from '../services/api'
 import LanguagePicker from '../components/LanguagePicker'
+import Icon from '../components/Icon'
 import { TARGET_LANGUAGES, findLanguage } from '../data/languages'
 
 /**
@@ -19,6 +20,7 @@ function LanguageSelection() {
   const [autoDetected, setAutoDetected] = useState(false)
   const [difficulty, setDifficulty] = useState(null)
   const [showSourceOverride, setShowSourceOverride] = useState(false)
+  const [coverUrl, setCoverUrl] = useState(selectedSong?.coverUrl || null)
 
   // Auto-detect the song's language from its lyrics; only fall back to a manual picker if it fails
   useEffect(() => {
@@ -42,6 +44,20 @@ function LanguageSelection() {
       .finally(() => {
         if (active) setDetecting(false)
       })
+    return () => {
+      active = false
+    }
+  }, [selectedSong])
+
+  // Pull album art from Deezer when the catalog song is missing a cover.
+  useEffect(() => {
+    if (!selectedSong || selectedSong.coverUrl) return
+    let active = true
+    getPreview(selectedSong.title, selectedSong.artist)
+      .then((media) => {
+        if (active && media.coverUrl) setCoverUrl(media.coverUrl)
+      })
+      .catch(() => {})
     return () => {
       active = false
     }
@@ -112,14 +128,16 @@ function LanguageSelection() {
 
       <div className="selected-song-box">
         <div className="song-cover">
-          {selectedSong.coverUrl ? (
+          {coverUrl ? (
             <img
-              src={selectedSong.coverUrl}
+              src={coverUrl}
               alt={`${selectedSong.title} cover`}
               className="song-cover-img"
             />
           ) : (
-            'Album/Song Cover Photo'
+            <div className="song-cover-fallback">
+              <Icon name="music" size={28} strokeWidth={1.6} />
+            </div>
           )}
         </div>
           
