@@ -80,7 +80,7 @@ button {
 .language-button,
 .word-button {
     border: 1px solid transparent;
-    border-radius: 10px;
+    border-radius: 14px;
     padding: 11px 18px;
     font-weight: 700;
     cursor: pointer;
@@ -215,7 +215,7 @@ button {
 }
 
 .ghost-link {
-    color: #1f1f1f;
+    color: #1a1d1e;
     font-weight: 600;
     padding: 8px 14px;
     border-radius: 999px;
@@ -441,7 +441,7 @@ button {
 .step-box {
     border: 1px solid #e6ebe8;
     background: white;
-    border-radius: 6px;
+    border-radius: 10px;
     padding: 10px 16px;
     text-align: center;
 }
@@ -516,14 +516,14 @@ button {
     align-items: center;
     gap: 4px;
     border: 1px solid #e6ebe8;
-    border-radius: 10px;
+    border-radius: 14px;
     background: white;
     padding: 18px 12px;
     cursor: pointer;
 }
 
 .target-card:hover {
-    background: #eeeeee;
+    background: #f4f7f5;
 }
 
 .target-card-label {
@@ -533,7 +533,7 @@ button {
 
 .target-card-native {
     font-size: 13px;
-    color: #777;
+    color: #7a837d;
 }
 
 .target-card.selected-language {
@@ -542,7 +542,7 @@ button {
 }
 
 .target-card.selected-language .target-card-native {
-    color: #1f1f1f;
+    color: #1a1d1e;
 }
 
 /* ---------- Language Picker (quick picks + searchable list) ---------- */
@@ -556,7 +556,7 @@ button {
     width: 100%;
     box-sizing: border-box;
     border: 1px solid #e6ebe8;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 12px;
     font-size: 16px;
     margin-top: 4px;
@@ -569,7 +569,7 @@ button {
     max-height: 260px;
     overflow-y: auto;
     border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    border-radius: 12px;
 }
 
 .language-results li {
@@ -594,7 +594,7 @@ button {
 }
 
 .language-result:hover {
-    background: #eeeeee;
+    background: #f4f7f5;
 }
 
 .language-result-label {
@@ -603,7 +603,7 @@ button {
 
 .language-result-native {
     font-size: 13px;
-    color: #777;
+    color: #7a837d;
 }
 
 .language-result.selected-language {
@@ -618,7 +618,7 @@ button {
 .language-results-empty {
     padding: 16px;
     text-align: center;
-    color: #777;
+    color: #7a837d;
 }
 
 /* ---------- Discover filters ---------- */
@@ -643,19 +643,26 @@ button {
 }
 
 .filter-select {
-    border: 1px solid #e6ebe8;
-    border-radius: 8px;
-    padding: 8px 12px;
+    border: 1px solid #d7ddda;
+    border-radius: 12px;
+    padding: 9px 14px;
     font-size: 15px;
-    font-weight: bold;
+    font-weight: 700;
     background: white;
     cursor: pointer;
+    box-shadow: 0 2px 8px rgba(20, 40, 30, 0.04);
+    outline: none;
+}
+
+.filter-select:focus {
+    border-color: #159a5b;
+    box-shadow: 0 0 0 3px rgba(21, 154, 91, 0.15);
 }
 
 .context-translation {
     margin-top: 6px;
     font-style: italic;
-    color: #555;
+    color: #5b6169;
 }
 
 .romaji {
@@ -663,7 +670,7 @@ button {
     margin-top: 4px;
     font-size: 13px;
     font-style: italic;
-    color: #888;
+    color: #7a837d;
 }
 
 .explicit-toggle {
@@ -746,7 +753,7 @@ button {
 
 .progress-bar {
     height: 12px;
-    border-radius: 6px;
+    border-radius: 10px;
     background: #ededed;
     overflow: hidden;
 }
@@ -754,7 +761,7 @@ button {
 .progress-bar-fill {
     height: 100%;
     background: #159a5b;
-    border-radius: 6px;
+    border-radius: 10px;
     transition: width 0.3s ease;
 }
 
@@ -791,14 +798,14 @@ button {
 .playlist-cover {
     width: 100%;
     aspect-ratio: 1 / 1;
-    border-radius: 8px;
+    border-radius: 12px;
     background: #ededed;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     font-weight: bold;
-    color: #888;
+    color: #7a837d;
 }
 
 .playlist-cover img {
@@ -814,7 +821,7 @@ button {
 
 .playlist-count {
     font-size: 13px;
-    color: #666;
+    color: #5b6169;
 }
 
 .playlist-heading {
@@ -838,7 +845,7 @@ button {
 }
 
 .filter-pill:hover {
-    background: #eeeeee;
+    background: #f4f7f5;
 }
 
 .filter-pill-active {
@@ -857,7 +864,7 @@ button {
     align-items: center;
     gap: 24px;
     border: 1px solid #e6ebe8;
-    border-radius: 8px;
+    border-radius: 12px;
     background: white;
     padding: 20px;
     max-width: 500px;
@@ -905,7 +912,7 @@ button {
 
 .song-title-box p {
     margin: 6px 0 0;
-    color: #555;
+    color: #5b6169;
 }
 
 .playback-options {
@@ -967,7 +974,7 @@ button {
 .now-playing-art-placeholder {
     width: 56px;
     height: 56px;
-    border-radius: 8px;
+    border-radius: 12px;
     object-fit: cover;
     border: 1px solid #e6ebe8;
 }
@@ -996,7 +1003,7 @@ button {
 }
 
 .now-playing-artist {
-    color: #555;
+    color: #5b6169;
     font-size: 13px;
     white-space: nowrap;
     overflow: hidden;
@@ -1041,7 +1048,7 @@ button {
 
 .now-playing-bar span {
     font-size: 12px;
-    color: #555;
+    color: #5b6169;
     font-variant-numeric: tabular-nums;
     min-width: 34px;
     text-align: center;
@@ -1065,7 +1072,7 @@ button {
 
 .saved-count-box {
     border: 1px solid #e6ebe8;
-    border-radius: 8px;
+    border-radius: 12px;
     background: white;
     padding: 10px 14px;
     margin-bottom: 12px;
@@ -1098,7 +1105,7 @@ button {
 .lyrics-list,
 .word-panel {
     border: 1px solid #e6ebe8;
-    border-radius: 8px;
+    border-radius: 12px;
     background: white;
     padding: 16px;
     max-height: 480px;
@@ -1107,7 +1114,7 @@ button {
 
 .lyric-line {
     border: 1px solid #e6ebe8;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 14px;
     margin-bottom: 12px;
     opacity: 0.55;
@@ -1125,7 +1132,7 @@ button {
 }
 
 .lyric-line span {
-    color: #555;
+    color: #5b6169;
 }
 
 .active-lyric {
@@ -1168,16 +1175,16 @@ button {
 
 .practice-button {
     border: 1px solid #e6ebe8;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 8px 14px;
     font-weight: bold;
     background: white;
-    color: #1f1f1f;
+    color: #1a1d1e;
     cursor: pointer;
 }
 
 .practice-button:hover:not(:disabled) {
-    background: #eeeeee;
+    background: #f4f7f5;
 }
 
 .practice-active {
@@ -1196,7 +1203,7 @@ button {
     margin: 0 auto 16px;
     text-align: center;
     font-size: 13px;
-    color: #777;
+    color: #7a837d;
 }
 
 .lesson-controls {
@@ -1209,7 +1216,7 @@ button {
 
 .lesson-controls p {
     border: 1px solid #e6ebe8;
-    border-radius: 8px;
+    border-radius: 12px;
     background: white;
     padding: 10px;
     text-align: center;
@@ -1234,7 +1241,7 @@ button {
     width: 100%;
     max-width: 520px;
     border: 1px solid #e6ebe8;
-    border-radius: 10px;
+    border-radius: 14px;
     background: white;
     padding: 28px;
     position: relative;
@@ -1259,7 +1266,7 @@ button {
 
 .modal-section p {
     border: 1px solid #e6ebe8;
-    border-radius: 6px;
+    border-radius: 10px;
     padding: 10px;
     margin: 0;
 }
@@ -1279,7 +1286,7 @@ button {
 
 .quiz-prompt {
     border: 1px solid #e6ebe8;
-    border-radius: 10px;
+    border-radius: 14px;
     background: white;
     padding: 28px 24px;
     font-size: 22px;
@@ -1299,7 +1306,7 @@ button {
 
 .quiz-option {
     border: 1px solid #e6ebe8;
-    border-radius: 8px;
+    border-radius: 12px;
     background: white;
     padding: 16px;
     font-size: 17px;
@@ -1308,7 +1315,7 @@ button {
 }
 
 .quiz-option:hover:not(:disabled) {
-    background: #eeeeee;
+    background: #f4f7f5;
 }
 
 .quiz-option:disabled {
@@ -1335,7 +1342,7 @@ button {
 
 .quiz-score-box {
     border: 1px solid #e6ebe8;
-    border-radius: 10px;
+    border-radius: 14px;
     background: white;
     padding: 32px;
     text-align: center;
@@ -1353,7 +1360,7 @@ button {
 
 .complete-header {
     border: 1px solid #e6ebe8;
-    border-radius: 8px;
+    border-radius: 12px;
     background: white;
     padding: 28px;
     text-align: center;
@@ -1384,7 +1391,7 @@ button {
 
 .new-words-box {
     border: 1px solid #e6ebe8;
-    border-radius: 8px;
+    border-radius: 12px;
     background: white;
     padding: 18px;
 }
@@ -1410,7 +1417,7 @@ button {
 
 .word-count {
     border: 1px solid #e6ebe8;
-    border-radius: 6px;
+    border-radius: 10px;
     background: white;
     padding: 8px 12px;
 }
@@ -1491,7 +1498,7 @@ button {
 
     .playback-options button:first-child,
     .playback-options button:last-child {
-        border-radius: 8px;
+        border-radius: 12px;
     }
 }
 
@@ -1503,7 +1510,7 @@ button {
   justify-content: center; align-items: center; text-align: center; cursor: pointer;
 }
 .flashcard h2 { font-size: 32px; margin: 0 0 8px; }
-.flashcard-hint { color: #777; margin-top: 16px; font-size: 14px; }
+.flashcard-hint { color: #7a837d; margin-top: 16px; font-size: 14px; }
 .flashcard-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
 
 @keyframes heroFlow {
