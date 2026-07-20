@@ -9,6 +9,7 @@ from services.difficulty_service import compute_difficulty
 from services.cloze_service import generate_cloze_questions
 from services.discovery_service import discover_songs, available_languages
 from services.romanization_service import romanize_lines, needs_romanization
+from services.youtube_service import search_videos, simplify_video
 from services.progress_service import (
   get_or_create_progress,
   record_activity,
@@ -101,6 +102,21 @@ def get_preview():
   if not title or not artist:
     return jsonify(error="Missing title or artist"), 400
   return jsonify(preview_url=get_preview_url(title, artist))
+
+# GET /api/youtube/search - search YouTube videos for the query string 'q'.
+@api_bp.get("/api/youtube/search")
+def search_youtube():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  query = request.args.get("q", "").strip()
+  if not query:
+    return jsonify(error="Missing query parameter 'q'"), 400
+  try:
+    data = search_videos(query, limit=10)
+  except requests.HTTPError:
+    return jsonify(error="YouTube search failed"), 502
+  items = data.get("items", [])
+  return jsonify(videos=[simplify_video(item) for item in items])
 
 # GET /api/token - return the current Spotify access token for the Web Playback SDK.
 @api_bp.get("/api/token")

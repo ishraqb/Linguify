@@ -87,6 +87,24 @@ export async function searchSongs(query) {
     return data.tracks
 }
 
+// Searches YouTube videos by title or artist
+export async function searchYoutube(query) {
+    const response = await fetch(
+        `${API_BASE_URL}/api/youtube/search?q=${encodeURIComponent(query)}`,
+        {
+            credentials: 'include',
+        }
+    )
+
+    if (!response.ok) {
+        throw new Error("Failed to search YouTube")
+    }
+
+    const data = await response.json()
+
+    return data.videos
+}
+
 // Gets the recently played songs in users Spotify
 export async function getRecentlyPlayedSongs() {
     const response = await fetch(`${API_BASE_URL}/api/recently-played`, {
