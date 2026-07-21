@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import WordSaveModal from "../components/WordSaveModal";
 import NowPlaying from "../components/NowPlaying";
-import { getLyrics, getMe, getPreview, getRomanization, getToken, getTranslation, getWordContext, saveWord as saveWordToBackend, startPlayback } from "../services/api";
+import { getLyrics, getMe, getPreview, getRomanization, getToken, getTranslation, getWordContext, resolveTrackId, saveWord as saveWordToBackend, startPlayback } from "../services/api";
 import { useEffect, useRef, useState } from "react";
 
 // Languages written in non-Latin scripts, where romanization is worth offering.
@@ -71,9 +71,13 @@ function LyricsPlayer() {
   const youtubeId = selectedSong.source === "youtube" ? selectedSong.youtubeId : null;
   const youtubeMode = Boolean(youtubeId);
 
+  // Some catalog songs are stored without a Spotify track ID; we resolve one at
+  // lesson time (below) so Premium users still get full-song playback.
+  const [resolvedTrackId, setResolvedTrackId] = useState(selectedSong.id || null);
+  const trackId = selectedSong.id || resolvedTrackId;
+
   // Full-song playback via the Spotify SDK needs Premium AND a Spotify track ID.
-  // Many catalog songs have no Spotify ID, so those fall back to the 30s preview.
-  const fullSong = !youtubeMode && isPremium && Boolean(selectedSong.id);
+  const fullSong = !youtubeMode && isPremium && Boolean(trackId);
 
   // Whether we can seek/loop the playback source (full song or YouTube).
   const canSeek = fullSong || youtubeMode;
@@ -221,6 +225,17 @@ function LyricsPlayer() {
 
     loadLyricsAndTranslation();
   }, []);
+
+  // If a Premium user opened a song with no Spotify track ID (e.g. from the
+  // catalog), look one up by title/artist so playback isn't stuck on the preview.
+  useEffect(() => {
+    if (youtubeMode || selectedSong.id || resolvedTrackId || !isPremium) return;
+    let active = true;
+    resolveTrackId(selectedSong.title, selectedSong.artist)
+      .then((id) => { if (active && id) setResolvedTrackId(id); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [isPremium, youtubeMode]);
 
   // Seeks the active source to a given time in seconds
   function handleSeek(seconds) {
@@ -508,7 +523,7 @@ function LyricsPlayer() {
     if (!hasStartedRef.current) {
       hasStartedRef.current = true;
       try {
-        await startPlayback(deviceIdRef.current, selectedSong.id);
+        await startPlayback(deviceIdRef.current, trackId);
       } catch (err) {
         console.error(err);
         hasStartedRef.current = false;

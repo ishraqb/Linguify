@@ -120,6 +120,23 @@ def get_preview():
     media = {"preview_url": None, "cover_url": None}
   return jsonify(preview_url=media.get("preview_url"), cover_url=media.get("cover_url"))
 
+# GET /api/track-id - resolve a Spotify track ID from a title/artist. Catalog
+# songs may have been saved without one, and full-song playback needs it, so we
+# look it up on demand instead of falling back to the 30s preview.
+@api_bp.get("/api/track-id")
+def resolve_track_id():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  title = request.args.get("title", "").strip()
+  artist = request.args.get("artist", "").strip()
+  if not title:
+    return jsonify(id=None)
+  try:
+    track = _call_spotify(lambda token: sp.find_track(token, title, artist))
+  except requests.RequestException:
+    return jsonify(id=None)
+  return jsonify(id=(track or {}).get("id"))
+
 # GET /api/youtube/search - search YouTube videos for the query string 'q'.
 @api_bp.get("/api/youtube/search")
 def search_youtube():

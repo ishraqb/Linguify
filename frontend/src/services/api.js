@@ -118,6 +118,23 @@ export async function searchYoutube(query) {
     return data.videos
 }
 
+// Resolves a Spotify track ID from a title/artist so catalog songs without a
+// stored ID can still use full-song playback. Returns null if none is found.
+export async function resolveTrackId(title, artist) {
+    const response = await fetch(
+        `${API_BASE_URL}/api/track-id?title=${encodeURIComponent(title || '')}&artist=${encodeURIComponent(artist || '')}`,
+        {
+            credentials: 'include',
+        }
+    )
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+
+    return data.id || null
+}
+
 // Gets the recently played songs in users Spotify
 export async function getRecentlyPlayedSongs() {
     const response = await fetch(`${API_BASE_URL}/api/recently-played`, {
