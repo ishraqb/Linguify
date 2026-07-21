@@ -1,7 +1,7 @@
 import re
 import requests
 import syncedlyrics
-from models import Song
+from models import Song, Translation
 from extensions import db
 from services.song_stats_service import ensure_song_stats
 
@@ -28,6 +28,20 @@ def _pick_lrclib_result(results):
     if result.get("plainLyrics") or result.get("syncedLyrics"):
       return {"plain": result.get("plainLyrics"), "synced": result.get("syncedLyrics")}
   return None
+
+
+# Some lyric providers return each line duplicated or bilingual, joined by a
+# caret ("linea^linea" or "original^translation"). Real lyrics never contain a
+# caret, so keep only the text before it — preserving any leading [mm:ss.xx]
+# timestamp — to avoid the doubled lines we saw cached for some songs.
+def _dedupe_caret(text):
+  if not text or "^" not in text:
+    return text
+  cleaned = []
+  for line in text.split("\n"):
+    index = line.find("^")
+    cleaned.append(line[:index].rstrip() if index != -1 else line)
+  return "\n".join(cleaned)
 
 
 # Parse LRCLIB synced lyrics into ordered {time (seconds), text} entries.
@@ -101,6 +115,15 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None, cover_
   if not song:
     song = Song.query.filter_by(title=title, artist=artist).first()
   if song and song.lyrics:
+    # Heal any song cached with the caret-doubled lyrics: clean it in place and
+    # drop its stale translations so they regenerate from the clean text.
+    clean_lyrics = _dedupe_caret(song.lyrics)
+    clean_synced = _dedupe_caret(song.synced_lyrics)
+    if clean_lyrics != song.lyrics or clean_synced != song.synced_lyrics:
+      song.lyrics = clean_lyrics
+      song.synced_lyrics = clean_synced
+      Translation.query.filter_by(song_id=song.id).delete()
+      db.session.commit()
     # Backfill discovery stats for songs stored before this feature existed.
     ensure_song_stats(song, song.lyrics)
     return {
@@ -115,8 +138,8 @@ def get_or_fetch_lyrics(title, artist, spotify_track_id=None, album=None, cover_
   fetched = fetch_lyrics(title, artist, use_fallback=use_fallback)
   if not fetched or not (fetched.get("plain") or fetched.get("synced")):
     return None
-  lyrics = fetched.get("plain") or fetched.get("synced")
-  synced = fetched.get("synced")
+  lyrics = _dedupe_caret(fetched.get("plain") or fetched.get("synced"))
+  synced = _dedupe_caret(fetched.get("synced"))
   if not song:
     song = Song(
       spotify_track_id=spotify_track_id,
