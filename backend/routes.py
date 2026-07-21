@@ -8,6 +8,13 @@ from services.deezer_service import get_preview_url, get_track_media
 from services.language_service import detect_language
 from services.difficulty_service import compute_difficulty
 from services.cloze_service import generate_cloze_questions
+from services.quiz_service import (
+  translation_pairs,
+  candidate_word_pool,
+  line_questions,
+  word_questions,
+  interleave,
+)
 from services.lemma_service import base_form
 from services.example_service import example_sentence, example_sentences_bulk
 from services.discovery_service import discover_songs, available_languages, popular_songs
@@ -341,6 +348,76 @@ def cloze_quiz():
       if example:
         question["example"] = example.get("text")
         question["exampleTranslation"] = example.get("translation")
+  return jsonify(questions=questions)
+
+# GET /api/quiz - build a varied quiz (fill-in-the-blank, line translation, and
+# word meaning multiple-choice) from a song's lyrics, enriched so each answer is
+# a learning moment. Falls back to fill-in-the-blank only if no target language.
+@api_bp.get("/api/quiz")
+def quiz():
+  if "spotify_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+  song_id = request.args.get("song_id", type=int)
+  language = request.args.get("language", "en").strip() or "en"
+  target_language = request.args.get("target_language", "").strip() or None
+  if not song_id:
+    return jsonify(error="Missing song_id"), 400
+  song = Song.query.get(song_id)
+  if not song or not song.lyrics:
+    return jsonify(error="Song or lyrics not found"), 404
+
+  cloze = generate_cloze_questions(song.lyrics, language=language, count=3)
+  for question in cloze:
+    question["type"] = "cloze"
+    question["instruction"] = "Fill in the blank"
+
+  line_qs = []
+  word_qs = []
+
+  # Translation-based question types only make sense when we're translating.
+  if target_language and target_language != language:
+    # Translate the cloze answers + a small pool of content words once (cached in
+    # the DB), then reuse the results for enrichment and word questions.
+    word_pool = candidate_word_pool(song.lyrics, language, limit=8)
+    all_words = list(dict.fromkeys([q["answer"] for q in cloze] + word_pool))
+    examples = example_sentences_bulk(all_words, language, target_language)
+    meanings = {}
+    for word in all_words:
+      try:
+        meanings[word] = get_or_create_word_translation(word, language, target_language)
+      except requests.RequestException:
+        meanings[word] = None
+
+    def _detail(word):
+      detail = {"baseForm": base_form(word, language)}
+      example = examples.get(word)
+      if example:
+        detail["example"] = example.get("text")
+        detail["exampleTranslation"] = example.get("translation")
+      return detail
+
+    # Enrich the fill-in-the-blank answers with meaning + a real example.
+    for question in cloze:
+      answer = question["answer"]
+      question["meaning"] = meanings.get(answer)
+      question.update(_detail(answer))
+
+    # Word-meaning MC: keep only words that actually translated to something new.
+    word_meanings = {}
+    details = {}
+    for word in word_pool:
+      meaning = meanings.get(word)
+      if meaning and meaning.lower() != word.lower():
+        word_meanings[word] = meaning
+        details[word] = _detail(word)
+    word_qs = word_questions(word_meanings, count=2, details=details)
+
+    # Line-translation MC from the cached full-song translation.
+    translation = get_or_create_translation(song_id, target_language, language)
+    pairs = translation_pairs(translation["translated_lyrics"]) if translation else []
+    line_qs = line_questions(pairs, count=3)
+
+  questions = interleave(cloze, line_qs, word_qs)
   return jsonify(questions=questions)
 
 # GET /api/translate - translate a full song's lyrics into the target language.

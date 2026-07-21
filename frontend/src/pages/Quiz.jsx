@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { getCloze } from '../services/api'
+import { getQuiz } from '../services/api'
 import Icon from '../components/Icon'
 
 /**
- * Fill-in-the-blank (cloze) quiz built from the song's lyrics.
- * Shows one lyric line at a time with a missing word and multiple-choice options,
- * explains each answer, and lets the learner review every question at the end.
+ * Mixed quiz built from the song's lyrics: fill-in-the-blank, "choose the
+ * correct translation" of a line, and "what does this word mean?". Shows one
+ * question at a time with multiple-choice options, explains each answer, and
+ * lets the learner review every question at the end.
  */
 function Quiz() {
   const location = useLocation()
@@ -33,7 +34,7 @@ function Quiz() {
       return
     }
     let active = true
-    getCloze(songId, sourceLanguage?.code, targetLanguage?.code)
+    getQuiz(songId, sourceLanguage?.code, targetLanguage?.code)
       .then((data) => {
         if (!active) return
         setQuestions(data || [])
@@ -166,7 +167,9 @@ function Quiz() {
                     <span className="review-number">Q{i + 1}</span>
                   </div>
 
-                  <p className="review-prompt">{q.prompt}</p>
+                  <p className="review-prompt">
+                    {q.type === 'word' ? `What does “${q.prompt}” mean?` : q.prompt}
+                  </p>
 
                   <div className="review-answers">
                     {!correct && (
@@ -176,9 +179,13 @@ function Quiz() {
                     )}
                     <p className="review-line">
                       Answer: <strong>{q.answer}</strong>
-                      {q.meaning ? <span className="review-meaning"> — {q.meaning}</span> : null}
+                      {q.type === 'cloze' && q.meaning ? (
+                        <span className="review-meaning"> — {q.meaning}</span>
+                      ) : null}
                     </p>
-                    {q.line && <p className="review-context">In the song: “{q.line}”</p>}
+                    {q.type === 'cloze' && q.line && (
+                      <p className="review-context">In the song: “{q.line}”</p>
+                    )}
                     {q.example && (
                       <p className="review-context">
                         Example: “{q.example}”
@@ -206,7 +213,7 @@ function Quiz() {
         </Link>
 
         <div className="song-title-box">
-          <h1>Fill in the blank</h1>
+          <h1>Quiz</h1>
           <p>Question {currentIndex + 1} of {questions.length}</p>
         </div>
 
@@ -218,10 +225,21 @@ function Quiz() {
       </div>
 
       <div className="quiz-card">
-        <div className="quiz-prompt">{question.prompt}</div>
+        <span className="quiz-type-label">{question.instruction || 'Fill in the blank'}</span>
+        <div
+          className={
+            question.type === 'word'
+              ? 'quiz-prompt quiz-prompt-word'
+              : question.type === 'line'
+                ? 'quiz-prompt quiz-prompt-line'
+                : 'quiz-prompt'
+          }
+        >
+          {question.prompt}
+        </div>
 
-        <div className="quiz-options">
-          {question.options.map((option) => {
+        <div className={question.type === 'line' ? 'quiz-options quiz-options-stacked' : 'quiz-options'}>
+          {question.options.map((option, index) => {
             let className = 'quiz-option'
             if (selected) {
               if (option === question.answer) {
@@ -232,7 +250,7 @@ function Quiz() {
             }
             return (
               <button
-                key={option}
+                key={`${option}-${index}`}
                 className={className}
                 onClick={() => handleSelect(option)}
                 disabled={Boolean(selected)}
@@ -257,12 +275,17 @@ function Quiz() {
             </div>
             <p className="explanation-answer">
               <strong>{question.answer}</strong>
-              {question.meaning ? <span className="explanation-meaning"> — {question.meaning}</span> : null}
+              {question.type === 'cloze' && question.meaning ? (
+                <span className="explanation-meaning"> — {question.meaning}</span>
+              ) : null}
             </p>
-            {question.baseForm && (
+            {question.type !== 'line' && question.baseForm && (
               <p className="explanation-base">Base form: {question.baseForm}</p>
             )}
-            {question.line && (
+            {question.type === 'line' && (
+              <p className="explanation-context">Line: “{question.prompt}”</p>
+            )}
+            {question.type === 'cloze' && question.line && (
               <p className="explanation-context">In the song: “{question.line}”</p>
             )}
             {question.example && (

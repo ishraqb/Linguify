@@ -1561,10 +1561,50 @@ button {
     color: #16302c;
 }
 
+/* Small label above the prompt telling the learner what kind of question it is. */
+.quiz-type-label {
+    display: block;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 12px;
+    font-weight: 700;
+    color: #16a89a;
+    margin-bottom: 12px;
+}
+
+/* "Choose the correct translation": show the lyric line as a quoted phrase. */
+.quiz-prompt-line {
+    font-style: italic;
+    color: #234;
+}
+
+.quiz-prompt-line::before { content: "\201C"; }
+.quiz-prompt-line::after { content: "\201D"; }
+
+/* "What does this word mean?": make the single word stand out. */
+.quiz-prompt-word {
+    font-size: 30px;
+    font-weight: 800;
+    color: #0f8b80;
+}
+
 .quiz-options {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
+}
+
+/* Full-sentence options (line translation) read better stacked in one column. */
+.quiz-options-stacked {
+    grid-template-columns: 1fr;
+}
+
+.quiz-options-stacked .quiz-option {
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+    line-height: 1.4;
 }
 
 .quiz-option {

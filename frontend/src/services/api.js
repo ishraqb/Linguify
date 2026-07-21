@@ -384,6 +384,29 @@ export async function getCloze(songId, language, targetLanguage) {
     return data.questions
 }
 
+// Builds a varied quiz (fill-in-the-blank, line translation, and word meaning)
+// for a song. Falls back to fill-in-the-blank only when no target language.
+export async function getQuiz(songId, language, targetLanguage) {
+    const params = new URLSearchParams({ song_id: songId })
+    if (language) {
+        params.append('language', language)
+    }
+    if (targetLanguage) {
+        params.append('target_language', targetLanguage)
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/quiz?${params}`, {
+        credentials: 'include',
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to load quiz")
+    }
+
+    const data = await response.json()
+    return data.questions
+}
+
 // Gets the translated lyrics for a selected song using the soure & target language
 export async function getTranslation(songId, sourceLanguage, targetLanguage) {
     const params = new URLSearchParams({
