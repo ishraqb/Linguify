@@ -78,7 +78,7 @@ def callback():
     session["expires_at"] = sp.token_expiry_timestamp(token_data["expires_in"])
     session.pop("oauth_state", None)
 
-    return redirect(f"{frontend}/search")
+    return redirect(f"{frontend}/dashboard")
 
 
 # GET /api/me - return the current session's user info.
