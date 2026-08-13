@@ -8,19 +8,20 @@ import LyricsPlayer from './pages/LyricsPlayer'
 import Quiz from './pages/Quiz'
 import LessonComplete from './pages/LessonComplete'
 import MyWords from './pages/MyWords'
+import RequireAuth from './components/RequireAuth'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/search" element={<Search />} />
-        <Route path="/language-selection" element={<LanguageSelection />} />
-        <Route path="/lyrics" element={<LyricsPlayer />} />
-        <Route path="/quiz" element={<Quiz />} />
-        <Route path="/lesson-complete" element={<LessonComplete />} />
-        <Route path="/my-words" element={<MyWords />} />
+        <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+        <Route path="/search" element={<RequireAuth><Search /></RequireAuth>} />
+        <Route path="/language-selection" element={<RequireAuth><LanguageSelection /></RequireAuth>} />
+        <Route path="/lyrics" element={<RequireAuth><LyricsPlayer /></RequireAuth>} />
+        <Route path="/quiz" element={<RequireAuth><Quiz /></RequireAuth>} />
+        <Route path="/lesson-complete" element={<RequireAuth><LessonComplete /></RequireAuth>} />
+        <Route path="/my-words" element={<RequireAuth><MyWords /></RequireAuth>} />
       </Routes>
     </BrowserRouter>
   )

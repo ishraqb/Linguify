@@ -48,3 +48,11 @@ def test_daily_goal_met_and_xp(app_ctx):
 
   progress = record_activity(1, "quiz", today=day)
   assert serialize_progress(progress, 1, today=day)["xp"] == 40
+
+
+# Finishing a song twice on the same day should not double the XP.
+def test_song_xp_once_per_day(app_ctx):
+  day = date(2026, 1, 1)
+  record_activity(1, "song", today=day)
+  progress = record_activity(1, "song", today=day)
+  assert progress.total_xp == 15

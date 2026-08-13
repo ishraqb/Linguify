@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import Icon from "./Icon"
 
 /**
@@ -17,15 +18,31 @@ function WordSaveModal({
     contextualMeaning,
     onClose,
     onSave,
+    saveError,
+    saving,
 }) {
     const hasTranslation =
         wordTranslation &&
         wordTranslation !== "Loading..." &&
         wordTranslation !== "Translation unavailable"
 
+    useEffect(() => {
+        function onKey(event) {
+            if (event.key === "Escape") onClose()
+        }
+        window.addEventListener("keydown", onKey)
+        return () => window.removeEventListener("keydown", onKey)
+    }, [onClose])
+
     return (
         <div className="modal-background" onClick={onClose}>
-            <div className="word-modal" onClick={(event) => event.stopPropagation()}>
+            <div
+                className="word-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="word-modal-title"
+                onClick={(event) => event.stopPropagation()}
+            >
                 <div className="word-modal-head">
                     <span className="word-modal-eyebrow">New word</span>
                     <button className="close-button" onClick={onClose} aria-label="Close">
@@ -34,7 +51,7 @@ function WordSaveModal({
                 </div>
 
                 <div className="word-modal-hero">
-                    <h2 className="word-modal-word">{word}</h2>
+                    <h2 id="word-modal-title" className="word-modal-word">{word}</h2>
                     <p className={hasTranslation ? "word-modal-translation" : "word-modal-translation muted"}>
                         {hasTranslation ? wordTranslation : (wordTranslation || "Translation unavailable")}
                     </p>
@@ -67,12 +84,14 @@ function WordSaveModal({
                     )}
                 </div>
 
+                {saveError && <p className="page-text">{saveError}</p>}
+
                 <div className="button-row">
                     <button className="secondary-button" onClick={onClose}>
                         Cancel
                     </button>
-                    <button className="main-button" onClick={onSave}>
-                        <Icon name="star" size={16} fill /> Save to My Words
+                    <button className="main-button" onClick={onSave} disabled={saving}>
+                        <Icon name="star" size={16} fill /> {saving ? "Saving…" : "Save to My Words"}
                     </button>
                 </div>
             </div>

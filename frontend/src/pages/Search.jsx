@@ -8,6 +8,7 @@ import { searchSongs, discoverSongs, searchYoutube } from '../services/api'
 import { TARGET_LANGUAGES, findLanguage } from '../data/languages'
 
 const DIFFICULTY_LEVELS = ['Beginner', 'Intermediate', 'Advanced']
+const YOUTUBE_SUGGESTIONS = ['Bad Bunny', 'BTS', 'Stromae', 'Rosalía', 'Aya Nakamura']
 
 // Turns a noisy YouTube title ("Artist - Song (Official Video)") into a clean
 // { title, artist } so lyrics lookup (by title + artist) has the best chance.
@@ -259,7 +260,20 @@ function Search() {
           {youtubeError && <p className="page-text">{youtubeError}</p>}
 
           {!isYoutubeLoading && !query.trim() && (
-            <p className="page-text">Type a song or artist to search YouTube.</p>
+            <div className="youtube-empty">
+              <p className="page-text">Type a song or artist, or try one of these:</p>
+              <div className="filter-pills">
+                {YOUTUBE_SUGGESTIONS.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    className="filter-pill"
+                    onClick={() => setQuery(suggestion)}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
 
           {!isYoutubeLoading &&

@@ -1,10 +1,22 @@
-import { NavLink, Link } from 'react-router-dom'
+import { NavLink, Link, useNavigate } from 'react-router-dom'
+import { logout } from '../services/api'
 
 /**
  * Reusable navigation bar for signed in users
  * Contains links to Dashboard, Search, My Words, and Logout
  */
 function Navbar() {
+  const navigate = useNavigate()
+
+  async function handleLogout() {
+    try {
+      await logout()
+    } catch {
+      // Still send them home even if the session was already gone.
+    }
+    navigate('/')
+  }
+
   return (
     <nav className="top-nav">
       <Link to="/dashboard" className="brand">
@@ -40,9 +52,9 @@ function Navbar() {
           My Words
         </NavLink>
 
-        <Link to="/" className="nav-link">
+        <button type="button" className="nav-link nav-logout" onClick={handleLogout}>
           Logout
-        </Link>
+        </button>
       </div>
     </nav>
   )

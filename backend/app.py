@@ -42,6 +42,8 @@ def create_app():
     # Initialize the database and create tables if they don't exist.
     with app.app_context():
       db.create_all()
+      from schema import ensure_schema
+      ensure_schema()
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(api_bp)

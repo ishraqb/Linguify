@@ -269,6 +269,11 @@ button {
     text-align: center;
 }
 
+button.nav-logout {
+    cursor: pointer;
+    font-family: inherit;
+}
+
 .nav-link:hover {
     background: #eef3f0;
     color: #1a1d1e;
@@ -1312,6 +1317,45 @@ button {
 
 .word-button {
     background: white;
+    min-height: 44px;
+}
+
+.goal-adjust {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #46504b;
+}
+
+.goal-adjust-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #cfe9e4;
+    background: white;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #0f8b80;
+}
+
+.goal-adjust-button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.review-grade {
+    gap: 12px;
+}
+
+.lyric-line p.lyric-hidden {
+    color: #8aa7a2;
+    font-weight: 600;
+    font-style: italic;
 }
 
 /* ---------- Practice Controls (loop + slow-down) ---------- */
@@ -2101,6 +2145,12 @@ button {
 
     .lesson-controls {
         grid-template-columns: 1fr;
+    }
+
+    .word-panel {
+        grid-template-columns: repeat(2, 1fr);
+        position: static;
+        max-height: none;
     }
 
     .practice-controls {

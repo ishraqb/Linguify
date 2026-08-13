@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar'
 import SongCard from '../components/SongCard'
 import WordCard from '../components/WordCard'
 import ProgressCard from '../components/ProgressCard'
-import { getRecentlyPlayedSongs, getSavedWords, getPlaylists, getPlaylistTracks, getProgress } from '../services/api'
+import { getRecentlyPlayedSongs, getSavedWords, getPlaylists, getPlaylistTracks, getProgress, updateDailyGoal } from '../services/api'
 
 /**
  * Dashboard view for signed in users
@@ -18,55 +18,60 @@ function Dashboard() {
   const [playlistTracks, setPlaylistTracks] = useState([])
   const [loadingTracks, setLoadingTracks] = useState(false)
   const [progress, setProgress] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [sectionErrors, setSectionErrors] = useState({})
 
   // Loads in the recently played songs, playlists, and recent saved words
   useEffect(() => {
-    async function loadRecentlyPlayed() {
-      try {
-        const tracks = await getRecentlyPlayedSongs()
-        if (tracks.length > 0) {
-          setRecentlyPlayedSongs(tracks)
-        }
-      } catch {
-        console.log("Could not load recently played songs")
+    async function loadDashboard() {
+      const errors = {}
+
+      const [tracksResult, listsResult, wordsResult, statsResult] = await Promise.allSettled([
+        getRecentlyPlayedSongs(),
+        getPlaylists(),
+        getSavedWords(),
+        getProgress(),
+      ])
+
+      if (tracksResult.status === 'fulfilled') {
+        setRecentlyPlayedSongs(tracksResult.value || [])
+      } else {
+        errors.recent = 'Could not load recently played songs.'
       }
+
+      if (listsResult.status === 'fulfilled') {
+        setPlaylists(listsResult.value || [])
+      } else {
+        errors.playlists = 'Could not load playlists.'
+      }
+
+      if (wordsResult.status === 'fulfilled' && Array.isArray(wordsResult.value)) {
+        setRecentWords(wordsResult.value.slice(0, 4))
+      } else {
+        errors.words = 'Could not load saved words.'
+      }
+
+      if (statsResult.status === 'fulfilled') {
+        setProgress(statsResult.value)
+      } else {
+        errors.progress = true
+      }
+
+      setSectionErrors(errors)
+      setLoading(false)
     }
 
-    async function loadPlaylists() {
-      try {
-        const lists = await getPlaylists()
-        setPlaylists(lists || [])
-      } catch {
-        console.log("Could not load playlists")
-      }
-    }
-
-    async function loadRecentWords() {
-      try {
-        const savedWords = await getSavedWords()
-
-        if (Array.isArray(savedWords)) {
-          setRecentWords(savedWords.slice(0, 2))
-        }
-      } catch {
-        console.log("Could not load recent words")
-      }
-    }
-
-    async function loadProgress() {
-      try {
-        const stats = await getProgress()
-        setProgress(stats)
-      } catch {
-        console.log("Could not load progress")
-      }
-    }
-
-    loadRecentlyPlayed()
-    loadPlaylists()
-    loadRecentWords()
-    loadProgress()
+    loadDashboard()
   }, [])
+
+  async function handleGoalChange(nextGoal) {
+    try {
+      const stats = await updateDailyGoal(nextGoal)
+      setProgress(stats)
+    } catch {
+      // Keep the previous goal if the update fails.
+    }
+  }
 
   // Opens a playlist and loads its tracks so the user can start a lesson from any of them
   async function openPlaylist(playlist) {
@@ -77,7 +82,7 @@ function Dashboard() {
       const tracks = await getPlaylistTracks(playlist.id)
       setPlaylistTracks(tracks || [])
     } catch {
-      console.log("Could not load playlist tracks")
+      setPlaylistTracks([])
     } finally {
       setLoadingTracks(false)
     }
@@ -92,7 +97,11 @@ function Dashboard() {
         <h1 className="page-title">Pick up where you left off</h1>
       </div>
 
-      <ProgressCard progress={progress} />
+      <ProgressCard
+        progress={progress}
+        loading={loading}
+        onGoalChange={handleGoalChange}
+      />
 
       <Link to="/search" className="main-button wide-button">
         Begin New Song Lesson
@@ -100,7 +109,11 @@ function Dashboard() {
 
       <h2 className="section-title">Recently Played</h2>
 
-      {recentlyPlayedSongs.length === 0 ? (
+      {loading ? (
+        <p className="page-text">Loading your recent songs…</p>
+      ) : sectionErrors.recent ? (
+        <p className="page-text">{sectionErrors.recent}</p>
+      ) : recentlyPlayedSongs.length === 0 ? (
         <p className="page-text">Nothing here yet — play a song on Spotify and it will show up.</p>
       ) : (
         <div className="card-grid">
@@ -149,6 +162,10 @@ function Dashboard() {
             <p className="page-text">No playable tracks in this playlist.</p>
           )}
         </div>
+      ) : loading ? (
+        <p className="page-text">Loading playlists…</p>
+      ) : sectionErrors.playlists ? (
+        <p className="page-text">{sectionErrors.playlists}</p>
       ) : playlists.length === 0 ? (
         <p className="page-text">No playlists found. Playlists you own or follow will show up here.</p>
       ) : (
@@ -173,10 +190,17 @@ function Dashboard() {
         </div>
       )}
 
-      <h2 className="section-title">Recent Words</h2>
+      <div className="section-row">
+        <h2 className="section-title">Recent Words</h2>
+        <Link to="/my-words" className="secondary-button">View all</Link>
+      </div>
 
-      {recentWords.length === 0 ? (
-        <p className="page-text">No saved words yet</p>
+      {loading ? (
+        <p className="page-text">Loading saved words…</p>
+      ) : sectionErrors.words ? (
+        <p className="page-text">{sectionErrors.words}</p>
+      ) : recentWords.length === 0 ? (
+        <p className="page-text">No saved words yet — tap words during a lesson to save them.</p>
       ) : (
         <div className="card-grid">
           {recentWords.map((item) => (

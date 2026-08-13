@@ -37,6 +37,20 @@ def record_activity(user_id, activity_type="word", today=None):
 
   progress.last_activity_date = today
   progress.longest_streak = max(progress.longest_streak, progress.current_streak)
+
+  # Song and quiz XP only count once per day so finishing a lesson twice
+  # (or refreshing the complete page) does not inflate the score.
+  if activity_type == "song":
+    if progress.last_song_date == today:
+      db.session.commit()
+      return progress
+    progress.last_song_date = today
+  elif activity_type == "quiz":
+    if progress.last_quiz_date == today:
+      db.session.commit()
+      return progress
+    progress.last_quiz_date = today
+
   progress.total_xp += XP_PER_ACTIVITY.get(activity_type, 5)
   if activity_type == "word":
     progress.daily_count += 1

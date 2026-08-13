@@ -1,5 +1,6 @@
 import re
 import requests
+from datetime import date
 from concurrent.futures import ThreadPoolExecutor
 from flask import Blueprint, session, request, jsonify
 from services.lyrics_service import get_or_fetch_lyrics
@@ -28,6 +29,7 @@ from services.progress_service import (
   serialize_progress,
   ALLOWED_ACTIVITIES,
 )
+from services.review_service import due_filter, review_word
 from models import Vocabulary, Song, User
 from extensions import db
 
@@ -536,6 +538,7 @@ def save_word():
   word = _clean_word(data.get("word", ""))
   translation = data.get("translation", "").strip()
   target_language = data.get("target_language", "").strip()
+  source_language = (data.get("source_language") or "").strip() or None
   song_id = data.get("song_id")
   example_sentence = data.get("example_sentence")
   pronunciation = data.get("pronunciation")
@@ -543,14 +546,37 @@ def save_word():
   if not word or not translation or not target_language:
     return jsonify(error="Missing word, translation, or target_language"), 400
 
+  # Upsert so saving the same word twice updates it instead of duplicating.
+  existing = Vocabulary.query.filter(
+    Vocabulary.user_id == session["user_id"],
+    db.func.lower(Vocabulary.word) == word.lower(),
+    Vocabulary.target_language == target_language,
+  ).first()
+
+  if existing:
+    existing.translation = translation
+    if song_id:
+      existing.song_id = song_id
+    if example_sentence:
+      existing.example_sentence = example_sentence
+    if pronunciation:
+      existing.pronunciation = pronunciation
+    if source_language:
+      existing.source_language = source_language
+    db.session.commit()
+    return jsonify(_serialize_vocab(existing)), 200
+
   vocab_word = Vocabulary(
     user_id=session["user_id"],
     song_id=song_id,
     word=word,
     translation=translation,
     target_language=target_language,
+    source_language=source_language,
     example_sentence=example_sentence,
     pronunciation=pronunciation,
+    review_box=0,
+    next_review_at=date.today(),
   )
 
   db.session.add(vocab_word)
@@ -559,21 +585,7 @@ def save_word():
   # Saving a word counts toward XP, the daily goal, and the streak.
   record_activity(session["user_id"], "word")
 
-  song_title = None
-  if vocab_word.song:
-    song_title = vocab_word.song.title
-
-  return jsonify({
-    "id": vocab_word.id,
-    "word": vocab_word.word,
-    "translation": vocab_word.translation,
-    "definition": vocab_word.translation,
-    "targetLanguage": vocab_word.target_language,
-    "exampleSentence": vocab_word.example_sentence,
-    "pronunciation": vocab_word.pronunciation,
-    "songTitle": song_title,
-    "dateAdded": vocab_word.created_at.strftime("%Y-%m-%d"),
-  }), 201
+  return jsonify(_serialize_vocab(vocab_word)), 201
 
 # GET /api/words - return the user's saved vocabulary, newest first.
 @api_bp.get("/api/words")
@@ -581,22 +593,25 @@ def get_words():
   if "user_id" not in session:
     return jsonify(error="Not authenticated"), 401
 
-  vocab_words = (
-    Vocabulary.query
-    .filter_by(user_id=session["user_id"])
-    .order_by(Vocabulary.created_at.desc())
-    .all()
-  )
+  query = Vocabulary.query.filter_by(user_id=session["user_id"])
+  target_language = (request.args.get("target_language") or "").strip()
+  if target_language:
+    query = query.filter_by(target_language=target_language)
+  if request.args.get("due") in ("1", "true", "yes"):
+    query = due_filter(query)
 
+  vocab_words = query.order_by(Vocabulary.created_at.desc()).all()
   return jsonify(words=[_serialize_vocab(item) for item in vocab_words])
 
 
 # Shape a saved word for the client, enriching it with the source language
 # (for pronunciation) and its base/dictionary form when we can derive them.
 def _serialize_vocab(item):
-  source_language = item.song.language if item.song else None
+  source_language = item.source_language or (item.song.language if item.song else None)
   # Clean any punctuation stored on older saves so the list shows the bare word.
   clean = _clean_word(item.word)
+  today = date.today()
+  due = item.next_review_at is None or item.next_review_at <= today
   return {
     "id": item.id,
     "word": clean,
@@ -608,8 +623,26 @@ def _serialize_vocab(item):
     "exampleSentence": item.example_sentence,
     "pronunciation": item.pronunciation,
     "songTitle": item.song.title if item.song else "",
-    "dateAdded": item.created_at.strftime("%Y-%m-%d"),
+    "dateAdded": item.created_at.strftime("%Y-%m-%d") if item.created_at else None,
+    "reviewBox": item.review_box or 0,
+    "nextReviewAt": item.next_review_at.isoformat() if item.next_review_at else None,
+    "dueForReview": due,
   }
+
+# POST /api/words/<id>/review - mark a flashcard known or still learning.
+@api_bp.post("/api/words/<int:word_id>/review")
+def review_saved_word(word_id):
+  if "user_id" not in session:
+    return jsonify(error="Not authenticated"), 401
+
+  word = Vocabulary.query.filter_by(id=word_id, user_id=session["user_id"]).first()
+  if not word:
+    return jsonify(error="Word not found"), 404
+
+  data = request.get_json() or {}
+  correct = bool(data.get("correct"))
+  review_word(word, correct)
+  return jsonify(_serialize_vocab(word))
   
 # DELETE /api/words - remove all of the logged-in user's saved words.
 @api_bp.delete("/api/words")

@@ -4,9 +4,21 @@ import Icon from './Icon'
  * Gamified stats card for the dashboard.
  * Shows the day streak, level + XP bar, words learned, and daily goal progress.
  */
-function ProgressCard({ progress }) {
+function ProgressCard({ progress, loading, onGoalChange }) {
+  if (loading) {
+    return (
+      <div className="progress-card">
+        <p className="progress-stat-label">Loading your streak…</p>
+      </div>
+    )
+  }
+
   if (!progress) {
-    return null
+    return (
+      <div className="progress-card">
+        <p className="progress-stat-label">Could not load progress. Start a lesson to begin a streak.</p>
+      </div>
+    )
   }
 
   const xpPercent = Math.min(100, Math.round((progress.xpIntoLevel / progress.xpPerLevel) * 100))
@@ -53,6 +65,29 @@ function ProgressCard({ progress }) {
         <div className="progress-bar">
           <div className="progress-bar-fill goal" style={{ width: `${goalPercent}%` }} />
         </div>
+        {onGoalChange && (
+          <div className="goal-adjust">
+            <button
+              type="button"
+              className="goal-adjust-button"
+              onClick={() => onGoalChange(progress.dailyGoal - 1)}
+              disabled={progress.dailyGoal <= 1}
+              aria-label="Lower daily goal"
+            >
+              −
+            </button>
+            <span>Goal: {progress.dailyGoal} words / day</span>
+            <button
+              type="button"
+              className="goal-adjust-button"
+              onClick={() => onGoalChange(progress.dailyGoal + 1)}
+              disabled={progress.dailyGoal >= 50}
+              aria-label="Raise daily goal"
+            >
+              +
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

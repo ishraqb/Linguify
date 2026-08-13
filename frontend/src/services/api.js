@@ -6,6 +6,17 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
+// Ends the Spotify session on the backend.
+export async function logout() {
+    const response = await fetch(`${API_BASE_URL}/api/logout`, {
+        method: 'POST',
+        credentials: 'include',
+    })
+    if (!response.ok) {
+        throw new Error('Failed to log out')
+    }
+}
+
 // Gets a few popular catalog songs with cover art for the public landing page
 export async function getPopularSongs() {
     const response = await fetch(`${API_BASE_URL}/api/popular`)
@@ -445,10 +456,18 @@ export async function saveWord(wordData) {
 }
 
 // Loads all the user's saved words from the backend
-export async function getSavedWords() {
-    const response = await fetch(`${API_BASE_URL}/api/words`, {
-        credentials: 'include',
-    })
+export async function getSavedWords({ due, targetLanguage } = {}) {
+    const params = new URLSearchParams()
+    if (due) params.append('due', '1')
+    if (targetLanguage) params.append('target_language', targetLanguage)
+
+    const query = params.toString()
+    const response = await fetch(
+        `${API_BASE_URL}/api/words${query ? `?${query}` : ''}`,
+        {
+            credentials: 'include',
+        }
+    )
 
     if (!response.ok) {
         throw new Error("Failed to load saved words")
@@ -456,6 +475,24 @@ export async function getSavedWords() {
 
     const data = await response.json()
     return data.words
+}
+
+// Records a flashcard review (known vs still learning) and returns the updated word.
+export async function reviewWord(wordId, correct) {
+    const response = await fetch(`${API_BASE_URL}/api/words/${wordId}/review`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ correct }),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to record review")
+    }
+
+    return response.json()
 }
 
 // Gets a word translation for a specific tapped word

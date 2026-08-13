@@ -78,6 +78,11 @@ class Vocabulary(db.Model):
     target_language = db.Column(db.String(20), nullable=False)
     example_sentence = db.Column(db.Text, nullable=True)
     pronunciation = db.Column(db.String(255), nullable=True)
+    source_language = db.Column(db.String(20), nullable=True)
+    # Leitner box (0-4) and when this card is due for review.
+    review_box = db.Column(db.Integer, default=0, nullable=False)
+    next_review_at = db.Column(db.Date, nullable=True)
+    last_reviewed_at = db.Column(db.Date, nullable=True)
     created_at = db.Column(db.DateTime, default=utc_now)
 
     user = db.relationship("User", back_populates="vocab_words")
@@ -95,6 +100,9 @@ class UserProgress(db.Model):
     # Words-per-day target and how many count toward today's goal.
     daily_goal = db.Column(db.Integer, default=5, nullable=False)
     daily_count = db.Column(db.Integer, default=0, nullable=False)
+    # One song/quiz XP award per calendar day so the stats cannot be farmed.
+    last_song_date = db.Column(db.Date, nullable=True)
+    last_quiz_date = db.Column(db.Date, nullable=True)
     created_at = db.Column(db.DateTime, default=utc_now)
 
     user = db.relationship("User", back_populates="progress")

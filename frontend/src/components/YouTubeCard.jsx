@@ -2,23 +2,12 @@ import Icon from './Icon'
 
 /**
  * Reusable card for a YouTube search result.
- * Clicking the card (or Enter/Space) starts a lesson from the video; a small
- * Preview button plays it inline without leaving the page.
+ * Preview plays inline; Start lesson is the only way into the lesson flow so
+ * a stray tap doesn't skip the preview.
  */
 function YouTubeCard({ title, channelTitle, thumbnailUrl, onStart, onPreview }) {
     return (
-        <div
-            className="song-card word-card-clickable"
-            onClick={onStart}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    onStart()
-                }
-            }}
-        >
+        <div className="song-card">
             <div className="song-cover">
                 {thumbnailUrl ? (
                     <img src={thumbnailUrl} alt={`${title} thumbnail`} className="song-cover-img" />
@@ -36,20 +25,14 @@ function YouTubeCard({ title, channelTitle, thumbnailUrl, onStart, onPreview }) 
                 {onPreview && (
                     <button
                         className="secondary-button"
-                        onClick={(event) => {
-                            event.stopPropagation()
-                            onPreview()
-                        }}
+                        onClick={onPreview}
                     >
                         Preview
                     </button>
                 )}
                 <button
                     className="main-button"
-                    onClick={(event) => {
-                        event.stopPropagation()
-                        onStart()
-                    }}
+                    onClick={onStart}
                 >
                     Start lesson
                 </button>

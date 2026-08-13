@@ -16,20 +16,9 @@ const NON_LATIN_LANGUAGES = new Set([
 function LyricsPlayer() {
   const location = useLocation();
 
-  const selectedSong = location.state?.song || {
-    title: "DÁKITI",
-    artist: "Bad Bunny, Jhay Cortez",
-  };
-
-  const sourceLanguage = location.state?.sourceLanguage || {
-    label: "Spanish",
-    code: "es",
-  }
-
-  const targetLanguage = location.state?.targetLanguage || {
-    label: "English",
-    code: "en",
-  };
+  const selectedSong = location.state?.song;
+  const sourceLanguage = location.state?.sourceLanguage;
+  const targetLanguage = location.state?.targetLanguage;
 
   const [songId, setSongId] = useState(null)
   const [lyrics, setLyrics] = useState([]);
@@ -62,34 +51,43 @@ function LyricsPlayer() {
   const [loopIndex, setLoopIndex] = useState(null);
   const [romanized, setRomanized] = useState([]);
   const [showRomanization, setShowRomanization] = useState(false);
+  const [romanizeError, setRomanizeError] = useState("");
+  const [listeningMode, setListeningMode] = useState(false);
+  const [revealedLines, setRevealedLines] = useState(() => new Set());
+  const [visitedLines, setVisitedLines] = useState(() => new Set([0]));
+  const [saveError, setSaveError] = useState("");
+  const [savingWord, setSavingWord] = useState(false);
 
   // Whether the song's source language uses a non-Latin script.
-  const canRomanize = NON_LATIN_LANGUAGES.has((sourceLanguage.code || "").split("-")[0].toLowerCase());
+  const canRomanize = NON_LATIN_LANGUAGES.has((sourceLanguage?.code || "").split("-")[0].toLowerCase());
 
   // YouTube songs (chosen from the YouTube source) play the full track for
   // everyone via the embedded player — no Spotify account or Premium needed.
-  const youtubeId = selectedSong.source === "youtube" ? selectedSong.youtubeId : null;
+  const youtubeId = selectedSong?.source === "youtube" ? selectedSong.youtubeId : null;
   const youtubeMode = Boolean(youtubeId);
 
   // Some catalog songs are stored without a Spotify track ID; we resolve one at
   // lesson time (below) so Premium users still get full-song playback.
-  const [resolvedTrackId, setResolvedTrackId] = useState(selectedSong.id || null);
-  const trackId = selectedSong.id || resolvedTrackId;
+  const [resolvedTrackId, setResolvedTrackId] = useState(selectedSong?.id || null);
+  const trackId = selectedSong?.id || resolvedTrackId;
 
   // Full-song playback via the Spotify SDK needs Premium AND a Spotify track ID.
   const fullSong = !youtubeMode && isPremium && Boolean(trackId);
 
-  // Whether we can seek/loop the playback source (full song or YouTube).
-  const canSeek = fullSong || youtubeMode;
+  // Seek/loop whenever a playable source exists (full song, YouTube, or the 30s preview).
+  const canSeek = fullSong || youtubeMode || Boolean(previewUrl);
 
   // Fetch romanized versions of the displayed lines on first toggle, then show/hide.
   async function toggleRomanization() {
     if (!showRomanization && romanized.length === 0) {
       try {
+        setRomanizeError("");
         const result = await getRomanization(lyrics.map((line) => line.original), sourceLanguage.code);
         setRomanized(result || []);
       } catch (err) {
         console.error(err);
+        setRomanizeError("Could not romanize these lyrics right now.");
+        return;
       }
     }
     setShowRomanization((prev) => !prev);
@@ -149,11 +147,12 @@ function LyricsPlayer() {
       .filter((line) => !shouldSkipLine(line.original))
   }
 
-  // Parses timestamps from synced lyrics into seconds, aligned to the displayed lines
-  function parseSyncedTimes(syncedLyrics){
+  // Parses timestamps from synced lyrics, matched to displayed lines by text
+  // so highlighting does not drift when plain vs synced line counts differ.
+  function parseSyncedTimes(syncedLyrics, displayedLines){
     if (!syncedLyrics) return [];
 
-    return syncedLyrics
+    const timed = syncedLyrics
       .split("\n")
       .map((line) => {
         const match = line.match(/\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/);
@@ -165,12 +164,22 @@ function LyricsPlayer() {
 
         return { time: minutes * 60 + seconds + fraction, text: cleanLyricLine(line) };
       })
-      .filter((item) => item && item.text && !shouldSkipLine(item.text))
-      .map((item) => item.time);
+      .filter((item) => item && item.text && !shouldSkipLine(item.text));
+
+    if (!displayedLines?.length) {
+      return timed.map((item) => item.time);
+    }
+
+    return displayedLines.map((line) => {
+      const needle = (line.original || "").trim().toLowerCase();
+      const match = timed.find((item) => item.text.toLowerCase() === needle);
+      return match ? match.time : null;
+    });
   }
 
   // Loads original lyrics and translated lyrics when page opens, validates and catches any errors
   useEffect(() => {
+    if (!selectedSong || !sourceLanguage || !targetLanguage) return;
     // Guards against React StrictMode running this effect twice in development
     if (hasLoadedRef.current) return;
     hasLoadedRef.current = true;
@@ -193,7 +202,7 @@ function LyricsPlayer() {
         );
 
         setLyrics(formattedLyrics);
-        setLineTimes(parseSyncedTimes(lyricsData.synced_lyrics));
+        setLineTimes(parseSyncedTimes(lyricsData.synced_lyrics, formattedLyrics));
         setActiveLineIndex(0);
 
         try{
@@ -229,7 +238,7 @@ function LyricsPlayer() {
   // If a Premium user opened a song with no Spotify track ID (e.g. from the
   // catalog), look one up by title/artist so playback isn't stuck on the preview.
   useEffect(() => {
-    if (youtubeMode || selectedSong.id || resolvedTrackId || !isPremium) return;
+    if (youtubeMode || selectedSong?.id || resolvedTrackId || !isPremium) return;
     let active = true;
     resolveTrackId(selectedSong.title, selectedSong.artist)
       .then((id) => { if (active && id) setResolvedTrackId(id); })
@@ -239,25 +248,28 @@ function LyricsPlayer() {
 
   // Seeks the active source to a given time in seconds
   function handleSeek(seconds) {
+    const max = durationSec > 0 ? durationSec - 0.05 : seconds;
+    const clamped = Math.max(0, Math.min(seconds, max));
     if (youtubeMode) {
       if (ytPlayerRef.current && ytPlayerRef.current.seekTo) {
-        ytPlayerRef.current.seekTo(seconds, true);
+        ytPlayerRef.current.seekTo(clamped, true);
       }
     } else if (fullSong) {
       if (playerRef.current) {
-        playerRef.current.seek(Math.floor(seconds * 1000));
+        playerRef.current.seek(Math.floor(clamped * 1000));
       }
     } else if (audioRef.current) {
-      audioRef.current.currentTime = seconds;
+      audioRef.current.currentTime = clamped;
     }
-    setPositionSec(seconds);
+    setPositionSec(clamped);
   }
 
-  // Jumps playback to a line's start when a seekable source is playing (so nav/loop stay in sync)
+  // Jumps playback to a line's start when that line has a timestamp in range
   function seekToLine(index) {
-    if (canSeek && lineTimes[index] != null) {
-      handleSeek(lineTimes[index]);
-    }
+    const time = lineTimes[index];
+    if (!canSeek || time == null) return;
+    if (durationSec > 0 && time >= durationSec) return;
+    handleSeek(time);
   }
 
   // Goes to previous lyric line
@@ -284,6 +296,7 @@ function LyricsPlayer() {
   // Clicking a lyric line makes it active and (for full song) jumps the audio to it
   function handleLineClick(index) {
     setActiveLineIndex(index);
+    setRevealedLines((prev) => new Set(prev).add(index));
     if (loopLine) setLoopIndex(index);
     seekToLine(index);
   }
@@ -307,6 +320,7 @@ function LyricsPlayer() {
 
     let index = 0;
     for (let i = 0; i < lineTimes.length; i++) {
+      if (lineTimes[i] == null) continue;
       if (lineTimes[i] <= positionSec) {
         index = i;
       } else {
@@ -317,11 +331,20 @@ function LyricsPlayer() {
     setActiveLineIndex((prev) => (prev === index ? prev : index));
   }, [positionSec, lineTimes, loopLine]);
 
+  // Count every line the learner actually lands on, not the full song length.
+  if (!visitedLines.has(activeLineIndex)) {
+    const next = new Set(visitedLines);
+    next.add(activeLineIndex);
+    setVisitedLines(next);
+  }
+
   // Loops the locked line for shadowing: seek back to its start once playback reaches the end
   useEffect(() => {
     if (!loopLine || !canSeek || lineTimes.length === 0 || loopIndex == null) return;
 
     const start = lineTimes[loopIndex];
+    if (start == null) return;
+    if (durationSec > 0 && start >= durationSec) return;
     const end =
       loopIndex + 1 < lineTimes.length
         ? lineTimes[loopIndex + 1]
@@ -568,6 +591,8 @@ function LyricsPlayer() {
     setSelectedWord(null);
     setSelectedWordTranslation('')
     setSelectedContext(null)
+    setSaveError('')
+    setSavingWord(false)
   }
 
   // Saves the selected word to the backend vocabulary list
@@ -586,20 +611,42 @@ function LyricsPlayer() {
         : selectedWord
 
     try {
+      setSavingWord(true)
+      setSaveError('')
       await saveWordToBackend({
         song_id: songId,
         word: selectedWord,
         translation: wordTranslation,
         target_language: targetLanguage.code,
+        source_language: sourceLanguage.code,
         example_sentence: activeLine?.original || '',
         pronunciation: '',
       })
+      setSavedWords([...savedWords, selectedWord])
+      setSelectedWord(null)
     } catch (err) {
       console.error(err)
+      setSaveError('Could not save this word. Try again.')
+    } finally {
+      setSavingWord(false)
     }
+  }
 
-    setSavedWords([...savedWords, selectedWord])
-    setSelectedWord(null)
+  const hasTimestamps = lineTimes.some((time) => time != null);
+  const linesReviewed = Math.max(visitedLines.size, lyrics.length ? 1 : 0);
+
+  if (!selectedSong || !sourceLanguage || !targetLanguage) {
+    return (
+      <div className="page">
+        <h2 className="section-title center-text">Pick a song to start a lesson</h2>
+        <p className="page-text center-text">
+          This page needs a song and languages. Head back to Songs and choose one.
+        </p>
+        <Link to="/search" className="main-button wide-button">
+          Find a song
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -650,20 +697,34 @@ function LyricsPlayer() {
         }
       />
 
-      {/* Shadowing tool: loop the active line (any full/seekable source) */}
-      {canSeek && lineTimes.length > 0 && (
+      {/* Shadowing + listening tools */}
+      {lyrics.length > 0 && (
         <>
           <div className="practice-controls">
+            {canSeek && hasTimestamps && (
+              <button
+                className={loopLine ? "practice-button practice-active" : "practice-button"}
+                onClick={toggleLoop}
+              >
+                {loopLine ? "Looping line ↻" : "Loop line"}
+              </button>
+            )}
             <button
-              className={loopLine ? "practice-button practice-active" : "practice-button"}
-              onClick={toggleLoop}
+              className={listeningMode ? "practice-button practice-active" : "practice-button"}
+              onClick={() => setListeningMode((prev) => !prev)}
             >
-              {loopLine ? "Looping line ↻" : "Loop line"}
+              {listeningMode ? "Listening mode on" : "Listening mode"}
             </button>
           </div>
 
           <p className="practice-hint">
-            Loop replays the current line over and over for shadowing practice.
+            {listeningMode
+              ? "Translations stay hidden until you tap a line. The active line still shows so you can follow along."
+              : canSeek && hasTimestamps
+                ? fullSong || youtubeMode
+                  ? "Loop replays the current line over and over for shadowing practice."
+                  : "Loop works on lines inside the 30-second preview."
+                : "Tap a word to save it. Play the song to follow along."}
           </p>
         </>
       )}
@@ -715,6 +776,7 @@ function LyricsPlayer() {
           </button>
         </div>
       )}
+      {romanizeError && <p className="page-text">{romanizeError}</p>}
 
       {lyrics.length > 0 && (
       <div className="lyrics-layout">
@@ -739,7 +801,11 @@ function LyricsPlayer() {
                 }
               }}
             >
-              <p>{line.translation || 'Translation unavailable'}</p>
+              <p className={listeningMode && !revealedLines.has(index) && index !== activeLineIndex ? "lyric-hidden" : undefined}>
+                {listeningMode && !revealedLines.has(index) && index !== activeLineIndex
+                  ? "Tap to reveal translation"
+                  : line.translation || "Translation unavailable"}
+              </p>
               <span>{line.original}</span>
               {showRomanization && romanized[index] && (
                 <span className="romaji">{romanized[index]}</span>
@@ -785,7 +851,7 @@ function LyricsPlayer() {
             sourceLanguage,
             targetLanguage,
             savedWords,
-            linesReviewed: lyrics.length,
+            linesReviewed,
           }}
           className="main-button"
         >
@@ -799,7 +865,7 @@ function LyricsPlayer() {
             sourceLanguage,
             targetLanguage,
             savedWords,
-            linesReviewed: lyrics.length,
+            linesReviewed,
           }}
           className="secondary-button"
         >
@@ -819,6 +885,8 @@ function LyricsPlayer() {
           contextualMeaning={selectedContext?.contextual}
           onClose={closeModal}
           onSave={saveWord}
+          saveError={saveError}
+          saving={savingWord}
         />
       )}
     </div>

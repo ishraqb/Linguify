@@ -15,7 +15,7 @@ function LanguageSelection() {
   const selectedSong = location.state?.song
 
   const [sourceLanguage, setSourceLanguage] = useState(null)
-  const [targetLanguage, setTargetLanguage] = useState(null)
+  const [targetLanguage, setTargetLanguage] = useState(() => findLanguage('en'))
   const [detecting, setDetecting] = useState(true)
   const [autoDetected, setAutoDetected] = useState(false)
   const [difficulty, setDifficulty] = useState(null)
@@ -76,6 +76,11 @@ function LanguageSelection() {
       active = false
     }
   }, [selectedSong])
+
+  // If the song is already in the same language as the target, pick a different default.
+  if (sourceLanguage && targetLanguage && sourceLanguage.code === targetLanguage.code) {
+    setTargetLanguage(findLanguage(sourceLanguage.code === 'en' ? 'es' : 'en'))
+  }
 
   // Manual source options come from the shared curated list; surface a
   // detected language that isn't in the list at the front so it's selectable.

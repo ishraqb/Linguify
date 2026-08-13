@@ -3,25 +3,30 @@ import { Link } from 'react-router-dom'
 import WordCard from '../components/WordCard'
 import Flashcard from '../components/Flashcard'
 import Navbar from '../components/Navbar'
+import { findLanguage } from '../data/languages'
+import { getSavedWords, deleteSavedWord, deleteAllSavedWords, reviewWord } from '../services/api'
 
 /**
  * Page for displaying and managing the user's saved words.
  * Supports searching, single/bulk removal, tapping a word to pop up its
- * flashcard, and a full sequential flashcard review.
+ * flashcard, and a Know / Still learning review session.
  */
-import { getSavedWords, deleteSavedWord, deleteAllSavedWords } from '../services/api'
-
 function MyWords() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [languageFilter, setLanguageFilter] = useState('')
   const [words, setWords] = useState([])
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
   const [reviewMode, setReviewMode] = useState(false)
+  const [reviewDeck, setReviewDeck] = useState([])
   const [reviewIndex, setReviewIndex] = useState(0)
+  const [reviewKnown, setReviewKnown] = useState(0)
+  const [reviewLearning, setReviewLearning] = useState(0)
+  const [reviewDone, setReviewDone] = useState(false)
   const [popupCard, setPopupCard] = useState(null)
   const [selectMode, setSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState([])
 
-  // Load user's saved words from the backend when the page opens
   useEffect(() => {
     async function loadWords() {
       try {
@@ -33,12 +38,22 @@ function MyWords() {
       } catch (err) {
         console.error(err)
         setError('Could not load saved words')
+      } finally {
+        setLoading(false)
       }
     }
     loadWords()
   }, [])
 
-  // Deletes a single saved word from the backend and local state
+  useEffect(() => {
+    if (!popupCard) return
+    function onKey(event) {
+      if (event.key === 'Escape') setPopupCard(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [popupCard])
+
   async function handleDeleteWord(wordId) {
     try {
       setError('')
@@ -50,7 +65,6 @@ function MyWords() {
     }
   }
 
-  // Removes every saved word after a confirmation
   async function handleRemoveAll() {
     if (words.length === 0) return
     if (!window.confirm('Remove all saved words? This cannot be undone.')) return
@@ -65,7 +79,6 @@ function MyWords() {
     }
   }
 
-  // Removes just the multi-selected words
   async function handleRemoveSelected() {
     if (selectedIds.length === 0) return
     try {
@@ -79,7 +92,6 @@ function MyWords() {
     }
   }
 
-  // Toggles one word in/out of the multi-select set
   function toggleSelect(id) {
     setSelectedIds((current) =>
       current.includes(id) ? current.filter((x) => x !== id) : [...current, id]
@@ -91,27 +103,72 @@ function MyWords() {
     setSelectedIds([])
   }
 
-  // Filters saved words based on the given search input
-  const filteredWords = words.filter((item) =>
-    item.word.toLowerCase().includes(searchTerm.toLowerCase())
+  const languages = Array.from(
+    new Set(words.map((item) => item.targetLanguage).filter(Boolean))
   )
+
+  const filteredWords = words.filter((item) => {
+    const matchesSearch = item.word.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesLanguage = !languageFilter || item.targetLanguage === languageFilter
+    return matchesSearch && matchesLanguage
+  })
+
+  const dueCount = words.filter((item) => item.dueForReview !== false).length
 
   function startReview() {
     if (words.length === 0) return
-    setReviewMode(true)
+    const due = words.filter((item) => item.dueForReview !== false)
+    const deck = due.length > 0 ? due : words
+    setReviewDeck(deck)
     setReviewIndex(0)
+    setReviewKnown(0)
+    setReviewLearning(0)
+    setReviewDone(false)
+    setReviewMode(true)
   }
 
-  function goToNextCard() {
-    if (reviewIndex < words.length - 1) setReviewIndex(reviewIndex + 1)
+  async function markReview(correct) {
+    const card = reviewDeck[reviewIndex]
+    if (!card) return
+    try {
+      const updated = await reviewWord(card.id, correct)
+      setWords((current) => current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)))
+    } catch {
+      // Still advance the session if the network blip happens.
+    }
+    if (correct) setReviewKnown((count) => count + 1)
+    else setReviewLearning((count) => count + 1)
+
+    if (reviewIndex < reviewDeck.length - 1) {
+      setReviewIndex(reviewIndex + 1)
+    } else {
+      setReviewDone(true)
+    }
   }
 
-  function goToPreviousCard() {
-    if (reviewIndex > 0) setReviewIndex(reviewIndex - 1)
-  }
-
-  // Full sequential flashcard review
   if (reviewMode) {
+    if (reviewDone) {
+      return (
+        <div className="page">
+          <Navbar />
+          <div className="complete-header">
+            <h1>Review complete</h1>
+            <p>
+              {reviewKnown} known · {reviewLearning} still learning
+            </p>
+          </div>
+          <div className="button-row">
+            <button className="secondary-button" onClick={() => setReviewMode(false)}>
+              Back to My Words
+            </button>
+            <button className="main-button" onClick={startReview} disabled={words.length === 0}>
+              Review again
+            </button>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="page">
         <Navbar />
@@ -121,27 +178,19 @@ function MyWords() {
             Exit review
           </button>
           <div className="count-pill">
-            {reviewIndex + 1} / {words.length}
+            {reviewIndex + 1} / {reviewDeck.length}
           </div>
         </div>
 
         <div className="flashcard-area">
-          <Flashcard card={words[reviewIndex]} />
+          <Flashcard card={reviewDeck[reviewIndex]} />
 
-          <div className="flashcard-controls">
-            <button
-              className="secondary-button"
-              onClick={goToPreviousCard}
-              disabled={reviewIndex === 0}
-            >
-              Previous
+          <div className="flashcard-controls review-grade">
+            <button className="danger-button" onClick={() => markReview(false)}>
+              Still learning
             </button>
-            <button
-              className="main-button"
-              onClick={goToNextCard}
-              disabled={reviewIndex === words.length - 1}
-            >
-              Next
+            <button className="main-button" onClick={() => markReview(true)}>
+              I know this
             </button>
           </div>
         </div>
@@ -176,7 +225,7 @@ function MyWords() {
               onClick={startReview}
               disabled={words.length === 0}
             >
-              Review ({words.length})
+              Review ({dueCount || words.length})
             </button>
           </div>
         </div>
@@ -209,7 +258,31 @@ function MyWords() {
         )}
       </div>
 
+      {languages.length > 1 && (
+        <div className="filter-group">
+          <span className="filter-label">Language</span>
+          <div className="filter-pills">
+            <button
+              className={!languageFilter ? 'filter-pill filter-pill-active' : 'filter-pill'}
+              onClick={() => setLanguageFilter('')}
+            >
+              All
+            </button>
+            {languages.map((code) => (
+              <button
+                key={code}
+                className={languageFilter === code ? 'filter-pill filter-pill-active' : 'filter-pill'}
+                onClick={() => setLanguageFilter(code)}
+              >
+                {findLanguage(code)?.label || code}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {error && <p className="page-text">{error}</p>}
+      {loading && <p className="page-text">Loading your words…</p>}
 
       {filteredWords.map((item) => (
         <WordCard
@@ -226,7 +299,7 @@ function MyWords() {
         />
       ))}
 
-      {filteredWords.length === 0 &&
+      {!loading && filteredWords.length === 0 &&
         (words.length === 0 ? (
           <div className="empty-state">
             <img src="/logo-mark.png" alt="" className="empty-mascot" />
@@ -238,10 +311,14 @@ function MyWords() {
           <p className="page-text">No words match your search.</p>
         ))}
 
-      {/* Tapping a word pops up its flashcard */}
       {popupCard && (
         <div className="modal-background" onClick={() => setPopupCard(null)}>
-          <div className="flashcard-popup" onClick={(event) => event.stopPropagation()}>
+          <div
+            className="flashcard-popup"
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
             <button
               className="close-button flashcard-popup-close"
               onClick={() => setPopupCard(null)}

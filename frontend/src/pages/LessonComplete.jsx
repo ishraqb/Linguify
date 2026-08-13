@@ -12,10 +12,7 @@ import { recordActivity } from '../services/api'
 function LessonComplete() {
   const location = useLocation()
 
-  const selectedSong = location.state?.song || {
-    title: "Song",
-    artist: "Artist",
-  }
+  const selectedSong = location.state?.song
   const sourceLanguage = location.state?.sourceLanguage || {
     label: "Original",
     code: '',
@@ -44,6 +41,17 @@ function LessonComplete() {
     }
   }, [hasQuizResult])
 
+  if (!selectedSong) {
+    return (
+      <div className="page">
+        <Navbar />
+        <h2 className="section-title center-text">No lesson to finish</h2>
+        <p className="page-text center-text">Start a song first, then come back here when you wrap up.</p>
+        <Link to="/search" className="main-button wide-button">Find a song</Link>
+      </div>
+    )
+  }
+
   return (
     <div className="page">
       <Navbar/>
@@ -60,7 +68,7 @@ function LessonComplete() {
       <div className="stats-grid">
         <div className="stat-card">
           <span className="stat-icon"><Icon name="book" size={24} /></span>
-          <h3>Lines Reviewed</h3>
+          <h3>Lines in this song</h3>
           <p>{linesReviewed}</p>
         </div>
 

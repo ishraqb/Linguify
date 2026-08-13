@@ -48,8 +48,8 @@ def line_questions(pairs, count=3, rng=None):
     distractors = [t for t in all_translations if t.lower() != translation.lower()]
     rng.shuffle(distractors)
     distractors = distractors[:3]
-    # Need three plausible decoys for a fair four-option question.
-    if len(distractors) < 3:
+    # Prefer four options; allow three when the song is too short for more decoys.
+    if len(distractors) < 2:
       continue
     options = distractors + [translation]
     rng.shuffle(options)
@@ -80,7 +80,7 @@ def word_questions(word_meanings, count=2, rng=None, details=None):
     distractors = [m for m in all_meanings if m.lower() != meaning.lower()]
     rng.shuffle(distractors)
     distractors = distractors[:3]
-    if len(distractors) < 3:
+    if len(distractors) < 2:
       continue
     options = distractors + [meaning]
     rng.shuffle(options)
