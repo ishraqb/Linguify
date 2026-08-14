@@ -251,7 +251,7 @@ function Search() {
           </p>
 
           {selectedVideo && (
-            <div style={{ marginBottom: '24px' }}>
+            <div className="youtube-preview">
               <YouTubePlayer videoId={selectedVideo.id} title={selectedVideo.title} />
             </div>
           )}

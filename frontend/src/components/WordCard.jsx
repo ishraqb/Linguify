@@ -33,6 +33,16 @@ function WordCard({
                 (selected ? ' word-card-selected' : '')
             }
             onClick={clickable ? handleCardClick : undefined}
+            onKeyDown={
+              clickable
+                ? (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      handleCardClick()
+                    }
+                  }
+                : undefined
+            }
             role={clickable ? 'button' : undefined}
             tabIndex={clickable ? 0 : undefined}
         >

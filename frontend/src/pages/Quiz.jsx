@@ -48,7 +48,7 @@ function Quiz() {
     return () => {
       active = false
     }
-  }, [songId])
+  }, [songId, sourceLanguage?.code, targetLanguage?.code])
 
   const score = answers.filter((a, i) => a === questions[i]?.answer).length
 

@@ -1,5 +1,6 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { logout } from '../services/api'
+import ThemeToggle from './ThemeToggle'
 
 /**
  * Reusable navigation bar for signed in users
@@ -55,6 +56,7 @@ function Navbar() {
         <button type="button" className="nav-link nav-logout" onClick={handleLogout}>
           Logout
         </button>
+        <ThemeToggle />
       </div>
     </nav>
   )

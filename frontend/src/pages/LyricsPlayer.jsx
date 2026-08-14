@@ -652,7 +652,7 @@ function LyricsPlayer() {
   return (
     <div className="page">
       <div className="top-row">
-        <Link to="/language-selection" className="secondary-button">
+        <Link to="/language-selection" state={{ song: selectedSong }} className="secondary-button">
           ← Back
         </Link>
 
