@@ -100,7 +100,7 @@ function Landing() {
             <Box className="landing-header">
                 <Flex align="center" gap="10px">
                     <img src="/logo-mark.png" alt="Linguify logo" width="48" height="48" style={{ display: 'block', objectFit: 'contain' }} />
-                    <Text fontFamily="Fraunces, Georgia, serif" fontSize={{ base: '22px', md: '26px' }} fontWeight="700" letterSpacing="-0.03em" color="var(--teal)">Linguify</Text>
+                    <Text fontSize={{ base: '22px', md: '26px' }} fontWeight="700" letterSpacing="-0.02em" color="var(--teal)">Linguify</Text>
                 </Flex>
                 <Box className="landing-header-actions">
                     <Text as="a" href="#how-it-works" fontSize={{ base: '14px', md: '16px' }} fontWeight="600" color="var(--ink)">How it works</Text>
@@ -121,7 +121,7 @@ function Landing() {
                             <Text fontSize="12px" letterSpacing="0.14em" textTransform="uppercase" fontWeight="600" color="var(--teal)" mb="4">
                                 Learn while you listen
                             </Text>
-                            <Heading fontFamily="Fraunces, Georgia, serif" fontWeight="700" fontSize={{ base: '32px', md: '44px' }} lineHeight="1.1" letterSpacing="-0.02em" mb="4" color="var(--ink)">
+                            <Heading fontWeight="700" fontSize={{ base: '32px', md: '44px' }} lineHeight="1.1" letterSpacing="-0.02em" mb="4" color="var(--ink)">
                                 Learn languages through the songs you love
                             </Heading>
                             <Text fontSize="18px" color="var(--muted)" lineHeight="1.6" mb="6" maxW="460px">
@@ -141,7 +141,7 @@ function Landing() {
 
             <Box className="landing-band">
                 <Container maxW="1100px" px="5" py="8">
-                    <Heading fontFamily="Fraunces, Georgia, serif" fontWeight="700" fontSize={{ base: '20px', md: '24px' }} mb="4" color="var(--ink)">Popular right now</Heading>
+                    <Heading fontWeight="700" fontSize={{ base: '20px', md: '24px' }} mb="4" color="var(--ink)">Popular right now</Heading>
                     <div className="shelf-row">
                         {popularSongs.map((song, i) => (
                             <CoverTile key={song.songId || song.id || i} song={song} index={i} />
@@ -152,22 +152,22 @@ function Landing() {
 
             <Container maxW="1100px" px="5" py={{ base: '8', md: '12' }} id="how-it-works">
                 <Box mb="8">
-                    <Heading fontFamily="Fraunces, Georgia, serif" fontWeight="700" fontSize={{ base: '24px', md: '30px' }} color="var(--ink)">How it works</Heading>
+                    <Heading fontWeight="700" fontSize={{ base: '24px', md: '30px' }} color="var(--ink)">How it works</Heading>
                 </Box>
                 <Flex direction={{ base: 'column', md: 'row' }} gap="5">
                     <Box flex="1" className="landing-card" px="5" py="6">
                         <Text fontSize="12px" letterSpacing="0.12em" color="var(--teal)" fontWeight="600" mb="2">01</Text>
-                        <Heading fontFamily="Fraunces, Georgia, serif" fontWeight="700" fontSize="20px" mb="2" color="var(--ink)">Pick a song</Heading>
+                        <Heading fontWeight="700" fontSize="20px" mb="2" color="var(--ink)">Pick a song</Heading>
                         <Text color="var(--muted)" lineHeight="1.5">Search Spotify or use a track you recently played.</Text>
                     </Box>
                     <Box flex="1" className="landing-card" px="5" py="6">
                         <Text fontSize="12px" letterSpacing="0.12em" color="var(--teal)" fontWeight="600" mb="2">02</Text>
-                        <Heading fontFamily="Fraunces, Georgia, serif" fontWeight="700" fontSize="20px" mb="2" color="var(--ink)">See translations</Heading>
+                        <Heading fontWeight="700" fontSize="20px" mb="2" color="var(--ink)">See translations</Heading>
                         <Text color="var(--muted)" lineHeight="1.5">Lyrics appear line-by-line with the meaning underneath.</Text>
                     </Box>
                     <Box flex="1" className="landing-card" px="5" py="6">
                         <Text fontSize="12px" letterSpacing="0.12em" color="var(--teal)" fontWeight="600" mb="2">03</Text>
-                        <Heading fontFamily="Fraunces, Georgia, serif" fontWeight="700" fontSize="20px" mb="2" color="var(--ink)">Save &amp; review</Heading>
+                        <Heading fontWeight="700" fontSize="20px" mb="2" color="var(--ink)">Save &amp; review</Heading>
                         <Text color="var(--muted)" lineHeight="1.5">Tap any word to save it, then study with flashcards.</Text>
                     </Box>
                 </Flex>
@@ -175,14 +175,14 @@ function Landing() {
 
             <Box className="landing-band-accent">
                 <Container maxW="1100px" px="5" py={{ base: '8', md: '12' }}>
-                    <Heading fontFamily="Fraunces, Georgia, serif" fontWeight="700" fontSize={{ base: '22px', md: '26px' }} mb="6" color="var(--ink)">Built to make it stick</Heading>
+                    <Heading fontWeight="700" fontSize={{ base: '22px', md: '26px' }} mb="6" color="var(--ink)">Built to make it stick</Heading>
                     <Flex direction={{ base: 'column', md: 'row' }} gap="6">
                         <Box flex="1" className="landing-card" p="5">
-                            <Heading fontFamily="Fraunces, Georgia, serif" fontWeight="700" fontSize="18px" mb="2" color="var(--ink)">Streaks &amp; daily goals</Heading>
+                            <Heading fontWeight="700" fontSize="18px" mb="2" color="var(--ink)">Streaks &amp; daily goals</Heading>
                             <Text color="var(--muted)">Keep a listening streak going and earn XP for every lesson you finish.</Text>
                         </Box>
                         <Box flex="1" className="landing-card" p="5">
-                            <Heading fontFamily="Fraunces, Georgia, serif" fontWeight="700" fontSize="18px" mb="2" color="var(--ink)">Flashcard review</Heading>
+                            <Heading fontWeight="700" fontSize="18px" mb="2" color="var(--ink)">Flashcard review</Heading>
                             <Text color="var(--muted)">Every word you save turns into a flashcard you can drill later.</Text>
                         </Box>
                     </Flex>

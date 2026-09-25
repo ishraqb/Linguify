@@ -7,6 +7,8 @@ from services.language_service import detect_language
 from services.lemma_service import base_form
 
 MYMEMORY_URL = "https://api.mymemory.translated.net/get"
+# Unofficial Google endpoint used when DeepL isn't configured or MyMemory is rate-limited.
+GOOGLE_TRANSLATE_URL = "https://translate.googleapis.com/translate_a/single"
 # DeepL free tier endpoint; the key comes from the DEEPL_API_KEY env var.
 DEEPL_URL = "https://api-free.deepl.com/v2/translate"
 
@@ -27,6 +29,21 @@ MAX_TRANSLATION_LINES = 120
 # each (a full song can be 40+ lines), which blows past request timeouts; a
 # small pool keeps the total to a few seconds without hammering the free API.
 _MYMEMORY_WORKERS = 8
+
+
+def _base_lang(code):
+  return (code or "en").strip().lower().split("-")[0]
+
+
+# Drop empty strings and MyMemory quota/error payloads so we can try another provider.
+def _usable_translation(text):
+  if not text or not str(text).strip():
+    return None
+  cleaned = str(text).strip()
+  upper = cleaned.upper()
+  if upper.startswith("MYMEMORY WARNING") or "QUERY LENGTH LIMIT" in upper:
+    return None
+  return cleaned
 
 
 # Translate one string via DeepL; raises on error so the caller can fall back.
@@ -70,17 +87,48 @@ def _translate_mymemory(text, source_lang, target_lang):
   return data.get("responseData", {}).get("translatedText")
 
 
-# Translate a string via DeepL when possible, falling back to MyMemory.
+# Translate one string via the unofficial Google endpoint (no key required).
+def _translate_google(text, source_lang, target_lang):
+  response = requests.get(
+    GOOGLE_TRANSLATE_URL,
+    params={
+      "client": "gtx",
+      "sl": _base_lang(source_lang),
+      "tl": _base_lang(target_lang),
+      "dt": "t",
+      "q": text,
+    },
+    timeout=10,
+  )
+  response.raise_for_status()
+  segments = (response.json() or [None])[0] or []
+  return "".join(segment[0] for segment in segments if segment and segment[0])
+
+
+# Translate a string via DeepL when possible, falling back to MyMemory and then
+# Google. MyMemory's free tier is IP-quota-limited and often exhausted on
+# shared hosting (e.g. Render), so we can't rely on it alone.
 def translate_text(text, source_lang="en", target_lang="en"):
   api_key = os.environ.get("DEEPL_API_KEY")
   if api_key and source_lang in DEEPL_SUPPORTED and target_lang in DEEPL_SUPPORTED:
     try:
-      translated = _translate_deepl(text, source_lang, target_lang, api_key)
+      translated = _usable_translation(_translate_deepl(text, source_lang, target_lang, api_key))
       if translated:
         return translated
     except requests.RequestException:
-      pass  # DeepL failed (network, quota, etc.) — fall through to MyMemory.
-  return _translate_mymemory(text, source_lang, target_lang)
+      pass  # DeepL failed (network, quota, etc.) — fall through.
+
+  try:
+    translated = _usable_translation(_translate_mymemory(text, source_lang, target_lang))
+    if translated:
+      return translated
+  except requests.RequestException:
+    pass  # MyMemory failed (network, quota, etc.) — fall through to Google.
+
+  try:
+    return _usable_translation(_translate_google(text, source_lang, target_lang))
+  except requests.RequestException:
+    return None
 
 def translate_lines(lyrics, target_language, source_language="en"):
   lines = [line.strip() for line in lyrics.splitlines() if line.strip()]

@@ -22,6 +22,9 @@
     --chakra-colors-fg-muted: var(--muted);
     --chakra-colors-bg: var(--paper);
     --chakra-colors-border: var(--line);
+    --font: "Nunito", "Segoe UI", Helvetica, Arial, sans-serif;
+    --chakra-fonts-heading: var(--font);
+    --chakra-fonts-body: var(--font);
     color-scheme: light;
 }
 
@@ -59,10 +62,11 @@ html, body, #root {
 
 body {
     margin: 0;
-    font-family: "IBM Plex Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+    font-family: var(--font);
     background: var(--paper);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
     transition: background-color 0.25s ease, color 0.25s ease;
 }
 
@@ -98,8 +102,8 @@ h1, h2, h3,
 .quiz-score-value,
 .complete-header h1,
 .top-nav h1 {
-    font-family: Fraunces, Georgia, "Times New Roman", serif;
-    font-optical-sizing: auto;
+    font-family: var(--font);
+    letter-spacing: -0.02em;
 }
 
 a {
